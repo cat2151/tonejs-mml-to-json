@@ -4,4 +4,4 @@
 
 [Demo](https://cat2151.github.io/tonejs-mml-to-json/index.html)
 
-※README.mdはGitHub Actionsで自動生成しています
+※README.md は README.ja.md を元にGeminiの翻訳でGitHub Actionsで自動生成しています
