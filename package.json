@@ -1,0 +1,25 @@
+{
+  "name": "tonejs-mml-to-json",
+  "version": "0.0.0",
+  "description": "MML to JSON converter for tonejs-json-sequencer",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "build:parser": "peggy --format es src/grammar.pegjs",
+    "dev": "pnpm run build:parser && pnpm run test:watch"
+  },
+  "keywords": [
+    "mml",
+    "tonejs",
+    "music",
+    "parser"
+  ],
+  "author": "cat2151",
+  "license": "MIT",
+  "devDependencies": {
+    "peggy": "^5.0.5",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,8 @@
+
+# TDD開発環境
+node_modules/
+src/generated/
+coverage/
+.env
+.DS_Store
+Thumbs.db
