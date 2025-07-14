@@ -28,9 +28,8 @@
 └── prompts/
     └── project-summary-prompt.md     # 生成プロンプト設定
 
-daily-summaries/                      # 生成された要約の保存先
-├── README.md
-└── YYYY-MM-DD.md                    # 日次要約ファイル
+generated-docs/                       # 生成された要約の保存先
+└── project-summary.md               # プロジェクト要約ファイル
 ```
 
 ## 実行条件

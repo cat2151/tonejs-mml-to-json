@@ -302,10 +302,12 @@ ${recentChanges.changedFiles.join('\n')}
     const dateStr = jstDate.toISOString().split('T')[0]; // YYYY-MM-DD
     const timeStr = jstDate.toISOString().replace('T', ' ').split('.')[0]; // YYYY-MM-DD HH:mm:ss
 
-    const filename = `${dateStr}.md`;
-    const summaryPath = path.join(this.projectRoot, 'daily-summaries', filename);
+    const filename = `project-summary.md`;
+    const summaryPath = path.join(this.projectRoot, 'generated-docs', filename);
 
-    const content = `# Project Summary - ${dateStr}
+    const content = `# Project Summary
+
+Last updated: ${dateStr}
 
 ${summary}
 
@@ -314,7 +316,7 @@ Generated at: ${timeStr} JST
 `;
 
     await fs.writeFile(summaryPath, content, 'utf-8');
-    console.log(`Summary saved to: daily-summaries/${filename}`);
+    console.log(`Summary saved to: generated-docs/${filename}`);
 
     return filename;
   }

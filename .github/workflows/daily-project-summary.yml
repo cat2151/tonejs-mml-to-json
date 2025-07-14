@@ -48,9 +48,8 @@ jobs:
       - name: Check for generated summary
         id: check_summary
         run: |
-          if [ -n "$(find daily-summaries -name "$(date +%Y-%m-%d).md" -print -quit 2>/dev/null)" ]; then
+          if [ -f "generated-docs/project-summary.md" ]; then
             echo "summary_generated=true" >> $GITHUB_OUTPUT
-            echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
           else
             echo "summary_generated=false" >> $GITHUB_OUTPUT
           fi
@@ -64,14 +63,14 @@ jobs:
           git restore package.json 2>/dev/null || true
           git clean -fd 2>/dev/null || true
           # サマリーファイルのみを追加
-          git add daily-summaries/${{ steps.check_summary.outputs.date }}.md
-          git commit -m "Add daily project summary for ${{ steps.check_summary.outputs.date }}"
+          git add generated-docs/project-summary.md
+          git commit -m "Update project summary"
           git push
 
       - name: Summary generation result
         run: |
           if [ "${{ steps.check_summary.outputs.summary_generated }}" == "true" ]; then
-            echo "✅ Project summary generated successfully for ${{ steps.check_summary.outputs.date }}"
+            echo "✅ Project summary updated successfully"
           else
             echo "ℹ️ No summary generated (likely no user commits in the last 24 hours)"
           fi
