@@ -165,7 +165,7 @@ class ProjectSummaryGenerator {
     console.log('Collecting GitHub Issues...');
 
     try {
-      const { Octokit } = await import('@octokit/rest');
+      const { Octokit } = require('@octokit/rest');
       const octokit = new Octokit({
         auth: process.env.GITHUB_TOKEN
       });
@@ -303,7 +303,15 @@ ${recentChanges.changedFiles.join('\n')}
     const timeStr = jstDate.toISOString().replace('T', ' ').split('.')[0]; // YYYY-MM-DD HH:mm:ss
 
     const filename = `project-summary.md`;
-    const summaryPath = path.join(this.projectRoot, 'generated-docs', filename);
+    const summaryDir = path.join(this.projectRoot, 'generated-docs');
+    const summaryPath = path.join(summaryDir, filename);
+
+    // ディレクトリが存在しない場合は作成
+    try {
+      await fs.mkdir(summaryDir, { recursive: true });
+    } catch (error) {
+      // ディレクトリが既に存在する場合はエラーを無視
+    }
 
     const content = `# Project Summary
 

@@ -35,6 +35,8 @@ jobs:
           cd /tmp/summary-deps
           npm init -y
           npm install @google/generative-ai @octokit/rest
+          # generated-docsディレクトリを作成
+          mkdir -p $GITHUB_WORKSPACE/generated-docs
 
       - name: Generate project summary
         env:
