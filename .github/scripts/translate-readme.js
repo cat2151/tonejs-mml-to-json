@@ -13,7 +13,7 @@ async function translateReadme() {
 
     // Gemini API の初期化
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // プロジェクトルートへのパスを設定
     const projectRoot = path.resolve(__dirname, '../../');
@@ -28,7 +28,7 @@ async function translateReadme() {
     }
 
     const japaneseContent = await fs.readFile(readmeJaPath, 'utf-8');
-    
+
     if (!japaneseContent.trim()) {
       console.log('README.ja.md is empty, skipping translation.');
       return;
@@ -38,7 +38,7 @@ async function translateReadme() {
     console.log('Sending translation request to Gemini API...');
 
     // 翻訳プロンプト
-    const prompt = `Please translate the following Japanese Markdown text to English. 
+    const prompt = `Please translate the following Japanese Markdown text to English.
 Keep the Markdown formatting intact, including headers, links, code blocks, and other formatting elements.
 Make the translation natural and professional for an English-speaking developer audience.
 If there are any technical terms or project-specific terms, keep them appropriate for a software development context.
@@ -72,7 +72,7 @@ ${japaneseContent}`;
 
     // 翻訳結果をREADME.mdに書き込み
     await fs.writeFile(readmePath, translatedText, 'utf-8');
-    
+
     console.log('Translation completed successfully!');
     console.log('README.md has been updated with the English translation');
 

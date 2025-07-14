@@ -1,0 +1,69 @@
+name: Daily Project Summary
+
+on:
+  schedule:
+    # 日本時間 07:00 (UTC 22:00 前日)
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+    # 手動実行も可能
+
+jobs:
+  generate-summary:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # 履歴を取得するため
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm init -y
+          npm install @google/generative-ai @octokit/rest
+
+      - name: Generate project summary
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          node .github/scripts/generate-project-summary.cjs
+
+      - name: Check for generated summary
+        id: check_summary
+        run: |
+          if [ -n "$(find daily-summaries -name "$(date +%Y-%m-%d).md" -print -quit 2>/dev/null)" ]; then
+            echo "summary_generated=true" >> $GITHUB_OUTPUT
+            echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+          else
+            echo "summary_generated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push summary
+        if: steps.check_summary.outputs.summary_generated == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add daily-summaries/${{ steps.check_summary.outputs.date }}.md
+          git commit -m "Add daily project summary for ${{ steps.check_summary.outputs.date }}"
+          git push
+
+      - name: Summary generation result
+        run: |
+          if [ "${{ steps.check_summary.outputs.summary_generated }}" == "true" ]; then
+            echo "✅ Project summary generated successfully for ${{ steps.check_summary.outputs.date }}"
+          else
+            echo "ℹ️ No summary generated (likely no user commits in the last 24 hours)"
+          fi
