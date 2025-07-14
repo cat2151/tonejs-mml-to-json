@@ -30,6 +30,9 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # 一時的なディレクトリで依存関係をインストール
+          mkdir -p /tmp/summary-deps
+          cd /tmp/summary-deps
           npm init -y
           npm install @google/generative-ai @octokit/rest
 
@@ -38,6 +41,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          NODE_PATH: /tmp/summary-deps/node_modules
         run: |
           node .github/scripts/generate-project-summary.cjs
 
@@ -56,6 +60,10 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          # 作業ディレクトリの変更をリセット
+          git restore package.json 2>/dev/null || true
+          git clean -fd 2>/dev/null || true
+          # サマリーファイルのみを追加
           git add daily-summaries/${{ steps.check_summary.outputs.date }}.md
           git commit -m "Add daily project summary for ${{ steps.check_summary.outputs.date }}"
           git push
