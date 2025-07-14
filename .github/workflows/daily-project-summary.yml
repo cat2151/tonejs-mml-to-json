@@ -61,9 +61,8 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          # 作業ディレクトリの変更をリセット
+          # package.jsonの変更のみリセット（generated-docsは保持）
           git restore package.json 2>/dev/null || true
-          git clean -fd 2>/dev/null || true
           # サマリーファイルのみを追加
           git add generated-docs/project-summary.md
           git commit -m "Update project summary"
