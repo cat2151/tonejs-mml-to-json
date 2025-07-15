@@ -1,9 +1,9 @@
 /**
  * @name Function Call Graph
- * @description Extract all function call relationships for JavaScript/TypeScript code
+ * @description Extract all function call relationships for JavaScript/TypeScript code (maximum loose conditions)
  * @kind problem
  * @problem.severity info
- * @precision medium
+ * @precision low
  * @id javascript/function-call-graph
  * @tags callgraph
  *       maintainability
@@ -12,53 +12,79 @@
 
 import javascript
 
-from CallExpr call, string callerName, string calleeName, string debugInfo
+from CallExpr call, string callerName, string calleeName
 where
-  // 呼び出し元を特定
+  // 呼び出し元を特定 - 最大限に甘い条件
   (
-    // 名前付き関数内からの呼び出し
+    // 関数内からの呼び出し（名前付き）
     exists(Function caller |
       call.getEnclosingFunction() = caller and
       exists(caller.getName()) and
-      callerName = caller.getName() and
-      debugInfo = "from_named_function"
+      callerName = caller.getName()
     )
     or
-    // 無名関数・アロー関数内からの呼び出し
-    exists(Function arrow |
-      call.getEnclosingFunction() = arrow and
-      not exists(arrow.getName()) and
-      callerName = "anonymous_" + arrow.getLocation().getStartLine() and
-      debugInfo = "from_anonymous_function"
+    // 関数内からの呼び出し（無名・アロー）
+    exists(Function caller |
+      call.getEnclosingFunction() = caller and
+      not exists(caller.getName()) and
+      callerName = "anonymous_" + caller.getLocation().getStartLine()
+    )
+    or
+    // メソッド内からの呼び出し
+    exists(MethodDefinition method |
+      call.getEnclosingFunction() = method.getBody() and
+      callerName = method.getName()
+    )
+    or
+    // コンストラクタ内からの呼び出し
+    exists(Constructor cons |
+      call.getEnclosingFunction() = cons and
+      callerName = "constructor"
     )
     or
     // グローバルスコープからの呼び出し
     (
       not exists(call.getEnclosingFunction()) and
-      callerName = "global" and
-      debugInfo = "from_global"
+      callerName = "global"
+    )
+    or
+    // その他すべての場合
+    (
+      not exists(Function f | call.getEnclosingFunction() = f) and
+      callerName = "unknown_" + call.getLocation().getStartLine()
     )
   ) and
 
-  // 呼び出し先を特定
+  // 呼び出し先を特定 - 最大限に甘い条件
   (
-    // 直接的な関数名への呼び出し
+    // 直接的な関数名
     exists(Identifier id |
       call.getCallee() = id and
       calleeName = id.getName()
     )
     or
-    // メソッド呼び出し obj.method()
+    // メソッド呼び出し
     exists(PropAccess prop |
       call.getCallee() = prop and
       calleeName = prop.getPropertyName()
     )
-  ) and
+    or
+    // ネストしたプロパティアクセス a.b.c()
+    exists(PropAccess prop |
+      call.getCallee() = prop and
+      calleeName = prop.toString()
+    )
+    or
+    // その他のコール（new, 複雑な式など）
+    (
+      not exists(Identifier id | call.getCallee() = id) and
+      not exists(PropAccess prop | call.getCallee() = prop) and
+      calleeName = call.getCallee().toString()
+    )
+  )
 
-  // フィルタリング - 基本的なもののみ
-  callerName != "" and
-  calleeName != "" and
-  calleeName != "require" and
-  not calleeName.matches("console%")
+  // フィルタリングを最小限に - 空文字列のみ除外
+  and callerName != ""
+  and calleeName != ""
 
-select call, callerName + " -> " + calleeName + " (" + debugInfo + " at " + call.getLocation().toString() + ")"
+select call, callerName + " -> " + calleeName + " (at " + call.getLocation().toString() + ")"
