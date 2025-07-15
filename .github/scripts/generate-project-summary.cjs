@@ -664,9 +664,7 @@ ${recentChanges.changedFiles.join('\n')}
     // 1. プロジェクト概要を保存
     const overviewFilename = 'project-overview.md';
     const overviewPath = path.join(summaryDir, overviewFilename);
-    const overviewContent = `# Project Overview
-
-Last updated: ${dateStr}
+    const overviewContent = `Last updated: ${dateStr}
 
 ${summaries.overview}
 
@@ -680,9 +678,7 @@ Generated at: ${timeStr} JST
     // 2. 開発状況を保存
     const developmentFilename = 'development-status.md';
     const developmentPath = path.join(summaryDir, developmentFilename);
-    const developmentContent = `# Development Status
-
-Last updated: ${dateStr}
+    const developmentContent = `Last updated: ${dateStr}
 
 ${summaries.development}
 
