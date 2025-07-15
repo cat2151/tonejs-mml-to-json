@@ -47,31 +47,33 @@ jobs:
         run: |
           node .github/scripts/generate-project-summary.cjs
 
-      - name: Check for generated summary
-        id: check_summary
+      - name: Check for generated summaries
+        id: check_summaries
         run: |
-          if [ -f "generated-docs/project-summary.md" ]; then
-            echo "summary_generated=true" >> $GITHUB_OUTPUT
+          if [ -f "generated-docs/project-overview.md" ] && [ -f "generated-docs/development-status.md" ]; then
+            echo "summaries_generated=true" >> $GITHUB_OUTPUT
           else
-            echo "summary_generated=false" >> $GITHUB_OUTPUT
+            echo "summaries_generated=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Commit and push summary
-        if: steps.check_summary.outputs.summary_generated == 'true'
+      - name: Commit and push summaries
+        if: steps.check_summaries.outputs.summaries_generated == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           # package.jsonの変更のみリセット（generated-docsは保持）
           git restore package.json 2>/dev/null || true
           # サマリーファイルのみを追加
-          git add generated-docs/project-summary.md
-          git commit -m "Update project summary"
+          git add generated-docs/project-overview.md
+          git add generated-docs/development-status.md
+          git commit -m "Update project summaries (overview & development status)"
           git push
 
       - name: Summary generation result
         run: |
-          if [ "${{ steps.check_summary.outputs.summary_generated }}" == "true" ]; then
-            echo "✅ Project summary updated successfully"
+          if [ "${{ steps.check_summaries.outputs.summaries_generated }}" == "true" ]; then
+            echo "✅ Project summaries updated successfully"
+            echo "📊 Generated: project-overview.md & development-status.md"
           else
-            echo "ℹ️ No summary generated (likely no user commits in the last 24 hours)"
+            echo "ℹ️ No summaries generated (likely no user commits in the last 24 hours)"
           fi

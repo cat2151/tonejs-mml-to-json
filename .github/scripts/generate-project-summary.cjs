@@ -67,7 +67,11 @@ class ProjectSummaryGenerator {
       name: '',
       description: '',
       structure: '',
-      dependencies: {}
+      dependencies: {},
+      techStack: {},
+      fileTree: '',
+      fileAnalysis: [],
+      functionHierarchy: {}
     };
 
     try {
@@ -80,6 +84,9 @@ class ProjectSummaryGenerator {
         dependencies: packageJson.dependencies || {},
         devDependencies: packageJson.devDependencies || {}
       };
+
+      // 技術スタックの分析
+      projectInfo.techStack = this.analyzeTechStack(packageJson);
     } catch (error) {
       console.warn('Could not read package.json:', error.message);
     }
@@ -108,14 +115,229 @@ class ProjectSummaryGenerator {
       console.warn('Could not get project structure:', error.message);
     }
 
+    try {
+      // 詳細なファイルツリーを取得
+      console.log('Generating detailed file tree...');
+      projectInfo.fileTree = await this.getDetailedFileTree();
+    } catch (error) {
+      console.warn('Could not get detailed file tree:', error.message);
+    }
+
+    try {
+      // 全ファイルの詳細分析
+      console.log('Analyzing all files...');
+      projectInfo.fileAnalysis = await this.analyzeAllFiles();
+    } catch (error) {
+      console.warn('Could not analyze files:', error.message);
+    }
+
+    try {
+      // 関数呼び出し階層の分析
+      console.log('Analyzing function call hierarchy...');
+      projectInfo.functionHierarchy = await this.analyzeFunctionCallHierarchy(projectInfo.fileAnalysis);
+    } catch (error) {
+      console.warn('Could not analyze function hierarchy:', error.message);
+    }
+
     return projectInfo;
+  }
+
+  /**
+   * 技術スタックを分析
+   */
+  analyzeTechStack(packageJson) {
+    const techStack = {
+      frontend: [],
+      music: [],
+      backend: [],
+      development: [],
+      testing: [],
+      buildTools: [],
+      languageFeatures: [],
+      automation: [],
+      standards: []
+    };
+
+    const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
+
+    // フロントエンド技術
+    if (this.checkFileExists('src/index.html')) {
+      techStack.frontend.push('HTML5 - ブラウザベースのMMLプレイヤー');
+    }
+
+    // 音楽・オーディオ技術
+    if (deps['tonejs'] || this.checkFileExists('src/**/*.js', 'Tone.js')) {
+      techStack.music.push('Tone.js - Web Audio API音声ライブラリ');
+    }
+
+    if (this.checkFileExists('src/index.html')) {
+      const htmlContent = this.readFileContent('src/index.html');
+      if (htmlContent && htmlContent.includes('unpkg.com/tone')) {
+        techStack.music.push('Tone.js CDN - unpkg経由でのライブラリ配信');
+      }
+    }
+
+    if (this.checkFileExists('src/grammar.pegjs') || this.checkFileExists('src/**/*.js')) {
+      techStack.music.push('MML (Music Macro Language) - 音楽記法パーサー');
+    }
+
+    if (deps['tonejs'] || this.checkFileExists('src/**/*.js', 'Tone.js')) {
+      techStack.music.push('Web Audio API - ブラウザ音声技術（Tone.js経由）');
+    }
+
+    // 開発環境・ランタイム
+    techStack.development.push('Node.js runtime - JavaScript実行環境');
+
+    if (packageJson.scripts && Object.keys(packageJson.scripts).length > 0) {
+      const scriptCount = Object.keys(packageJson.scripts).length;
+      techStack.development.push(`npm scripts - タスクランナー (${scriptCount}個のスクリプト)`);
+    }
+
+    // 開発ツール
+    if (packageJson.packageManager === 'pnpm' || this.checkFileExists('pnpm-lock.yaml')) {
+      techStack.development.push('pnpm - 高速で効率的なパッケージマネージャー');
+    }
+
+    // テストツール・手法
+    if (deps['vitest']) {
+      techStack.testing.push('Vitest - 高速なViteベースのテストフレームワーク');
+    }
+
+    if (this.checkFileExists('.gitignore')) {
+      const gitignoreContent = this.readFileContent('.gitignore');
+      if (gitignoreContent && gitignoreContent.includes('TDD開発環境')) {
+        techStack.testing.push('TDD (Test-Driven Development) - テスト駆動開発手法');
+      }
+    }
+
+    // ビルドツール
+
+    // ビルドツール
+    if (deps['peggy']) {
+      techStack.buildTools.push('Peggy - PEG (Parsing Expression Grammar) パーサージェネレーター');
+    }
+
+    // PegJSファイルの存在チェック
+    if (this.checkFileExists('src/grammar.pegjs')) {
+      techStack.buildTools.push('PEG文法定義 - MML音楽記法のパーサー生成');
+    }
+
+    // 開発標準・設定
+    if (this.checkFileExists('.editorconfig')) {
+      techStack.standards.push('EditorConfig - コード統一ルール');
+    }
+
+    // その他の開発ツール
+    if (deps['@google/generative-ai']) {
+      techStack.development.push('Google Generative AI - AI文書生成サポート');
+    }
+
+    if (deps['@octokit/rest']) {
+      techStack.development.push('@octokit/rest - GitHub API連携');
+    }
+
+    // 言語機能
+    if (packageJson.type === 'module') {
+      techStack.languageFeatures.push('ES Modules - モダンなJavaScriptモジュールシステム');
+    }
+
+    // PegJSファイルの存在チェック
+    if (this.checkFileExists('src/grammar.pegjs')) {
+      techStack.buildTools.push('PEG文法定義 - MML音楽記法のパーサー生成');
+    }
+
+    // GitHub Actionsの検出
+    if (this.checkFileExists('.github/workflows')) {
+      const workflowFiles = this.getWorkflowFiles();
+      if (workflowFiles.length > 0) {
+        techStack.automation.push(`GitHub Actions - CI/CD自動化 (${workflowFiles.length}個のワークフロー)`);
+
+        // 特定のワークフローの詳細を追加
+        workflowFiles.forEach(workflow => {
+          const workflowName = workflow.replace('.yml', '').replace('.yaml', '');
+          if (workflowName.includes('summary')) {
+            techStack.automation.push('  - プロジェクト要約自動生成');
+          }
+          if (workflowName.includes('translate')) {
+            techStack.automation.push('  - README多言語翻訳');
+            techStack.automation.push('  - i18n automation - 自動翻訳ワークフロー');
+          }
+          if (workflowName.includes('issue')) {
+            techStack.automation.push('  - Issue自動管理');
+          }
+        });
+      }
+    }
+
+    return techStack;
+  }
+
+  /**
+   * ファイル存在チェック（簡易版）
+   */
+  checkFileExists(pattern, keyword = null) {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+
+      if (pattern.includes('**')) {
+        // glob的なパターンの場合は簡易チェック
+        const basePath = pattern.split('**')[0];
+        const fullPath = path.join(this.projectRoot, basePath);
+        return fs.existsSync(fullPath);
+      } else {
+        // 具体的なファイルパス
+        const fullPath = path.join(this.projectRoot, pattern);
+        return fs.existsSync(fullPath);
+      }
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * GitHub Actionsワークフローファイルを取得
+   */
+  getWorkflowFiles() {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const workflowsPath = path.join(this.projectRoot, '.github/workflows');
+
+      if (!fs.existsSync(workflowsPath)) {
+        return [];
+      }
+
+      const files = fs.readdirSync(workflowsPath);
+      return files.filter(file => file.endsWith('.yml') || file.endsWith('.yaml'));
+    } catch (error) {
+      return [];
+    }
+  }
+
+  /**
+   * ファイル内容を読み取る（簡易版）
+   */
+  readFileContent(filePath) {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const fullPath = path.join(this.projectRoot, filePath);
+
+      if (fs.existsSync(fullPath)) {
+        return fs.readFileSync(fullPath, 'utf-8');
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
   }
 
   /**
    * プロジェクト構造を取得（クロスプラットフォーム対応）
    */
   async getProjectStructure() {
-    const extensions = ['.js', '.ts', '.json', '.md'];
+    const extensions = ['.js', '.ts', '.json', '.md', '.html', '.css', '.pegjs'];
     const excludeDirs = ['.git', 'node_modules', '.github'];
     const files = [];
 
@@ -141,7 +363,7 @@ class ProjectSummaryGenerator {
               const ext = path.extname(item);
               if (extensions.includes(ext)) {
                 files.push(relativeItemPath.replace(/\\/g, '/'));
-                if (files.length >= 20) break; // 最大20ファイル
+                if (files.length >= 30) break; // 最大30ファイル
               }
             }
           } catch (error) {
@@ -228,21 +450,36 @@ class ProjectSummaryGenerator {
   /**
    * プロンプトファイルを読み込み
    */
-  async loadPrompt() {
+  async loadPrompts() {
+    const prompts = {
+      overview: '',
+      development: ''
+    };
+
     try {
-      const promptPath = path.join(this.projectRoot, '.github/prompts/project-summary-prompt.md');
-      return await fs.readFile(promptPath, 'utf-8');
+      const overviewPromptPath = path.join(this.projectRoot, '.github/prompts/project-overview-prompt.md');
+      prompts.overview = await fs.readFile(overviewPromptPath, 'utf-8');
     } catch (error) {
-      console.warn('Could not read prompt file:', error.message);
-      return `プロジェクトを3行で要約し、現在のissuesを3行で要約し、次の一手の候補を3つリストしてください。`;
+      console.warn('Could not read project-overview-prompt.md:', error.message);
+      prompts.overview = `プロジェクト概要、技術スタック、ファイル構造、関数構造を詳細に説明してください。`;
     }
+
+    try {
+      const developmentPromptPath = path.join(this.projectRoot, '.github/prompts/development-status-prompt.md');
+      prompts.development = await fs.readFile(developmentPromptPath, 'utf-8');
+    } catch (error) {
+      console.warn('Could not read development-status-prompt.md:', error.message);
+      prompts.development = `現在のissuesを要約し、次の一手の候補を3つリストしてください。`;
+    }
+
+    return prompts;
   }
 
   /**
-   * Gemini APIを使ってテキスト生成
+   * Gemini APIを使って2つのテキストを生成
    */
-  async generateSummary(projectInfo, issues, recentChanges, promptTemplate) {
-    console.log('Generating summary with Gemini API...');
+  async generateSummaries(projectInfo, issues, recentChanges, prompts) {
+    console.log('Generating summaries with Gemini API...');
 
     const contextData = {
       projectInfo,
@@ -251,8 +488,78 @@ class ProjectSummaryGenerator {
       timestamp: new Date().toISOString()
     };
 
-    const prompt = `
-${promptTemplate}
+    const summaries = {
+      overview: '',
+      development: ''
+    };
+
+    // 共通のフォーマット関数
+    const formatFunctionHierarchy = (hierarchy) => {
+      let result = '';
+      const processedFunctions = new Set();
+
+      // エントリーポイント（他から呼ばれない関数）を探す
+      const entryPoints = Object.keys(hierarchy).filter(func =>
+        hierarchy[func].calledBy.length === 0
+      );
+
+      const buildTree = (func, depth = 0) => {
+        if (processedFunctions.has(func) || depth > 3) return '';
+        processedFunctions.add(func);
+
+        const indent = '  '.repeat(depth);
+        let tree = `${indent}- ${func} (${hierarchy[func].file})\n`;
+
+        hierarchy[func].calls.forEach(calledFunc => {
+          if (hierarchy[calledFunc]) {
+            tree += buildTree(calledFunc, depth + 1);
+          }
+        });
+
+        return tree;
+      };
+
+      entryPoints.forEach(entry => {
+        result += buildTree(entry);
+      });
+
+      return result || '関数呼び出し階層を分析できませんでした';
+    };
+
+    // ファイル詳細をフォーマット
+    const formatFileDetails = (fileAnalysis) => {
+      return fileAnalysis.map(file => {
+        const functions = file.functions.length > 0 ? file.functions.join(', ') : 'なし';
+        const imports = file.imports.length > 0 ? file.imports.slice(0, 3).join(', ') : 'なし';
+        return `**${file.path}** (${file.lines}行, ${file.size}バイト)\n  - 関数: ${functions}\n  - インポート: ${imports}`;
+      }).join('\n\n');
+    };
+
+    // 技術スタックをフォーマット
+    const formatTechStack = (techStack) => {
+      let result = '';
+      Object.entries(techStack).forEach(([category, items]) => {
+        if (items.length > 0) {
+          const categoryNames = {
+            frontend: 'フロントエンド',
+            music: '音楽・オーディオ',
+            backend: 'バックエンド',
+            development: '開発ツール',
+            testing: 'テスト',
+            buildTools: 'ビルドツール',
+            languageFeatures: '言語機能',
+            automation: '自動化・CI/CD',
+            standards: '開発標準'
+          };
+          result += `**${categoryNames[category]}:**\n${items.map(item => `  - ${item}`).join('\n')}\n\n`;
+        }
+      });
+      return result || '技術スタック情報を取得できませんでした';
+    };
+
+    // 1. プロジェクト概要生成（来訪者向け）
+    const overviewPrompt = `
+${prompts.overview}
 
 以下のプロジェクト情報を参考にして要約を生成してください：
 
@@ -263,8 +570,35 @@ ${promptTemplate}
 依存関係:
 ${JSON.stringify(projectInfo.dependencies, null, 2)}
 
-プロジェクト構造:
+## 技術スタック
+${formatTechStack(projectInfo.techStack)}
+
+## ファイル階層ツリー
+${projectInfo.fileTree}
+
+## ファイル詳細分析
+${formatFileDetails(projectInfo.fileAnalysis)}
+
+## 関数呼び出し階層
+${formatFunctionHierarchy(projectInfo.functionHierarchy)}
+
+## プロジェクト構造（ファイル一覧）
 ${projectInfo.structure}
+
+上記の情報を基に、プロンプトで指定された形式でプロジェクト概要を生成してください。
+特に以下の点を重視してください：
+- 技術スタックは各カテゴリごとに整理して説明
+- ファイル階層ツリーは提供された構造をそのまま使用
+- ファイルの説明は各ファイルの実際の内容と機能に基づく
+- 関数の説明は実際に検出された関数の役割に基づく
+- 関数呼び出し階層は実際の呼び出し関係に基づく
+`;
+
+    // 2. 開発状況生成（開発者向け）
+    const developmentPrompt = `
+${prompts.development}
+
+以下の開発状況情報を参考にして要約を生成してください：
 
 ## 現在のオープンIssues
 ${issues.length === 0 ? 'オープン中のIssueはありません' : issues.map(issue =>
@@ -278,33 +612,38 @@ ${recentChanges.commits.join('\n')}
 変更されたファイル:
 ${recentChanges.changedFiles.join('\n')}
 
-上記の情報を基に、プロンプトで指定された形式で要約を生成してください。
+上記の情報を基に、プロンプトで指定された形式で開発状況を生成してください。
 `;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const generatedText = result.response.text();
+      // プロジェクト概要生成
+      console.log('Generating project overview...');
+      const overviewResult = await this.model.generateContent(overviewPrompt);
+      summaries.overview = overviewResult.response.text();
 
-      console.log('Summary generated successfully');
-      return generatedText;
+      // 開発状況生成
+      console.log('Generating development status...');
+      const developmentResult = await this.model.generateContent(developmentPrompt);
+      summaries.development = developmentResult.response.text();
+
+      console.log('Both summaries generated successfully');
+      return summaries;
     } catch (error) {
-      console.error('Error generating summary:', error.message);
+      console.error('Error generating summaries:', error.message);
       throw error;
     }
   }
 
   /**
-   * 生成した要約をファイルに保存
+   * 生成した2つの要約をファイルに保存
    */
-  async saveSummary(summary) {
+  async saveSummaries(summaries) {
     const now = new Date();
     const jstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000)); // JST変換
     const dateStr = jstDate.toISOString().split('T')[0]; // YYYY-MM-DD
     const timeStr = jstDate.toISOString().replace('T', ' ').split('.')[0]; // YYYY-MM-DD HH:mm:ss
 
-    const filename = `project-summary.md`;
     const summaryDir = path.join(this.projectRoot, 'generated-docs');
-    const summaryPath = path.join(summaryDir, filename);
 
     // ディレクトリが存在しない場合は作成
     try {
@@ -313,20 +652,299 @@ ${recentChanges.changedFiles.join('\n')}
       // ディレクトリが既に存在する場合はエラーを無視
     }
 
-    const content = `# Project Summary
+    const filenames = [];
+
+    // 1. プロジェクト概要を保存
+    const overviewFilename = 'project-overview.md';
+    const overviewPath = path.join(summaryDir, overviewFilename);
+    const overviewContent = `# Project Overview
 
 Last updated: ${dateStr}
 
-${summary}
+${summaries.overview}
 
 ---
 Generated at: ${timeStr} JST
 `;
+    await fs.writeFile(overviewPath, overviewContent, 'utf-8');
+    console.log(`Project overview saved to: generated-docs/${overviewFilename}`);
+    filenames.push(overviewFilename);
 
-    await fs.writeFile(summaryPath, content, 'utf-8');
-    console.log(`Summary saved to: generated-docs/${filename}`);
+    // 2. 開発状況を保存
+    const developmentFilename = 'development-status.md';
+    const developmentPath = path.join(summaryDir, developmentFilename);
+    const developmentContent = `# Development Status
 
-    return filename;
+Last updated: ${dateStr}
+
+${summaries.development}
+
+---
+Generated at: ${timeStr} JST
+`;
+    await fs.writeFile(developmentPath, developmentContent, 'utf-8');
+    console.log(`Development status saved to: generated-docs/${developmentFilename}`);
+    filenames.push(developmentFilename);
+
+    return filenames;
+  }
+
+  /**
+   * 詳細なファイル階層ツリーを生成
+   */
+  async getDetailedFileTree() {
+    const excludeDirs = ['.git', 'node_modules', '.github'];
+    const tree = [];
+
+    const buildTree = async (dir, depth = 0) => {
+      try {
+        const items = await fs.readdir(path.join(this.projectRoot, dir));
+        items.sort();
+
+        for (const item of items) {
+          if (excludeDirs.includes(item)) continue;
+
+          const fullPath = path.join(dir, item);
+          const absolutePath = path.join(this.projectRoot, fullPath);
+          const indent = '  '.repeat(depth);
+
+          try {
+            const stat = await fs.stat(absolutePath);
+            if (stat.isDirectory()) {
+              tree.push(`${indent}📁 ${item}/`);
+              await buildTree(fullPath, depth + 1);
+            } else {
+              const ext = path.extname(item);
+              const icon = this.getFileIcon(ext);
+              tree.push(`${indent}${icon} ${item}`);
+            }
+          } catch (error) {
+            continue;
+          }
+        }
+      } catch (error) {
+        // ディレクトリ読み取りエラーをスキップ
+      }
+    };
+
+    await buildTree('.');
+    return tree.join('\n');
+  }
+
+  /**
+   * ファイル拡張子に応じたアイコンを取得
+   */
+  getFileIcon(ext) {
+    const icons = {
+      '.js': '📜',
+      '.ts': '📘',
+      '.json': '📊',
+      '.md': '📖',
+      '.html': '🌐',
+      '.css': '🎨',
+      '.pegjs': '📝'
+    };
+    return icons[ext] || '📄';
+  }
+
+  /**
+   * 全ファイルの詳細分析
+   */
+  async analyzeAllFiles() {
+    const extensions = ['.js', '.ts', '.pegjs', '.html', '.css'];
+    const excludeDirs = ['.git', 'node_modules', '.github'];
+    const fileAnalysis = [];
+
+    const analyzeFiles = async (dir) => {
+      try {
+        const items = await fs.readdir(path.join(this.projectRoot, dir));
+
+        for (const item of items) {
+          const fullPath = path.join(dir, item);
+          const absolutePath = path.join(this.projectRoot, fullPath);
+
+          if (excludeDirs.includes(item)) continue;
+
+          try {
+            const stat = await fs.stat(absolutePath);
+            if (stat.isDirectory()) {
+              await analyzeFiles(fullPath);
+            } else if (stat.isFile()) {
+              const ext = path.extname(item);
+              if (extensions.includes(ext)) {
+                const analysis = await this.analyzeFile(absolutePath, fullPath);
+                if (analysis) {
+                  fileAnalysis.push(analysis);
+                }
+              }
+            }
+          } catch (error) {
+            continue;
+          }
+        }
+      } catch (error) {
+        // ディレクトリ読み取りエラーをスキップ
+      }
+    };
+
+    await analyzeFiles('.');
+    return fileAnalysis;
+  }
+
+  /**
+   * 個別ファイルの分析
+   */
+  async analyzeFile(absolutePath, relativePath) {
+    try {
+      const content = await fs.readFile(absolutePath, 'utf-8');
+      const ext = path.extname(relativePath);
+
+      const analysis = {
+        path: relativePath.replace(/\\/g, '/'),
+        size: content.length,
+        lines: content.split('\n').length,
+        functions: [],
+        imports: [],
+        exports: []
+      };
+
+      if (ext === '.js' || ext === '.ts') {
+        analysis.functions = this.extractJavaScriptFunctions(content);
+        analysis.imports = this.extractImports(content);
+        analysis.exports = this.extractExports(content);
+      } else if (ext === '.pegjs') {
+        analysis.functions = this.extractPegJSRules(content);
+      }
+
+      return analysis;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * JavaScript/TypeScript関数を抽出
+   */
+  extractJavaScriptFunctions(content) {
+    const functions = [];
+
+    // 関数宣言のパターン
+    const patterns = [
+      /function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\([^)]*\)/g,
+      /const\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*(?:async\s+)?function/g,
+      /const\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*(?:async\s+)?\([^)]*\)\s*=>/g,
+      /([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\([^)]*\)\s*{/g,
+      /async\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\([^)]*\)/g
+    ];
+
+    patterns.forEach(pattern => {
+      let match;
+      while ((match = pattern.exec(content)) !== null) {
+        if (match[1] && !functions.includes(match[1])) {
+          functions.push(match[1]);
+        }
+      }
+    });
+
+    return functions;
+  }
+
+  /**
+   * import文を抽出
+   */
+  extractImports(content) {
+    const imports = [];
+    const importPattern = /import\s+.*?\s+from\s+['"`]([^'"`]+)['"`]/g;
+    const requirePattern = /require\(['"`]([^'"`]+)['"`]\)/g;
+
+    let match;
+    while ((match = importPattern.exec(content)) !== null) {
+      imports.push(match[1]);
+    }
+    while ((match = requirePattern.exec(content)) !== null) {
+      imports.push(match[1]);
+    }
+
+    return imports;
+  }
+
+  /**
+   * export文を抽出
+   */
+  extractExports(content) {
+    const exports = [];
+    const exportPattern = /export\s+(?:default\s+)?(?:function\s+)?([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
+    const moduleExportsPattern = /module\.exports\s*=\s*([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
+
+    let match;
+    while ((match = exportPattern.exec(content)) !== null) {
+      exports.push(match[1]);
+    }
+    while ((match = moduleExportsPattern.exec(content)) !== null) {
+      exports.push(match[1]);
+    }
+
+    return exports;
+  }
+
+  /**
+   * PegJSルールを抽出
+   */
+  extractPegJSRules(content) {
+    const rules = [];
+    const rulePattern = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=/gm;
+
+    let match;
+    while ((match = rulePattern.exec(content)) !== null) {
+      rules.push(match[1]);
+    }
+
+    return rules;
+  }
+
+  /**
+   * 関数呼び出し階層を分析
+   */
+  async analyzeFunctionCallHierarchy(fileAnalysis) {
+    const hierarchy = {};
+
+    // 各ファイルの関数について、どの関数を呼び出しているかを分析
+    for (const file of fileAnalysis) {
+      try {
+        const content = await fs.readFile(path.join(this.projectRoot, file.path), 'utf-8');
+
+        for (const func of file.functions) {
+          if (!hierarchy[func]) {
+            hierarchy[func] = {
+              file: file.path,
+              calls: [],
+              calledBy: []
+            };
+          }
+
+          // この関数が呼び出している他の関数を検索
+          const allFunctions = fileAnalysis.flatMap(f => f.functions);
+          allFunctions.forEach(targetFunc => {
+            if (targetFunc !== func && content.includes(targetFunc + '(')) {
+              if (!hierarchy[func].calls.includes(targetFunc)) {
+                hierarchy[func].calls.push(targetFunc);
+              }
+
+              if (!hierarchy[targetFunc]) {
+                hierarchy[targetFunc] = { file: '', calls: [], calledBy: [] };
+              }
+              if (!hierarchy[targetFunc].calledBy.includes(func)) {
+                hierarchy[targetFunc].calledBy.push(func);
+              }
+            }
+          });
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+
+    return hierarchy;
   }
 
   /**
@@ -350,11 +968,11 @@ Generated at: ${timeStr} JST
 
       // データ収集
       console.log('Collecting project data...');
-      const [projectInfo, issues, recentChanges, promptTemplate] = await Promise.all([
+      const [projectInfo, issues, recentChanges, prompts] = await Promise.all([
         this.collectProjectInfo(),
         this.collectIssues(),
         this.collectRecentChanges(),
-        this.loadPrompt()
+        this.loadPrompts()
       ]);
 
       // Octokitのインストールが必要な場合のハンドリング
@@ -363,13 +981,14 @@ Generated at: ${timeStr} JST
       }
 
       // テキスト生成
-      const summary = await this.generateSummary(projectInfo, issues, recentChanges, promptTemplate);
+      const summaries = await this.generateSummaries(projectInfo, issues, recentChanges, prompts);
 
       // ファイル保存
-      const filename = await this.saveSummary(summary);
+      const filenames = await this.saveSummaries(summaries);
 
       console.log('Project summary generation completed successfully!');
-      return filename;
+      console.log(`Generated files: ${filenames.join(', ')}`);
+      return filenames;
 
     } catch (error) {
       console.error('Project summary generation failed:', error.message);

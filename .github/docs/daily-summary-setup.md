@@ -23,13 +23,15 @@
 ├── workflows/
 │   └── daily-project-summary.yml     # メインワークフロー
 ├── scripts/
-│   ├── generate-project-summary.js   # 要約生成スクリプト
-│   └── test-summary.js              # 手動テスト用
+│   ├── generate-project-summary.cjs  # 要約生成スクリプト（Node.js）
+│   └── test-summary.cjs             # 手動テスト用
 └── prompts/
-    └── project-summary-prompt.md     # 生成プロンプト設定
+    ├── project-overview-prompt.md    # 来訪者向けプロンプト
+    └── development-status-prompt.md  # 開発者向けプロンプト
 
 generated-docs/                       # 生成された要約の保存先
-└── project-summary.md               # プロジェクト要約ファイル
+├── project-overview.md              # プロジェクト概要（来訪者向け）
+└── development-status.md            # 開発状況（開発者向け）
 ```
 
 ## 実行条件
@@ -40,10 +42,29 @@ generated-docs/                       # 生成された要約の保存先
 
 ## プロンプトのカスタマイズ
 
-`.github/prompts/project-summary-prompt.md` を編集することで、生成内容をカスタマイズできます。
+プロジェクトサマリーは2つの異なる文書に分かれています：
 
-### デフォルト設定
+### 🌟 来訪者向け (`project-overview-prompt.md`)
+- プロジェクト概要、技術スタック、ファイル・関数構造
+- 出力: `project-overview.md`
+
+### 🔧 開発者向け (`development-status-prompt.md`)
+- Issues状況、次のアクション候補
+- 出力: `development-status.md`
+
+これらのプロンプトファイルを編集することで、生成内容をカスタマイズできます。
+
+### 生成内容
+
+**来訪者向け:**
 - プロジェクト概要（3行）
+- 技術スタック（カテゴリ別）
+- ファイル階層ツリー
+- ファイル詳細説明
+- 関数詳細説明
+- 関数呼び出し階層
+
+**開発者向け:**
 - オープンIssues要約（3行）
 - 次の一手候補（3つ）
 - 各候補の最初の小さな一歩
@@ -62,7 +83,7 @@ export GEMINI_API_KEY="your-api-key"
 export GITHUB_TOKEN="your-github-token"  # オプション
 
 # テストスクリプト実行
-node .github/scripts/test-summary.js
+node .github/scripts/test-summary.cjs
 ```
 
 ## トラブルシューティング
