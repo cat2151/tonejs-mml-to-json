@@ -217,17 +217,17 @@ jobs:
             echo "Using SARIF file: $sarif_file"
             echo "File size: $(stat -c%s "$sarif_file" 2>/dev/null || echo "unknown") bytes"
 
-            # SARIFファイル全体をダンプ（サイズが小さい場合のみ）
-            file_size=$(stat -c%s "$sarif_file" 2>/dev/null || echo "0")
-            if [ "$file_size" -lt 102400 ]; then  # 100KB未満の場合
-              echo "=== COMPLETE SARIF FILE DUMP ==="
-              cat "$sarif_file"
-              echo "=== END COMPLETE SARIF DUMP ==="
-            else
-              echo "=== SARIF file content preview (first 100 lines) ==="
-              head -100 "$sarif_file"
-              echo "=== End SARIF preview ==="
-            fi
+            # # SARIFファイル全体をダンプ（サイズが小さい場合のみ）
+            # file_size=$(stat -c%s "$sarif_file" 2>/dev/null || echo "0")
+            # if [ "$file_size" -lt 102400 ]; then  # 100KB未満の場合
+            #   echo "=== COMPLETE SARIF FILE DUMP ==="
+            #   cat "$sarif_file"
+            #   echo "=== END COMPLETE SARIF DUMP ==="
+            # else
+            #   echo "=== SARIF file content preview (first 100 lines) ==="
+            #   head -100 "$sarif_file"
+            #   echo "=== End SARIF preview ==="
+            # fi
 
             # SARIFファイルからカスタムクエリの結果を抽出してCSVに変換
             node -e "
@@ -244,10 +244,10 @@ jobs:
                   schema: sarif.\$schema || 'unknown'
                 });
 
-                // SARIFファイル全体をダンプ（デバッグ用）
-                console.log('=== COMPLETE SARIF JSON DUMP ===');
-                console.log(JSON.stringify(sarif, null, 2));
-                console.log('=== END SARIF JSON DUMP ===');
+                # // SARIFファイル全体をダンプ（デバッグ用）
+                # console.log('=== COMPLETE SARIF JSON DUMP ===');
+                # console.log(JSON.stringify(sarif, null, 2));
+                # console.log('=== END SARIF JSON DUMP ===');
 
                 if (sarif.runs && sarif.runs.length > 0) {
                   sarif.runs.forEach((run, runIndex) => {
@@ -309,26 +309,12 @@ jobs:
                           const text = result.message.text;
                           console.log('Processing message text:', text);
 
-                          // 'caller -> callee' の形式を期待
-                          let cleanText = text;
-
-                          // メッセージから矢印形式を抽出
+                          // 'caller -> callee (at file:line:col)' の形式を期待
+                          // 位置情報も含めて保存するため、パターンを変更
                           if (text.includes(' -> ')) {
-                            // (at file:line:col) の部分を除去
-                            if (text.includes(' (at ')) {
-                              cleanText = text.substring(0, text.indexOf(' (at '));
-                            }
-                            results.push(cleanText);
-                            console.log('*** FOUND CALL RELATIONSHIP:', cleanText);
-                          } else if (text.includes(' (at ')) {
-                            // (at file:line:col) の前の部分をチェック
-                            const beforeLocation = text.substring(0, text.indexOf(' (at '));
-                            if (beforeLocation.includes(' -> ')) {
-                              results.push(beforeLocation);
-                              console.log('*** FOUND CALL RELATIONSHIP (before location):', beforeLocation);
-                            } else {
-                              console.log('*** NO ARROW FOUND in before-location text:', beforeLocation);
-                            }
+                            // 完全な形式をそのまま保存
+                            results.push(text);
+                            console.log('*** FOUND CALL RELATIONSHIP:', text);
                           } else {
                             console.log('*** NO ARROW FOUND in:', text);
                           }
@@ -373,17 +359,23 @@ jobs:
                   process.exit(1);
                 }
 
-                // CSVヘッダーとデータを出力
-                let csv = 'caller,callee\n';
+                // CSVヘッダーとデータを出力（位置情報を含む形式に変更）
+                let csv = 'caller,callee,location\n';
                 results.forEach(result => {
-                  const parts = result.split(' -> ');
-                  if (parts.length === 2) {
-                    csv += parts[0].trim() + ',' + parts[1].trim() + '\n';
+                  // 'caller -> callee (at file:line:col)' の形式を解析
+                  const match = result.match(/^(.+?)\s*->\s*(.+?)\s*(\(at\s+.+\))?$/);
+                  if (match) {
+                    const [, caller, callee, location] = match;
+                    const locationPart = location ? location.replace(/^\(at\s+/, '').replace(/\)$/, '') : '';
+                    csv += caller.trim() + ',' + callee.trim() + ',' + locationPart + '\n';
                   }
                 });
 
                 fs.writeFileSync('callgraph.csv', csv);
                 console.log('Generated CSV with ' + results.length + ' call relationships');
+
+                // 詳細なSARIFファイルも保存（enhanced-convert-to-html.cjsで使用）
+                fs.writeFileSync('detailed-sarif.json', JSON.stringify(sarif, null, 2));
 
                 // デバッグ用に詳細情報も保存
                 const debugInfo = {
@@ -425,37 +417,32 @@ jobs:
 
       - name: Generate HTML graph
         run: |
-          echo "=== Debug: CSV file content ==="
-          if [ -f "callgraph.csv" ]; then
-            echo "CSV file exists, content:"
-            cat callgraph.csv
-            echo "=== End CSV content ==="
-
-            # CSVが空の場合はエラー
-            line_count=$(wc -l < callgraph.csv)
-            if [ "$line_count" -le 1 ]; then
-              echo "ERROR: CSV file is empty (only header or no data)"
-              echo "This indicates no call relationships were found in the SARIF file"
-              echo "Check the CodeQL query and SARIF processing logic"
-              exit 1
-            fi
+          echo "=== Running Enhanced HTML conversion ==="
+          # SARIFファイルパスと詳細SARIFファイルを環境変数として渡す
+          export GITHUB_REPOSITORY="${{ github.repository }}"
+          if [ -f "detailed-sarif.json" ]; then
+            export SARIF_FILE="detailed-sarif.json"
+            echo "Using detailed SARIF file: $SARIF_FILE"
+          elif [ -n "$SARIF_FILE" ] && [ -f "$SARIF_FILE" ]; then
+            echo "Using original SARIF file: $SARIF_FILE"
           else
-            echo "ERROR: CSV file does not exist"
-            echo "This indicates SARIF processing failed"
+            echo "*** FATAL ERROR: No SARIF file available ***"
+            echo "Enhanced converter requires SARIF file with source location information"
             exit 1
           fi
 
-          echo "=== Running HTML conversion ==="
-          if node .github/scripts/convert-to-html.cjs; then
-            echo "HTML conversion successful"
+          if node .github/scripts/enhanced-convert-to-html.cjs; then
+            echo "Enhanced HTML conversion successful"
             if [ -f "callgraph.html" ]; then
               echo "HTML file generated in current directory, size: $(stat -c%s callgraph.html 2>/dev/null || echo "unknown") bytes"
             else
-              echo "ERROR: HTML file not found after conversion"
+              echo "*** FATAL ERROR: HTML file not found after conversion ***"
+              echo "Enhanced converter failed to generate output file"
               exit 1
             fi
           else
-            echo "ERROR: HTML conversion failed, exit code: $?"
+            echo "*** FATAL ERROR: Enhanced HTML conversion failed, exit code: $? ***"
+            echo "Cannot proceed without enhanced call graph with source linking"
             exit 1
           fi
 
