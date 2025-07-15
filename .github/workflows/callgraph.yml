@@ -73,10 +73,7 @@ jobs:
         with:
           category: "/language:javascript"
 
-      - name: Generate call graph using simple static analysis
-        run: |
-          echo "Generating call graph using simple static analysis..."
-          node .github/scripts/simple-callgraph.cjs
+
 
       - name: Create temporary package.json for script dependencies
         run: |
@@ -130,13 +127,18 @@ jobs:
           done
 
           if [ -z "$sarif_file" ]; then
-            # フォールバック: 最新のSARIFファイルを使用
-            sarif_file=$(find . .. ../results -name "*.sarif" -type f 2>/dev/null | head -1)
-            echo "Using fallback SARIF file: $sarif_file"
+            echo "ERROR: No SARIF file with callgraph results found"
+            echo "Available SARIF files:"
+            find . .. ../results -name "*.sarif" -type f 2>/dev/null || echo "No SARIF files found"
+            exit 1
           fi
+
+          # SARIFファイルパスを環境変数に保存
+          echo "SARIF_FILE=$sarif_file" >> $GITHUB_ENV
 
           if [ -n "$sarif_file" ]; then
             echo "Using SARIF file: $sarif_file"
+            echo "File size: $(stat -c%s "$sarif_file" 2>/dev/null || echo "unknown") bytes"
             echo "=== SARIF file content preview ==="
             head -50 "$sarif_file"
             echo "=== End SARIF preview ==="
@@ -145,6 +147,7 @@ jobs:
             node -e "
               const fs = require('fs');
               try {
+                console.log('=== SARIF Processing Debug ===');
                 const sarif = JSON.parse(fs.readFileSync('$sarif_file', 'utf8'));
                 const results = [];
 
@@ -157,9 +160,18 @@ jobs:
                   sarif.runs.forEach((run, runIndex) => {
                     console.log('Run', runIndex, 'has', run.results ? run.results.length : 0, 'results');
 
+                    // ルールの情報も出力
+                    if (run.tool && run.tool.driver && run.tool.driver.rules) {
+                      console.log('Available rules:', run.tool.driver.rules.map(r => r.id));
+                    }
+
                     if (run.results) {
                       run.results.forEach((result, resultIndex) => {
-                        console.log('Result', resultIndex, ':', result.message ? result.message.text : 'no message');
+                        console.log('Result', resultIndex, ':', {
+                          ruleId: result.ruleId,
+                          message: result.message ? result.message.text : 'no message',
+                          level: result.level
+                        });
 
                         if (result.message && result.message.text) {
                           const text = result.message.text;
@@ -196,15 +208,42 @@ jobs:
 
                 fs.writeFileSync('callgraph.csv', csv);
                 console.log('Generated CSV with ' + results.length + ' call relationships');
+
+                // デバッグ用に詳細情報も保存
+                const debugInfo = {
+                  timestamp: new Date().toISOString(),
+                  sarifFile: '$sarif_file',
+                  totalRuns: sarif.runs ? sarif.runs.length : 0,
+                  totalResults: results.length,
+                  results: results
+                };
+                fs.writeFileSync('sarif-debug.json', JSON.stringify(debugInfo, null, 2));
+
               } catch (error) {
-                console.error('Error processing SARIF:', error);
-                // フォールバック: 空のCSVファイルを作成
-                fs.writeFileSync('callgraph.csv', 'caller,callee\n');
+                console.error('ERROR: Failed to process SARIF file');
+                console.error('Error message:', error.message);
+                console.error('Stack trace:', error.stack);
+                console.error('SARIF file path:', '$sarif_file');
+
+                // エラー情報を保存してワークフローを停止
+                const errorInfo = {
+                  timestamp: new Date().toISOString(),
+                  error: error.message,
+                  stack: error.stack,
+                  sarifFile: '$sarif_file'
+                };
+                fs.writeFileSync('sarif-error.json', JSON.stringify(errorInfo, null, 2));
+
+                // ワークフローをエラーで終了
+                process.exit(1);
               }
             "
           else
-            echo "No SARIF file found, creating empty CSV"
-            echo "caller,callee" > callgraph.csv
+            echo "ERROR: No SARIF file found"
+            echo "This indicates CodeQL analysis failed or no callgraph query results were generated"
+            echo "Directory contents:"
+            ls -la . .. 2>/dev/null || echo "Cannot list directories"
+            exit 1
           fi
 
       - name: Generate HTML graph
@@ -215,35 +254,39 @@ jobs:
             cat callgraph.csv
             echo "=== End CSV content ==="
 
-            # CSVが空の場合はフォールバック解析を実行
+            # CSVが空の場合はエラー
             line_count=$(wc -l < callgraph.csv)
             if [ "$line_count" -le 1 ]; then
-              echo "CSV is empty, running fallback analysis..."
-              node .github/scripts/simple-callgraph.cjs
-
-              if [ -f "callgraph-simple.csv" ]; then
-                echo "Using fallback analysis results"
-                cp callgraph-simple.csv callgraph.csv
-                echo "Updated CSV content:"
-                cat callgraph.csv
-              fi
+              echo "ERROR: CSV file is empty (only header or no data)"
+              echo "This indicates no call relationships were found in the SARIF file"
+              echo "Check the CodeQL query and SARIF processing logic"
+              exit 1
             fi
           else
-            echo "CSV file does not exist, running fallback analysis..."
-            node .github/scripts/simple-callgraph.cjs
-
-            if [ -f "callgraph-simple.csv" ]; then
-              echo "Using fallback analysis results"
-              cp callgraph-simple.csv callgraph.csv
-            else
-              echo "Creating empty CSV as fallback"
-              echo "caller,callee" > callgraph.csv
-            fi
+            echo "ERROR: CSV file does not exist"
+            echo "This indicates SARIF processing failed"
+            exit 1
           fi
 
-          node .github/scripts/convert-to-html.cjs
+          echo "=== Running HTML conversion ==="
+          if node .github/scripts/convert-to-html.cjs; then
+            echo "HTML conversion successful"
+            if [ -f "callgraph.html" ]; then
+              echo "HTML file generated, size: $(stat -c%s callgraph.html 2>/dev/null || echo "unknown") bytes"
+            else
+              echo "ERROR: HTML file not found after conversion"
+              exit 1
+            fi
+          else
+            echo "ERROR: HTML conversion failed, exit code: $?"
+            exit 1
+          fi
 
-      - name: Commit and push results
+          # デバッグのため、生成されたファイルを一覧表示
+          echo "=== Generated files ==="
+          ls -la *.csv *.json *.html 2>/dev/null || echo "No generated files found"
+
+      - name: Copy files to generated-docs and commit results
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "github-actions[bot]"
@@ -251,17 +294,104 @@ jobs:
           # generated-docsディレクトリが存在しない場合は作成
           mkdir -p generated-docs
 
-          # ファイルが変更されているかチェック
-          if [ -f "generated-docs/callgraph.html" ]; then
-            git add generated-docs/callgraph.html
+          # 中間ファイルとログをgenerated-docsにコピー（デバッグのため）
+          echo "=== Copying files to generated-docs ==="
 
-            if ! git diff --cached --quiet; then
-              git commit -m "Update call graph analysis [automated]"
-              git push
-              echo "Call graph updated and pushed"
+          # CSVファイルが存在することを確認
+          if [ ! -f "callgraph.csv" ]; then
+            echo "ERROR: callgraph.csv not found for copying"
+            exit 1
+          fi
+
+          # CSVファイルをコピー
+          cp callgraph.csv generated-docs/callgraph.csv
+          echo "Copied callgraph.csv"
+          echo "CSV content:"
+          cat callgraph.csv
+
+          # HTMLファイルが存在することを確認
+          if [ ! -f "callgraph.html" ]; then
+            echo "ERROR: callgraph.html not found for copying"
+            exit 1
+          fi
+
+          # HTMLファイルをコピー
+          cp callgraph.html generated-docs/callgraph.html
+          echo "Copied callgraph.html"
+
+          # JSON デバッグファイルをコピー
+          if [ -f "sarif-debug.json" ]; then
+            cp sarif-debug.json generated-docs/sarif-debug.json
+            echo "Copied sarif-debug.json"
+          fi
+
+          if [ -f "sarif-error.json" ]; then
+            cp sarif-error.json generated-docs/sarif-error.json
+            echo "Copied sarif-error.json"
+          fi
+
+          # SARIFファイルの情報を保存（ファイルサイズが小さい場合のみ）
+          if [ -n "$SARIF_FILE" ] && [ -f "$SARIF_FILE" ]; then
+            file_size=$(stat -c%s "$SARIF_FILE" 2>/dev/null || echo "0")
+            if [ "$file_size" -lt 1048576 ]; then  # 1MB未満の場合のみ
+              cp "$SARIF_FILE" generated-docs/latest.sarif
+              echo "Copied SARIF file (size: $file_size bytes)"
             else
-              echo "No changes to commit"
+              echo "SARIF file too large (size: $file_size bytes), creating summary instead"
+              # サイズ情報とファイル名のみ保存
+              echo "SARIF file: $SARIF_FILE" > generated-docs/sarif-info.txt
+              echo "Size: $file_size bytes" >> generated-docs/sarif-info.txt
+              echo "Date: $(date)" >> generated-docs/sarif-info.txt
             fi
+          fi
+
+          # デバッグ情報を保存
+          echo "=== Debug Information ===" > generated-docs/debug-info.txt
+          echo "Workflow run: ${{ github.run_id }}" >> generated-docs/debug-info.txt
+          echo "Run number: ${{ github.run_number }}" >> generated-docs/debug-info.txt
+          echo "Timestamp: $(date)" >> generated-docs/debug-info.txt
+          echo "Event: ${{ github.event_name }}" >> generated-docs/debug-info.txt
+          echo "Branch: ${{ github.ref_name }}" >> generated-docs/debug-info.txt
+          echo "" >> generated-docs/debug-info.txt
+          echo "Files in current directory:" >> generated-docs/debug-info.txt
+          ls -la . >> generated-docs/debug-info.txt
+          echo "" >> generated-docs/debug-info.txt
+          echo "CSV file status:" >> generated-docs/debug-info.txt
+          if [ -f "callgraph.csv" ]; then
+            echo "CSV exists, line count: $(wc -l < callgraph.csv)" >> generated-docs/debug-info.txt
+            echo "CSV size: $(stat -c%s callgraph.csv 2>/dev/null || echo "unknown") bytes" >> generated-docs/debug-info.txt
+            echo "First 5 lines of CSV:" >> generated-docs/debug-info.txt
+            head -5 callgraph.csv >> generated-docs/debug-info.txt
           else
-            echo "No callgraph.html file generated"
+            echo "ERROR: CSV does not exist" >> generated-docs/debug-info.txt
+          fi
+          echo "" >> generated-docs/debug-info.txt
+          echo "HTML file status:" >> generated-docs/debug-info.txt
+          if [ -f "callgraph.html" ]; then
+            echo "HTML exists, size: $(stat -c%s callgraph.html 2>/dev/null || echo "unknown") bytes" >> generated-docs/debug-info.txt
+            echo "HTML file first few lines:" >> generated-docs/debug-info.txt
+            head -10 callgraph.html >> generated-docs/debug-info.txt
+          else
+            echo "ERROR: HTML does not exist" >> generated-docs/debug-info.txt
+          fi
+
+          # ファイルをステージングに追加
+          git add generated-docs/
+
+          # 変更があるかチェック
+          if ! git diff --cached --quiet; then
+            # コミットメッセージの内容を変数に保存
+            csv_lines=$(wc -l < callgraph.csv)
+            html_size=$(stat -c%s callgraph.html 2>/dev/null || echo "unknown")
+
+            git commit -m "Update call graph analysis [automated] - CSV: $csv_lines lines, HTML: ${html_size} bytes, Run: ${{ github.run_id }}"
+
+            git push
+            echo "Call graph files updated and pushed successfully"
+
+            # 成功時の詳細情報を表示
+            echo "=== Files committed ==="
+            git show --name-only HEAD
+          else
+            echo "No changes to commit"
           fi
