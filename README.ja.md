@@ -13,6 +13,7 @@
 |------|--------|
 | 🎵 Demo | https://cat2151.github.io/tonejs-mml-to-json/index.html |
 | 📖 プロジェクト概要 | [generated-docs/project-overview.md](generated-docs/project-overview.md) |
+| 📖 コールグラフ | [generated-docs/callgraph.html](https://cat2151.github.io/tonejs-mml-to-json/generated-docs/callgraph.html) |
 | 📊 開発状況 | [generated-docs/development-status.md](generated-docs/development-status.md) |
 
 # 3行で説明
@@ -21,6 +22,14 @@
 - 音楽の変換部分に特化したツールで、実際の再生は別プロジェクト（`tonejs-json-sequencer`）が担当します
 
 # notes
+- MML（Music Macro Language）で音楽を書くメリットは？
+  - **簡潔性とポータビリティ**: テキストベースで軽量、Webならプラットフォーム非依存
+  - **プログラマー親和性**: コードライクな記法、Git管理、生成が容易
+  - **Web開発との親和性**: ブラウザで直接再生、リアルタイム編集、軽量配信
+  - **学習コストの低さ**: シンプルな文法、段階的学習が可能
+  - **モジュラー設計**: 変換と再生が分離され、それぞれを独立して進化可能
+  - **方言への対応力**: 各システム固有のMML方言も、簡易変換なら各位がPEGで作りやすく対応しやすい想定
+
 - なぜ tonejs-json-sequencer と tonejs-mml-to-json は別プロジェクトなの？
   - **開発の独立性とスピードを重視しているため**
     - MMLパーサーの開発に集中できる
