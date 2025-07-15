@@ -1,6 +1,6 @@
 /**
  * @name Function Call Graph
- * @description Extract all function call relationships for JavaScript/TypeScript code (maximum loose conditions)
+ * @description Extract function call relationships for project-defined functions only
  * @kind problem
  * @problem.severity info
  * @precision low
@@ -12,9 +12,37 @@
 
 import javascript
 
+// プロジェクト内で定義された関数名を自動検出
+predicate isProjectFunction(string functionName) {
+  exists(Function func |
+    // プロジェクトファイル内で定義された関数
+    (
+      func.getLocation().getFile().getAbsolutePath().matches("%/src/%") or
+      func.getLocation().getFile().getAbsolutePath().matches("%\\src\\%") or
+      (
+        func.getLocation().getFile().getAbsolutePath().matches("%.js") and
+        not func.getLocation().getFile().getAbsolutePath().matches("%node_modules%") and
+        not func.getLocation().getFile().getAbsolutePath().matches("%test%") and
+        not func.getLocation().getFile().getAbsolutePath().matches("%spec%") and
+        not func.getLocation().getFile().getAbsolutePath().matches("%grammar.js") and
+        not func.getLocation().getFile().getAbsolutePath().matches("%parser.js") and
+        not func.getLocation().getFile().getAbsolutePath().matches("%.peg.js")
+      )
+    ) and
+    exists(func.getName()) and
+    functionName = func.getName() and
+    // 短すぎる関数名を除外
+    functionName.length() > 2 and
+    // PEG.js系の関数を除外
+    not functionName.matches("peg$%") and
+    not functionName.matches("anonymous_%") and
+    not functionName.matches("unknown_%")
+  )
+}
+
 from CallExpr call, string callerName, string calleeName
 where
-  // 呼び出し元を特定 - 最大限に甘い条件
+  // 呼び出し元を特定
   (
     // 関数内からの呼び出し（名前付き）
     exists(Function caller |
@@ -55,7 +83,7 @@ where
     )
   ) and
 
-  // 呼び出し先を特定 - 最大限に甘い条件
+  // 呼び出し先を特定
   (
     // 直接的な関数名
     exists(Identifier id |
@@ -63,16 +91,10 @@ where
       calleeName = id.getName()
     )
     or
-    // メソッド呼び出し
+    // メソッド呼び出し（プロパティ名を優先）
     exists(PropAccess prop |
       call.getCallee() = prop and
       calleeName = prop.getPropertyName()
-    )
-    or
-    // ネストしたプロパティアクセス a.b.c()
-    exists(PropAccess prop |
-      call.getCallee() = prop and
-      calleeName = prop.toString()
     )
     or
     // その他のコール（new, 複雑な式など）
@@ -87,48 +109,10 @@ where
   and callerName != ""
   and calleeName != ""
 
-  // プロジェクトファイル内の関数に限定（src/配下またはプロジェクトルート）
-  and (
-    call.getLocation().getFile().getAbsolutePath().matches("%/src/%") or
-    call.getLocation().getFile().getAbsolutePath().matches("%\\src\\%") or
-    // プロジェクトルートのJSファイルも含める
-    (
-      call.getLocation().getFile().getAbsolutePath().matches("%.js") and
-      not call.getLocation().getFile().getAbsolutePath().matches("%node_modules%") and
-      not call.getLocation().getFile().getAbsolutePath().matches("%test%") and
-      not call.getLocation().getFile().getAbsolutePath().matches("%spec%")
-    )
-  )
+  // プロジェクト内で定義された関数のみを含める（自動生成）
+  and isProjectFunction(calleeName)
 
-  // 短すぎる関数名を除外（通常は一時変数）
-  and calleeName.length() > 2
-  and callerName.length() > 2
-
-  // 一般的なライブラリ関数・DOM API・組み込み関数を除外
-  and not (
-    calleeName.matches("console.%") or
-    calleeName.matches("JSON.%") or
-    calleeName.matches("Math.%") or
-    calleeName.matches("Object.%") or
-    calleeName.matches("Array.%") or
-    calleeName.matches("String.%") or
-    calleeName.matches("Number.%") or
-    calleeName.matches("Date.%") or
-    calleeName.matches("document.%") or
-    calleeName.matches("window.%") or
-    calleeName.matches("location.%") or
-    calleeName.matches("navigator.%") or
-    calleeName.matches("$.%") or
-    calleeName.matches("jQuery.%") or
-    calleeName.matches("Tone.%") or
-    calleeName in [
-      "parseInt", "parseFloat", "isNaN", "isFinite", "eval",
-      "setTimeout", "setInterval", "clearTimeout", "clearInterval",
-      "addEventListener", "removeEventListener", "querySelector",
-      "querySelectorAll", "getElementById", "getElementsByClassName",
-      "alert", "confirm", "prompt", "fetch", "require", "import",
-      "constructor", "toString", "valueOf", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "__proto__"
-    ]
-  )
+  // 呼び出し元もプロジェクト内の関数に限定（グローバルとunknownは例外）
+  and (isProjectFunction(callerName) or callerName = "global" or callerName.matches("unknown_%") or callerName.matches("anonymous_%"))
 
 select call, callerName + " -> " + calleeName + " (at " + call.getLocation().toString() + ")"
