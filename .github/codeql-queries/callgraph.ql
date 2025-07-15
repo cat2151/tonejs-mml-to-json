@@ -133,7 +133,16 @@ where
   and callerName != ""
   and calleeName != ""
 
-  // プロジェクト内で定義された関数のみを含める（自動生成）
+  // 除外対象ファイル内での呼び出しを全て除外
+  and not call.getLocation().getFile().getAbsolutePath().matches("%grammar.js")
+  and not call.getLocation().getFile().getAbsolutePath().matches("%parser.js")
+  and not call.getLocation().getFile().getAbsolutePath().matches("%.peg.js")
+  and not call.getLocation().getFile().getAbsolutePath().matches("%node_modules%")
+  and not call.getLocation().getFile().getAbsolutePath().matches("%test%")
+  and not call.getLocation().getFile().getAbsolutePath().matches("%spec%")
+  and not call.getLocation().getFile().getAbsolutePath().matches("%dev-setup%")
+
+  // プロジェクト内で定義された関数のみを含める
   and isProjectFunction(calleeName)
 
   // 呼び出し元もプロジェクト内の関数に限定（グローバルとunknownは例外）
