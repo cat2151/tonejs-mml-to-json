@@ -1,5 +1,20 @@
 #!/usr/bin/env node
 
+//
+// Call Graph HTML Generator
+//
+// 重要な設計方針:
+// - フォールバック処理は実装しない
+// - 期待されるファイルが存在しない場合は明確なエラーで終了する
+// - 「空のグラフ」などの代替手段で問題を隠蔽しない
+// - 依存関係やファイルパスの問題を早期に発見できるようにする
+//
+// この方針により:
+// - 上流の処理（SARIF生成、CSV作成）の問題を確実に検出
+// - デバッグ時間を短縮
+// - 予期しない動作やサイレント失敗を防止
+//
+
 const fs = require('fs');
 const path = require('path');
 
@@ -332,26 +347,11 @@ function main() {
     // CSVファイルが存在するかチェック
     const csvPath = 'callgraph.csv';
     if (!fs.existsSync(csvPath)) {
-      console.log('CSV file not found, creating empty graph');
-      // 空のグラフデータを作成
-      const emptyGraphData = {
-        nodes: [],
-        edges: []
-      };
-      const html = generateHTML(emptyGraphData);
-
-      // 出力ディレクトリを作成
-      const outputDir = 'generated-docs';
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
-      }
-
-      // HTMLファイルを保存
-      const outputPath = path.join(outputDir, 'callgraph.html');
-      fs.writeFileSync(outputPath, html, 'utf8');
-
-      console.log(`Empty call graph HTML generated: ${outputPath}`);
-      return;
+      console.error('*** ERROR: CSV file not found ***');
+      console.error('Expected file:', csvPath);
+      console.error('This indicates that the SARIF processing step failed');
+      console.error('Check the CodeQL analysis and SARIF-to-CSV conversion steps');
+      process.exit(1);
     }
 
     // CSVファイルを読み込み
@@ -362,24 +362,34 @@ function main() {
     const graphData = parseCSV(csvContent);
     console.log(`Parsed ${graphData.nodes.length} nodes and ${graphData.edges.length} edges`);
 
+    // 空のグラフの場合もエラーとして扱う
+    if (graphData.nodes.length === 0 || graphData.edges.length === 0) {
+      console.error('*** ERROR: No graph data found ***');
+      console.error('Nodes:', graphData.nodes.length);
+      console.error('Edges:', graphData.edges.length);
+      console.error('This indicates that:');
+      console.error('1. The CodeQL callgraph query found no results');
+      console.error('2. The SARIF-to-CSV conversion failed');
+      console.error('3. The CSV format is incorrect');
+      console.error('Raw CSV content:');
+      console.error(csvContent);
+      process.exit(1);
+    }
+
     // HTMLを生成
     const html = generateHTML(graphData);
 
-    // 出力ディレクトリを作成
-    const outputDir = 'generated-docs';
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-    }
-
-    // HTMLファイルを保存
-    const outputPath = path.join(outputDir, 'callgraph.html');
+    // HTMLファイルをカレントディレクトリに保存
+    const outputPath = 'callgraph.html';
     fs.writeFileSync(outputPath, html, 'utf8');
 
     console.log(`Call graph HTML generated: ${outputPath}`);
     console.log(`Graph contains ${graphData.nodes.length} functions and ${graphData.edges.length} call relationships`);
 
   } catch (error) {
-    console.error('Error generating call graph HTML:', error);
+    console.error('*** FATAL ERROR: Failed to generate call graph HTML ***');
+    console.error('Error message:', error.message);
+    console.error('Stack trace:', error.stack);
     process.exit(1);
   }
 }
