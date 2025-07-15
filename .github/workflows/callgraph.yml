@@ -56,7 +56,7 @@ jobs:
       - name: Generate call graph using simple static analysis
         run: |
           echo "Generating call graph using simple static analysis..."
-          node .github/scripts/simple-callgraph.js
+          node .github/scripts/simple-callgraph.cjs
 
       - name: Create temporary package.json for script dependencies
         run: |
@@ -180,7 +180,7 @@ jobs:
             line_count=$(wc -l < callgraph.csv)
             if [ "$line_count" -le 1 ]; then
               echo "CSV is empty, running fallback analysis..."
-              node .github/scripts/simple-callgraph.js
+              node .github/scripts/simple-callgraph.cjs
 
               if [ -f "callgraph-simple.csv" ]; then
                 echo "Using fallback analysis results"
@@ -191,7 +191,7 @@ jobs:
             fi
           else
             echo "CSV file does not exist, running fallback analysis..."
-            node .github/scripts/simple-callgraph.js
+            node .github/scripts/simple-callgraph.cjs
 
             if [ -f "callgraph-simple.csv" ]; then
               echo "Using fallback analysis results"
