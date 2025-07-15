@@ -42,7 +42,11 @@ function parseCSV(csvContent) {
 
   return {
     nodes: Array.from(nodes).map(id => ({ id, label: id })),
-    edges: edges.map((edge, index) => ({ id: `edge-${index}`, ...edge }))
+    edges: edges.map((edge, index) => ({
+      id: `edge-${index}`,
+      source: edge.source,
+      target: edge.target
+    }))
   };
 }
 
