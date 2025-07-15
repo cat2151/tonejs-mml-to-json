@@ -164,12 +164,19 @@ function extractDetailedCallGraph(sarifFile) {
 
 /**
  * 詳細データからCytoscape.js用のデータに変換
+ * ソースコード位置情報がないノードやエッジは除外する
  */
 function convertDetailedData(detailedData) {
   const nodes = new Map();
   const edges = [];
 
   detailedData.forEach((item, index) => {
+    // 位置情報が不完全なアイテムをスキップ
+    if (!item.file || !item.line || item.line <= 0) {
+      console.warn(`Skipping call relationship due to missing location info: ${item.caller} -> ${item.callee}`);
+      return;
+    }
+
     // ノードに位置情報を追加
     if (!nodes.has(item.caller)) {
       nodes.set(item.caller, {
@@ -197,7 +204,7 @@ function convertDetailedData(detailedData) {
       });
     }
 
-    // エッジに詳細情報を追加
+    // エッジに詳細情報を追加（位置情報が確実にあるもののみ）
     edges.push({
       id: `edge-${index}`,
       source: item.caller,
@@ -209,9 +216,30 @@ function convertDetailedData(detailedData) {
     });
   });
 
+  // 位置情報のないノードを除外
+  const filteredNodes = Array.from(nodes.values()).filter(node => {
+    if (!node.locations || node.locations.length === 0) {
+      console.warn(`Removing node without location info: ${node.id}`);
+      return false;
+    }
+    return true;
+  });
+
+  // 除外されたノードを参照するエッジも除外
+  const nodeIds = new Set(filteredNodes.map(node => node.id));
+  const filteredEdges = edges.filter(edge => {
+    const isValid = nodeIds.has(edge.source) && nodeIds.has(edge.target);
+    if (!isValid) {
+      console.warn(`Removing edge referencing non-existent node: ${edge.source} -> ${edge.target}`);
+    }
+    return isValid;
+  });
+
+  console.log(`Filtered results: ${filteredNodes.length} nodes (from ${nodes.size}), ${filteredEdges.length} edges (from ${edges.length})`);
+
   return {
-    nodes: Array.from(nodes.values()),
-    edges: edges
+    nodes: filteredNodes,
+    edges: filteredEdges
   };
 }
 
@@ -221,8 +249,25 @@ function convertDetailedData(detailedData) {
 function generateGitHubURL(file, line, repo = null, branch = 'main') {
   if (!repo) return null;
 
-  // ファイルパスを正規化
-  const normalizedFile = file.replace(/\\/g, '/').replace(/^.*\/src\//, 'src/');
+  // ファイルパスを正規化（srcディレクトリを保持）
+  let normalizedFile = file.replace(/\\/g, '/');
+
+  // プロジェクトルートからの相対パスに変換
+  if (normalizedFile.includes('/src/')) {
+    // 最後のsrcディレクトリ以降を取得
+    const srcIndex = normalizedFile.lastIndexOf('/src/');
+    normalizedFile = normalizedFile.substring(srcIndex + 1); // '/src/' -> 'src/'
+  } else if (normalizedFile.startsWith('src/')) {
+    // 既にsrcから始まっている場合はそのまま
+    normalizedFile = normalizedFile;
+  } else {
+    // srcディレクトリがない場合はファイル名のみ
+    const lastSlash = normalizedFile.lastIndexOf('/');
+    if (lastSlash !== -1) {
+      normalizedFile = normalizedFile.substring(lastSlash + 1);
+    }
+  }
+
   return `https://github.com/${repo}/blob/${branch}/${normalizedFile}#L${line}`;
 }
 
@@ -301,12 +346,14 @@ function generateHTML(graphData, options = {}) {
             gap: 15px;
             height: calc(100vh - 120px);
             min-height: 500px;
+            position: relative;
         }
 
         .graph-container {
             flex: 1;
             display: flex;
             flex-direction: column;
+            min-width: 0; /* flexアイテムのはみ出しを防ぐ */
         }
 
         #cy {
@@ -346,15 +393,20 @@ function generateHTML(graphData, options = {}) {
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            width: 300px;
+            width: 320px;
+            max-width: 100vw;
             max-height: 100%;
             overflow-y: auto;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.3s ease;
             flex-shrink: 0;
+            box-sizing: border-box;
         }
 
         .info-panel.hidden {
-            display: none;
+            width: 0;
+            padding: 0;
+            overflow: hidden;
+            min-width: 0;
         }
 
         .info-title {
@@ -409,7 +461,7 @@ function generateHTML(graphData, options = {}) {
         }
 
         /* レスポンシブデザイン */
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
             .main-container {
                 flex-direction: column;
                 height: auto;
@@ -417,16 +469,24 @@ function generateHTML(graphData, options = {}) {
             }
 
             .info-panel {
-                width: 100%;
+                width: 100% !important;
                 max-height: 300px;
                 order: 2;
+            }
+
+            .info-panel.hidden {
+                height: 0;
+                padding: 0;
+                min-height: 0;
             }
 
             .graph-container {
                 order: 1;
                 min-height: 400px;
             }
+        }
 
+        @media (max-width: 768px) {
             .header {
                 flex-direction: column;
                 text-align: center;
@@ -434,6 +494,15 @@ function generateHTML(graphData, options = {}) {
 
             .stats-container {
                 justify-content: center;
+            }
+
+            .controls {
+                justify-content: center;
+            }
+
+            .control-button {
+                padding: 6px 12px;
+                font-size: 12px;
             }
         }
 
@@ -749,12 +818,42 @@ function generateHTML(graphData, options = {}) {
 
         function toggleInfoPanel() {
             const panel = document.getElementById('info-panel');
-            panel.classList.toggle('hidden');
+            const isHidden = panel.classList.contains('hidden');
+
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                // パネルが表示されたことを視覚的に示すため、少し強調
+                panel.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    panel.style.transform = 'scale(1)';
+                }, 200);
+            } else {
+                panel.classList.add('hidden');
+            }
         }
 
         function generateGitHubURL(file, line) {
             if (!repo || !file) return null;
-            const normalizedFile = file.replace(/\\\\/g, '/').replace(/^.*\\/src\\//, 'src/');
+
+            // ファイルパスを正規化（srcディレクトリを保持）
+            let normalizedFile = file.replace(/\\\\/g, '/');
+
+            // プロジェクトルートからの相対パスに変換
+            if (normalizedFile.includes('/src/')) {
+                // 最後のsrcディレクトリ以降を取得
+                const srcIndex = normalizedFile.lastIndexOf('/src/');
+                normalizedFile = normalizedFile.substring(srcIndex + 1); // '/src/' -> 'src/'
+            } else if (normalizedFile.startsWith('src/')) {
+                // 既にsrcから始まっている場合はそのまま
+                normalizedFile = normalizedFile;
+            } else {
+                // srcディレクトリがない場合はファイル名のみ
+                const lastSlash = normalizedFile.lastIndexOf('/');
+                if (lastSlash !== -1) {
+                    normalizedFile = normalizedFile.substring(lastSlash + 1);
+                }
+            }
+
             return 'https://github.com/' + repo + '/blob/' + branch + '/' + normalizedFile + '#L' + line;
         }
 
