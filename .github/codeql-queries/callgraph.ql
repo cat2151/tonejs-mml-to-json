@@ -12,23 +12,17 @@
 
 import javascript
 
-// プロジェクト内で定義された関数名を自動検出
+// プロジェクト内で定義された関数名を自動検出（srcディレクトリの特定ファイルのみ）
 predicate isProjectFunction(string functionName) {
   exists(Function func |
-    // まず除外条件をチェック
-    not func.getLocation().getFile().getAbsolutePath().matches("%grammar.js") and
-    not func.getLocation().getFile().getAbsolutePath().matches("%parser.js") and
-    not func.getLocation().getFile().getAbsolutePath().matches("%.peg.js") and
-    not func.getLocation().getFile().getAbsolutePath().matches("%node_modules%") and
-    not func.getLocation().getFile().getAbsolutePath().matches("%test%") and
-    not func.getLocation().getFile().getAbsolutePath().matches("%spec%") and
-    not func.getLocation().getFile().getAbsolutePath().matches("%dev-setup%") and
-
-    // 次にプロジェクトファイル内で定義された関数を含める
+    // 許可するファイルのホワイトリスト方式に変更
     (
-      func.getLocation().getFile().getAbsolutePath().matches("%/src/%") or
-      func.getLocation().getFile().getAbsolutePath().matches("%\\src\\%") or
-      func.getLocation().getFile().getAbsolutePath().matches("%.js")
+      func.getLocation().getFile().getAbsolutePath().matches("%/src/main.js") or
+      func.getLocation().getFile().getAbsolutePath().matches("%\\src\\main.js") or
+      func.getLocation().getFile().getAbsolutePath().matches("%/src/mml2json.js") or
+      func.getLocation().getFile().getAbsolutePath().matches("%\\src\\mml2json.js") or
+      func.getLocation().getFile().getAbsolutePath().matches("%/src/play.js") or
+      func.getLocation().getFile().getAbsolutePath().matches("%\\src\\play.js")
     ) and
 
     exists(func.getName()) and
@@ -133,14 +127,15 @@ where
   and callerName != ""
   and calleeName != ""
 
-  // 除外対象ファイル内での呼び出しを全て除外
-  and not call.getLocation().getFile().getAbsolutePath().matches("%grammar.js")
-  and not call.getLocation().getFile().getAbsolutePath().matches("%parser.js")
-  and not call.getLocation().getFile().getAbsolutePath().matches("%.peg.js")
-  and not call.getLocation().getFile().getAbsolutePath().matches("%node_modules%")
-  and not call.getLocation().getFile().getAbsolutePath().matches("%test%")
-  and not call.getLocation().getFile().getAbsolutePath().matches("%spec%")
-  and not call.getLocation().getFile().getAbsolutePath().matches("%dev-setup%")
+  // 除外対象ファイル内での呼び出しを全て除外（ホワイトリスト方式）
+  and (
+    call.getLocation().getFile().getAbsolutePath().matches("%/src/main.js") or
+    call.getLocation().getFile().getAbsolutePath().matches("%\\src\\main.js") or
+    call.getLocation().getFile().getAbsolutePath().matches("%/src/mml2json.js") or
+    call.getLocation().getFile().getAbsolutePath().matches("%\\src\\mml2json.js") or
+    call.getLocation().getFile().getAbsolutePath().matches("%/src/play.js") or
+    call.getLocation().getFile().getAbsolutePath().matches("%\\src\\play.js")
+  )
 
   // プロジェクト内で定義された関数のみを含める
   and isProjectFunction(calleeName)
