@@ -24,38 +24,131 @@ const path = require('path');
  */
 function extractDetailedCallGraph(sarifFile) {
   try {
-    const sarif = JSON.parse(fs.readFileSync(sarifFile, 'utf8'));
+    console.log('=== SARIF File Analysis ===');
+
+    const fileContent = fs.readFileSync(sarifFile, 'utf8');
+    console.log(`SARIF file size: ${fileContent.length} bytes`);
+
+    const sarif = JSON.parse(fileContent);
+    console.log('SARIF file parsed successfully');
+
+    // SARIFファイルの基本構造を詳細分析
+    console.log('SARIF structure analysis:');
+    console.log(`- Schema version: ${sarif.version || 'not specified'}`);
+    console.log(`- Runs array exists: ${!!(sarif.runs)}`);
+    console.log(`- Number of runs: ${sarif.runs ? sarif.runs.length : 0}`);
+
+    if (!sarif.runs || sarif.runs.length === 0) {
+      console.error('*** DETAILED ERROR: No runs found in SARIF file ***');
+      console.error('SARIF file structure does not contain expected "runs" array');
+      console.error('Expected structure: { "runs": [{ "results": [...] }] }');
+      console.error('Actual top-level keys:', Object.keys(sarif));
+      return [];
+    }
+
     const results = [];
+    let totalResults = 0;
+    let totalMessages = 0;
+    let matchedMessages = 0;
+    const unmatchedMessages = [];
 
-    if (sarif.runs && sarif.runs.length > 0) {
-      sarif.runs.forEach(run => {
-        if (run.results) {
-          run.results.forEach(result => {
-            if (result.message && result.message.text) {
-              const text = result.message.text;
+    sarif.runs.forEach((run, runIndex) => {
+      console.log(`\nAnalyzing run ${runIndex + 1}:`);
+      console.log(`- Tool name: ${run.tool?.driver?.name || 'unknown'}`);
+      console.log(`- Results exist: ${!!(run.results)}`);
+      console.log(`- Number of results: ${run.results ? run.results.length : 0}`);
 
-              // "caller -> callee (at file:line:col)" の形式を解析
-              const match = text.match(/^(.+?)\s*->\s*(.+?)\s*\(at\s+(.+):(\d+):(\d+)\)$/);
-              if (match) {
-                const [, caller, callee, file, line, column] = match;
-                results.push({
-                  caller: caller.trim(),
-                  callee: callee.trim(),
-                  file: file.trim(),
-                  line: parseInt(line),
-                  column: parseInt(column),
-                  fullLocation: `${file}:${line}:${column}`
-                });
-              }
+      if (!run.results) {
+        console.error(`*** Run ${runIndex + 1} has no results array ***`);
+        return;
+      }
+
+      totalResults += run.results.length;
+
+      run.results.forEach((result, resultIndex) => {
+        if (result.message && result.message.text) {
+          totalMessages++;
+          const text = result.message.text;
+
+          // "caller -> callee (at file:line:col)" の形式を解析
+          const match = text.match(/^(.+?)\s*->\s*(.+?)\s*\(at\s+(.+):(\d+):(\d+)\)$/);
+          if (match) {
+            matchedMessages++;
+            const [, caller, callee, file, line, column] = match;
+            results.push({
+              caller: caller.trim(),
+              callee: callee.trim(),
+              file: file.trim(),
+              line: parseInt(line),
+              column: parseInt(column),
+              fullLocation: `${file}:${line}:${column}`
+            });
+          } else {
+            // マッチしなかったメッセージを記録（最初の10個まで）
+            if (unmatchedMessages.length < 10) {
+              unmatchedMessages.push({
+                runIndex: runIndex + 1,
+                resultIndex: resultIndex + 1,
+                message: text,
+                ruleId: result.ruleId || 'unknown'
+              });
             }
-          });
+          }
+        } else {
+          console.log(`Result ${resultIndex + 1} in run ${runIndex + 1}: no message text`);
         }
       });
+    });
+
+    console.log('\n=== SARIF Analysis Summary ===');
+    console.log(`Total runs processed: ${sarif.runs.length}`);
+    console.log(`Total results found: ${totalResults}`);
+    console.log(`Total messages with text: ${totalMessages}`);
+    console.log(`Messages matching expected pattern: ${matchedMessages}`);
+    console.log(`Messages NOT matching pattern: ${totalMessages - matchedMessages}`);
+
+    if (unmatchedMessages.length > 0) {
+      console.log('\n=== Sample Unmatched Messages ===');
+      unmatchedMessages.forEach((item, index) => {
+        console.log(`${index + 1}. Run ${item.runIndex}, Result ${item.resultIndex} (Rule: ${item.ruleId}):`);
+        console.log(`   Message: "${item.message}"`);
+      });
+
+      console.log('\n*** DETAILED ERROR: Expected message format not found ***');
+      console.log('Expected format: "caller -> callee (at file:line:col)"');
+      console.log('Example: "main -> processFile (at src/main.js:15:3)"');
+      console.log('');
+      console.log('Possible causes:');
+      console.log('1. CodeQL callgraph query is generating different message format');
+      console.log('2. Different CodeQL query was used than expected');
+      console.log('3. CodeQL query found no function calls (empty codebase)');
+      console.log('4. SARIF contains different type of results (not callgraph)');
+    }
+
+    if (results.length === 0 && totalMessages > 0) {
+      console.error('\n*** DETAILED ERROR: Message format mismatch ***');
+      console.error('SARIF file contains messages but none match the expected call graph format');
+      console.error('This suggests the wrong CodeQL query was used or query output format changed');
     }
 
     return results;
   } catch (error) {
-    console.error('Error processing SARIF file:', error);
+    console.error('\n*** DETAILED ERROR: SARIF file processing failed ***');
+    console.error('Error type:', error.name);
+    console.error('Error message:', error.message);
+
+    if (error instanceof SyntaxError) {
+      console.error('*** This appears to be a JSON parsing error ***');
+      console.error('SARIF file may be corrupted, incomplete, or not valid JSON');
+      console.error('Check if the file was generated completely');
+    } else if (error.code === 'ENOENT') {
+      console.error('*** File not found error ***');
+      console.error('SARIF file does not exist at the specified path');
+    } else {
+      console.error('*** Unexpected error occurred ***');
+      console.error('Full error details:', error);
+    }
+
     return [];
   }
 }
@@ -725,12 +818,37 @@ function main() {
   const detailedData = extractDetailedCallGraph(sarifFile);
 
   if (detailedData.length === 0) {
-    console.error('*** FATAL ERROR: No call graph data found in SARIF file ***');
-    console.error('This indicates one of the following issues:');
-    console.error('1. CodeQL callgraph query was not executed properly');
-    console.error('2. CodeQL callgraph query found no results');
-    console.error('3. SARIF file format is unexpected');
-    console.error('4. Message format in SARIF does not match expected pattern');
+    console.error('\n*** FATAL ERROR: No call graph data found in SARIF file ***');
+    console.error('');
+    console.error('=== DIAGNOSTIC INFORMATION ===');
+    console.error('This indicates one of the following root causes:');
+    console.error('');
+    console.error('1. SARIF FILE STRUCTURE ISSUE:');
+    console.error('   - SARIF file exists but has no "runs" array');
+    console.error('   - SARIF file has runs but no "results" in any run');
+    console.error('   - File was truncated or corrupted during generation');
+    console.error('');
+    console.error('2. MESSAGE FORMAT MISMATCH:');
+    console.error('   - CodeQL query generated different message format than expected');
+    console.error('   - Expected: "caller -> callee (at file:line:col)"');
+    console.error('   - Actual messages may use different pattern or language');
+    console.error('');
+    console.error('3. CODEQL QUERY EXECUTION ISSUE:');
+    console.error('   - Wrong CodeQL query was executed (not callgraph query)');
+    console.error('   - CodeQL query found no function calls in the codebase');
+    console.error('   - Query execution failed but produced empty SARIF file');
+    console.error('');
+    console.error('4. CODEBASE ANALYSIS ISSUE:');
+    console.error('   - Target codebase has no detectable function calls');
+    console.error('   - CodeQL language detection failed');
+    console.error('   - Source files are not in expected format/language');
+    console.error('');
+    console.error('=== NEXT STEPS FOR DEBUGGING ===');
+    console.error('1. Check the actual SARIF file content manually');
+    console.error('2. Verify the CodeQL query that was used');
+    console.error('3. Confirm the target codebase has JavaScript/TypeScript files');
+    console.error('4. Check CodeQL execution logs for any warnings/errors');
+    console.error('');
     console.error('Cannot generate enhanced call graph without source location data');
     process.exit(1);
   }
