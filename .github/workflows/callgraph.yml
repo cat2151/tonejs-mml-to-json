@@ -1,0 +1,184 @@
+name: Generate Call Graph
+
+on:
+  schedule:
+    # 毎日午前5時(JST) = UTC 20:00前日
+    - cron: '0 20 * * *'
+  workflow_dispatch: # 手動実行も可能
+
+jobs:
+  check-commits:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 50 # 過去のコミットを取得
+
+      - name: Check for user commits in last 24 hours
+        id: check
+        run: |
+          # 過去24時間のコミットを取得
+          since=$(date -d '24 hours ago' --iso-8601=seconds)
+          echo "Checking commits since: $since"
+
+          # 過去24時間のコミットを取得（GitHub Actionsボット以外）
+          user_commits=$(git log --since="$since" --pretty=format:"%an" | grep -v "github-actions\[bot\]" | wc -l)
+
+          echo "User commits in last 24 hours: $user_commits"
+
+          if [ "$user_commits" -gt 0 ]; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+            echo "Found user commits, proceeding with analysis"
+          else
+            echo "should-run=false" >> $GITHUB_OUTPUT
+            echo "No user commits found, skipping analysis"
+          fi
+
+  generate-callgraph:
+    needs: check-commits
+    if: needs.check-commits.outputs.should-run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: ./.github/codeql-queries/callgraph.ql
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Create temporary package.json for script dependencies
+        run: |
+          mkdir -p .github/temp
+          cd .github/temp
+          cat > package.json << 'EOF'
+          {
+            "name": "callgraph-generator",
+            "version": "1.0.0",
+            "type": "commonjs",
+            "dependencies": {
+              "cytoscape": "^3.29.2"
+            }
+          }
+          EOF
+
+      - name: Install script dependencies
+        run: |
+          cd .github/temp
+          npm install
+
+      - name: Wait for CodeQL results
+        run: sleep 30
+
+      - name: Find and process SARIF results
+        run: |
+          echo "Looking for SARIF files..."
+          find . -name "*.sarif" -type f | head -5
+
+          # CodeQLの結果ファイルを探す
+          sarif_file=""
+          for file in $(find . -name "*.sarif" -type f); do
+            if grep -q "callgraph" "$file" 2>/dev/null; then
+              sarif_file="$file"
+              break
+            fi
+          done
+
+          if [ -z "$sarif_file" ]; then
+            # フォールバック: 最新のSARIFファイルを使用
+            sarif_file=$(find . -name "*.sarif" -type f | head -1)
+          fi
+
+          if [ -n "$sarif_file" ]; then
+            echo "Using SARIF file: $sarif_file"
+
+            # SARIFファイルからカスタムクエリの結果を抽出してCSVに変換
+            node -e "
+              const fs = require('fs');
+              try {
+                const sarif = JSON.parse(fs.readFileSync('$sarif_file', 'utf8'));
+                const results = [];
+
+                if (sarif.runs && sarif.runs.length > 0) {
+                  sarif.runs.forEach(run => {
+                    if (run.results) {
+                      run.results.forEach(result => {
+                        if (result.message && result.message.text) {
+                          const text = result.message.text;
+                          // 'caller -> callee' の形式を期待
+                          if (text.includes(' -> ')) {
+                            results.push(text);
+                          }
+                        }
+                      });
+                    }
+                  });
+                }
+
+                // CSVヘッダーとデータを出力
+                let csv = 'caller,callee\n';
+                results.forEach(result => {
+                  const parts = result.split(' -> ');
+                  if (parts.length === 2) {
+                    csv += parts[0].trim() + ',' + parts[1].trim() + '\n';
+                  }
+                });
+
+                fs.writeFileSync('callgraph.csv', csv);
+                console.log('Generated CSV with ' + results.length + ' call relationships');
+              } catch (error) {
+                console.error('Error processing SARIF:', error);
+                // フォールバック: 空のCSVファイルを作成
+                fs.writeFileSync('callgraph.csv', 'caller,callee\n');
+              }
+            "
+          else
+            echo "No SARIF file found, creating empty CSV"
+            echo "caller,callee" > callgraph.csv
+          fi
+
+      - name: Generate HTML graph
+        run: |
+          node .github/scripts/convert-to-html.cjs
+
+      - name: Commit and push results
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # generated-docsディレクトリが存在しない場合は作成
+          mkdir -p generated-docs
+
+          # ファイルが変更されているかチェック
+          if [ -f "generated-docs/callgraph.html" ]; then
+            git add generated-docs/callgraph.html
+
+            if ! git diff --cached --quiet; then
+              git commit -m "Update call graph analysis [automated]"
+              git push
+              echo "Call graph updated and pushed"
+            else
+              echo "No changes to commit"
+            fi
+          else
+            echo "No callgraph.html file generated"
+          fi
