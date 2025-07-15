@@ -66,12 +66,29 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: javascript
-          queries: ./.github/codeql-queries/callgraph.ql
+          queries: +./.github/codeql-queries/callgraph.ql
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:javascript"
+
+      - name: Debug CodeQL execution
+        run: |
+          echo "=== POST-CODEQL DEBUG INFORMATION ==="
+          echo "Current directory contents:"
+          ls -la .
+          echo ""
+          echo "Looking for all SARIF files in various locations:"
+          find . -name "*.sarif" -type f 2>/dev/null | head -20
+          find .. -name "*.sarif" -type f 2>/dev/null | head -20
+          find ../results -name "*.sarif" -type f 2>/dev/null | head -20
+          echo ""
+          echo "Checking if our custom query file exists:"
+          ls -la .github/codeql-queries/callgraph.ql
+          echo ""
+          echo "Custom query content preview:"
+          head -20 .github/codeql-queries/callgraph.ql
 
 
 
@@ -111,26 +128,56 @@ jobs:
           # 現在のディレクトリも確認
           find . -name "*.sarif" -type f | head -10
 
-          # CodeQLの結果ファイルを探す（より広範囲に）
+          # CodeQLの結果ファイルを探す（すべてのSARIFファイルをチェック）
           sarif_file=""
+          echo "=== SEARCHING FOR ALL SARIF FILES ==="
           for dir in . .. ../results; do
             if [ -d "$dir" ]; then
+              echo "Checking directory: $dir"
               for file in $(find "$dir" -name "*.sarif" -type f 2>/dev/null); do
-                echo "Checking SARIF file: $file"
+                echo "Found SARIF file: $file"
+                echo "File size: $(stat -c%s "$file" 2>/dev/null || echo "unknown") bytes"
+
+                # ファイル内容をチェック
                 if grep -q "callgraph\|function-call-graph\|javascript/function-call-graph" "$file" 2>/dev/null; then
+                  echo "✓ Contains callgraph-related content"
                   sarif_file="$file"
-                  echo "Found callgraph SARIF file: $file"
                   break 2
+                else
+                  echo "✗ No callgraph content found"
+                  echo "  First few rules in this SARIF:"
+                  grep -o '"id":"[^"]*"' "$file" | head -10 || echo "  No rules found"
                 fi
               done
             fi
           done
 
+          # すべてのSARIFファイルをチェックしても見つからない場合、最新のものを使用
           if [ -z "$sarif_file" ]; then
-            echo "ERROR: No SARIF file with callgraph results found"
-            echo "Available SARIF files:"
-            find . .. ../results -name "*.sarif" -type f 2>/dev/null || echo "No SARIF files found"
-            exit 1
+            echo "=== NO CALLGRAPH-SPECIFIC SARIF FOUND, USING LATEST SARIF ==="
+            latest_sarif=""
+            for dir in . .. ../results; do
+              if [ -d "$dir" ]; then
+                for file in $(find "$dir" -name "*.sarif" -type f 2>/dev/null | head -1); do
+                  latest_sarif="$file"
+                  break 2
+                done
+              fi
+            done
+
+            if [ -n "$latest_sarif" ]; then
+              echo "Using latest SARIF file: $latest_sarif"
+              sarif_file="$latest_sarif"
+            else
+              echo "ERROR: No SARIF files found at all"
+              echo "Available files in current directory:"
+              ls -la . || echo "Cannot list current directory"
+              echo "Available files in parent directory:"
+              ls -la .. || echo "Cannot list parent directory"
+              echo "Available files in results directory:"
+              ls -la ../results || echo "Cannot list results directory"
+              exit 1
+            fi
           fi
 
           # SARIFファイルパスを環境変数に保存
@@ -139,45 +186,99 @@ jobs:
           if [ -n "$sarif_file" ]; then
             echo "Using SARIF file: $sarif_file"
             echo "File size: $(stat -c%s "$sarif_file" 2>/dev/null || echo "unknown") bytes"
-            echo "=== SARIF file content preview ==="
-            head -50 "$sarif_file"
-            echo "=== End SARIF preview ==="
+
+            # SARIFファイル全体をダンプ（サイズが小さい場合のみ）
+            file_size=$(stat -c%s "$sarif_file" 2>/dev/null || echo "0")
+            if [ "$file_size" -lt 102400 ]; then  # 100KB未満の場合
+              echo "=== COMPLETE SARIF FILE DUMP ==="
+              cat "$sarif_file"
+              echo "=== END COMPLETE SARIF DUMP ==="
+            else
+              echo "=== SARIF file content preview (first 100 lines) ==="
+              head -100 "$sarif_file"
+              echo "=== End SARIF preview ==="
+            fi
 
             # SARIFファイルからカスタムクエリの結果を抽出してCSVに変換
             node -e "
               const fs = require('fs');
               try {
-                console.log('=== SARIF Processing Debug ===');
+                console.log('=== DETAILED SARIF ANALYSIS ===');
                 const sarif = JSON.parse(fs.readFileSync('$sarif_file', 'utf8'));
                 const results = [];
 
                 console.log('SARIF structure:', {
                   hasRuns: !!sarif.runs,
-                  runsLength: sarif.runs ? sarif.runs.length : 0
+                  runsLength: sarif.runs ? sarif.runs.length : 0,
+                  version: sarif.version || 'unknown',
+                  schema: sarif.\$schema || 'unknown'
                 });
+
+                // SARIFファイル全体をダンプ（デバッグ用）
+                console.log('=== COMPLETE SARIF JSON DUMP ===');
+                console.log(JSON.stringify(sarif, null, 2));
+                console.log('=== END SARIF JSON DUMP ===');
 
                 if (sarif.runs && sarif.runs.length > 0) {
                   sarif.runs.forEach((run, runIndex) => {
-                    console.log('Run', runIndex, 'has', run.results ? run.results.length : 0, 'results');
+                    console.log('=== RUN', runIndex, 'ANALYSIS ===');
+                    console.log('Run', runIndex, 'basic info:', {
+                      hasResults: !!run.results,
+                      resultsLength: run.results ? run.results.length : 0,
+                      hasTool: !!run.tool,
+                      hasDriver: !!(run.tool && run.tool.driver),
+                      hasRules: !!(run.tool && run.tool.driver && run.tool.driver.rules)
+                    });
 
-                    // ルールの情報も出力
-                    if (run.tool && run.tool.driver && run.tool.driver.rules) {
-                      console.log('Available rules:', run.tool.driver.rules.map(r => r.id));
+                    // ツールとドライバーの詳細情報
+                    if (run.tool) {
+                      console.log('Tool info:', {
+                        driverName: run.tool.driver ? run.tool.driver.name : 'no driver',
+                        driverVersion: run.tool.driver ? run.tool.driver.version : 'no version',
+                        hasRules: run.tool.driver ? !!run.tool.driver.rules : false,
+                        rulesCount: run.tool.driver && run.tool.driver.rules ? run.tool.driver.rules.length : 0
+                      });
+
+                      // ルールの詳細情報
+                      if (run.tool.driver && run.tool.driver.rules) {
+                        console.log('Available rules:', run.tool.driver.rules.map(r => ({
+                          id: r.id,
+                          name: r.name || 'no name',
+                          shortDescription: r.shortDescription ? r.shortDescription.text : 'no description'
+                        })));
+                      }
                     }
 
+                    // 結果の詳細分析
                     if (run.results) {
                       run.results.forEach((result, resultIndex) => {
-                        console.log('Result', resultIndex, ':', {
+                        console.log('=== RESULT', resultIndex, 'DETAILED ANALYSIS ===');
+                        console.log('Full result object:', JSON.stringify(result, null, 2));
+
+                        console.log('Result basic info:', {
                           ruleId: result.ruleId,
-                          message: result.message ? result.message.text : 'no message',
-                          level: result.level
+                          level: result.level,
+                          hasMessage: !!result.message,
+                          messageText: result.message ? result.message.text : 'no message',
+                          hasLocations: !!result.locations,
+                          locationsCount: result.locations ? result.locations.length : 0,
+                          hasCodeFlows: !!result.codeFlows,
+                          codeFlowsCount: result.codeFlows ? result.codeFlows.length : 0
                         });
+
+                        // 特にコールグラフ関連のルールかチェック
+                        const isCallgraphRule = result.ruleId && (
+                          result.ruleId.includes('callgraph') ||
+                          result.ruleId.includes('function-call') ||
+                          result.ruleId.includes('call-graph')
+                        );
+                        console.log('Is callgraph rule:', isCallgraphRule);
 
                         if (result.message && result.message.text) {
                           const text = result.message.text;
-                          console.log('Processing result:', text);
+                          console.log('Processing message text:', text);
 
-                          // 'caller -> callee' の形式を期待（デバッグ情報があれば除去）
+                          // 'caller -> callee' の形式を期待
                           let cleanText = text;
                           if (text.includes(' (')) {
                             cleanText = text.substring(0, text.indexOf(' ('));
@@ -185,9 +286,9 @@ jobs:
 
                           if (cleanText.includes(' -> ')) {
                             results.push(cleanText);
-                            console.log('Added result:', cleanText);
+                            console.log('*** FOUND CALL RELATIONSHIP:', cleanText);
                           } else {
-                            console.log('Skipped result (no arrow):', text);
+                            console.log('*** NO ARROW FOUND in:', text);
                           }
                         }
                       });
@@ -195,7 +296,40 @@ jobs:
                   });
                 }
 
-                console.log('Total results found:', results.length);
+                console.log('=== FINAL ANALYSIS RESULTS ===');
+                console.log('Total call relationships found:', results.length);
+
+                if (results.length === 0) {
+                  console.log('*** ERROR: NO CALL GRAPH DATA FOUND ***');
+                  console.log('This indicates one of the following issues:');
+                  console.log('1. CodeQL callgraph query was not executed');
+                  console.log('2. CodeQL callgraph query found no results');
+                  console.log('3. SARIF file does not contain callgraph query results');
+                  console.log('4. Message format is different than expected');
+
+                  // 詳細なエラー情報を保存
+                  const errorInfo = {
+                    timestamp: new Date().toISOString(),
+                    error: 'No call graph relationships found in SARIF',
+                    sarifFile: '$sarif_file',
+                    sarifStructure: {
+                      version: sarif.version,
+                      runsCount: sarif.runs ? sarif.runs.length : 0,
+                      totalResults: sarif.runs ? sarif.runs.reduce((acc, run) => acc + (run.results ? run.results.length : 0), 0) : 0,
+                      allRuleIds: sarif.runs ? sarif.runs.flatMap(run =>
+                        run.results ? run.results.map(r => r.ruleId) : []
+                      ) : [],
+                      allMessages: sarif.runs ? sarif.runs.flatMap(run =>
+                        run.results ? run.results.map(r => r.message ? r.message.text : 'no message') : []
+                      ) : []
+                    },
+                    completeSarif: sarif
+                  };
+                  fs.writeFileSync('callgraph-error-detail.json', JSON.stringify(errorInfo, null, 2));
+
+                  console.log('*** STOPPING WORKFLOW - NO CALL GRAPH DATA ***');
+                  process.exit(1);
+                }
 
                 // CSVヘッダーとデータを出力
                 let csv = 'caller,callee\n';
@@ -215,12 +349,13 @@ jobs:
                   sarifFile: '$sarif_file',
                   totalRuns: sarif.runs ? sarif.runs.length : 0,
                   totalResults: results.length,
-                  results: results
+                  results: results,
+                  completeSarif: sarif
                 };
                 fs.writeFileSync('sarif-debug.json', JSON.stringify(debugInfo, null, 2));
 
               } catch (error) {
-                console.error('ERROR: Failed to process SARIF file');
+                console.error('*** FATAL ERROR: Failed to process SARIF file ***');
                 console.error('Error message:', error.message);
                 console.error('Stack trace:', error.stack);
                 console.error('SARIF file path:', '$sarif_file');
@@ -232,7 +367,7 @@ jobs:
                   stack: error.stack,
                   sarifFile: '$sarif_file'
                 };
-                fs.writeFileSync('sarif-error.json', JSON.stringify(errorInfo, null, 2));
+                fs.writeFileSync('sarif-fatal-error.json', JSON.stringify(errorInfo, null, 2));
 
                 // ワークフローをエラーで終了
                 process.exit(1);
