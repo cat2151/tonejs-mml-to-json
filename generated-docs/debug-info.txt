@@ -1,0 +1,54 @@
+=== Debug Information ===
+Workflow run: 16297124241
+Run number: 11
+Timestamp: Tue Jul 15 15:11:13 UTC 2025
+Event: workflow_dispatch
+Branch: main
+
+Files in current directory:
+total 1468
+drwxr-xr-x 9 runner docker    4096 Jul 15 15:11 .
+drwxr-xr-x 4 runner docker    4096 Jul 15 15:10 ..
+-rw-r--r-- 1 runner docker     453 Jul 15 15:09 .editorconfig
+drwxr-xr-x 7 runner docker    4096 Jul 15 15:11 .git
+drwxr-xr-x 8 runner docker    4096 Jul 15 15:11 .github
+-rw-r--r-- 1 runner docker      83 Jul 15 15:09 .gitignore
+-rw-r--r-- 1 runner docker    1064 Jul 15 15:09 LICENSE
+-rw-r--r-- 1 runner docker    3183 Jul 15 15:09 README.ja.md
+-rw-r--r-- 1 runner docker    3125 Jul 15 15:09 README.md
+-rw-r--r-- 1 runner docker   12959 Jul 15 15:11 callgraph.csv
+-rw-r--r-- 1 runner docker   84407 Jul 15 15:11 callgraph.html
+drwxr-xr-x 2 runner docker    4096 Jul 15 15:09 dev-setup
+drwxr-xr-x 2 runner docker    4096 Jul 15 15:11 generated-docs
+-rw-r--r-- 1 runner docker     268 Jul 15 15:09 index.html
+drwxr-xr-x 2 runner docker    4096 Jul 15 15:09 issue-notes
+-rw-r--r-- 1 runner docker     736 Jul 15 15:09 package.json
+-rw-r--r-- 1 runner docker   34949 Jul 15 15:09 pnpm-lock.yaml
+-rw-r--r-- 1 runner docker 1292975 Jul 15 15:11 sarif-debug.json
+drwxr-xr-x 2 runner docker    4096 Jul 15 15:09 src
+drwxr-xr-x 2 runner docker    4096 Jul 15 15:09 test
+-rw-r--r-- 1 runner docker     138 Jul 15 15:09 vitest.config.js
+
+CSV file status:
+CSV exists in generated-docs, line count: 604
+CSV size: 12959 bytes
+First 5 lines of CSV:
+caller,callee
+unknown_8,require
+unknown_9,config
+unknown_9,require
+unknown_14,log
+
+HTML file status:
+HTML exists in generated-docs, size: 84407 bytes
+HTML file first few lines:
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Function Call Graph</title>
+    <script src="https://unpkg.com/cytoscape@3.29.2/dist/cytoscape.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
