@@ -554,10 +554,9 @@ jobs:
           # 変更があるかチェック
           if ! git diff --cached --quiet; then
             # コミットメッセージの内容を変数に保存
-            csv_lines=$(wc -l < generated-docs/callgraph.csv)
             html_size=$(stat -c%s generated-docs/callgraph.html 2>/dev/null || echo "unknown")
 
-            git commit -m "Update call graph analysis [automated] - CSV: $csv_lines lines, HTML: ${html_size} bytes, Run: ${{ github.run_id }}"
+            git commit -m "Update call graph analysis [automated] - HTML: ${html_size} bytes, Run: ${{ github.run_id }}"
 
             git push
             echo "Call graph files updated and pushed successfully"
