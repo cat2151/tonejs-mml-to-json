@@ -15,20 +15,22 @@ import javascript
 // プロジェクト内で定義された関数名を自動検出
 predicate isProjectFunction(string functionName) {
   exists(Function func |
-    // プロジェクトファイル内で定義された関数
+    // まず除外条件をチェック
+    not func.getLocation().getFile().getAbsolutePath().matches("%grammar.js") and
+    not func.getLocation().getFile().getAbsolutePath().matches("%parser.js") and
+    not func.getLocation().getFile().getAbsolutePath().matches("%.peg.js") and
+    not func.getLocation().getFile().getAbsolutePath().matches("%node_modules%") and
+    not func.getLocation().getFile().getAbsolutePath().matches("%test%") and
+    not func.getLocation().getFile().getAbsolutePath().matches("%spec%") and
+    not func.getLocation().getFile().getAbsolutePath().matches("%dev-setup%") and
+
+    // 次にプロジェクトファイル内で定義された関数を含める
     (
       func.getLocation().getFile().getAbsolutePath().matches("%/src/%") or
       func.getLocation().getFile().getAbsolutePath().matches("%\\src\\%") or
-      (
-        func.getLocation().getFile().getAbsolutePath().matches("%.js") and
-        not func.getLocation().getFile().getAbsolutePath().matches("%node_modules%") and
-        not func.getLocation().getFile().getAbsolutePath().matches("%test%") and
-        not func.getLocation().getFile().getAbsolutePath().matches("%spec%") and
-        not func.getLocation().getFile().getAbsolutePath().matches("%grammar.js") and
-        not func.getLocation().getFile().getAbsolutePath().matches("%parser.js") and
-        not func.getLocation().getFile().getAbsolutePath().matches("%.peg.js")
-      )
+      func.getLocation().getFile().getAbsolutePath().matches("%.js")
     ) and
+
     exists(func.getName()) and
     functionName = func.getName() and
     // 短すぎる関数名を除外
@@ -36,7 +38,29 @@ predicate isProjectFunction(string functionName) {
     // PEG.js系の関数を除外
     not functionName.matches("peg$%") and
     not functionName.matches("anonymous_%") and
-    not functionName.matches("unknown_%")
+    not functionName.matches("unknown_%") and
+    // 標準ライブラリ関数を明示的に除外
+    not functionName in [
+      "toString", "constructor", "valueOf", "hasOwnProperty",
+      "push", "pop", "shift", "unshift", "slice", "splice", "concat",
+      "log", "error", "warn", "info", "debug",
+      "replace", "trim", "split", "join", "toLowerCase", "toUpperCase",
+      "map", "forEach", "filter", "reduce", "find", "some", "every",
+      "addEventListener", "removeEventListener", "getElementById", "querySelector",
+      "require", "module", "exports", "console",
+      "setTimeout", "setInterval", "clearTimeout", "clearInterval",
+      "parseInt", "parseFloat", "isNaN", "isFinite",
+      "exec", "test", "match", "search", "includes", "indexOf", "lastIndexOf",
+      "substr", "substring", "charAt", "charCodeAt", "codePointAt",
+      "startsWith", "endsWith", "padStart", "padEnd",
+      "sort", "reverse", "isArray", "from",
+      "keys", "values", "entries", "assign", "create",
+      "stringify", "parse", "call", "apply", "bind",
+      "connect", "dispose", "start", "stop", "play", "pause",
+      "writeFileSync", "readFileSync", "existsSync", "mkdirSync", "execSync",
+      "resolve", "relative", "dirname", "basename", "extname",
+      "all", "race", "resolve", "reject", "then", "catch", "finally"
+    ]
   )
 }
 
