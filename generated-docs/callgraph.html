@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Function Call Graph</title>
+    <title>Function Call Graph with Source Links</title>
     <script src="https://unpkg.com/cytoscape@3.29.2/dist/cytoscape.min.js"></script>
     <style>
         body {
@@ -11,128 +11,288 @@
             margin: 0;
             padding: 20px;
             background-color: #f5f5f5;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .header {
-            text-align: center;
-            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .header h1 {
             color: #333;
-            margin-bottom: 10px;
+            margin: 0;
+            font-size: 24px;
+            transition: color 0.3s ease;
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         .stats {
             background: white;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 10px 15px;
+            border-radius: 6px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 30px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            min-width: 80px;
         }
 
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 24px;
+        .stat-value {
+            font-size: 20px;
             font-weight: bold;
             color: #2196F3;
+            margin-bottom: 2px;
         }
 
         .stat-label {
-            font-size: 14px;
+            font-size: 12px;
             color: #666;
+            transition: color 0.3s ease;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 15px;
+            height: calc(100vh - 120px);
+            min-height: 500px;
+        }
+
+        .graph-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         #cy {
             width: 100%;
-            height: 600px;
+            flex: 1;
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         .controls {
-            margin-top: 20px;
-            text-align: center;
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .control-button {
             background: #2196F3;
             color: white;
             border: none;
-            padding: 10px 20px;
-            margin: 0 5px;
+            padding: 8px 16px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
+            transition: background-color 0.3s ease;
         }
 
         .control-button:hover {
             background: #1976D2;
         }
 
-        .info {
+        .info-panel {
             background: white;
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-top: 20px;
-            font-size: 14px;
+            width: 300px;
+            max-height: 100%;
+            overflow-y: auto;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .info-panel.hidden {
+            display: none;
+        }
+
+        .info-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            transition: color 0.3s ease;
+        }
+
+        .location-item {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 4px solid #2196F3;
+            transition: background-color 0.3s ease;
+        }
+
+        .location-file {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
             color: #666;
-            line-height: 1.6;
+            transition: color 0.3s ease;
+        }
+
+        .location-link {
+            color: #2196F3;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .location-link:hover {
+            text-decoration: underline;
+        }
+
+        .edge-info {
+            background: #e3f2fd;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 4px solid #1976D2;
+            transition: background-color 0.3s ease;
         }
 
         .generated-time {
             text-align: center;
             color: #999;
-            font-size: 12px;
+            font-size: 11px;
             margin-top: 10px;
+            transition: color 0.3s ease;
+        }
+
+        /* レスポンシブデザイン */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                height: auto;
+                min-height: 400px;
+            }
+
+            .info-panel {
+                width: 100%;
+                max-height: 300px;
+                order: 2;
+            }
+
+            .graph-container {
+                order: 1;
+                min-height: 400px;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .stats-container {
+                justify-content: center;
+            }
+        }
+
+        /* ダークモード対応 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #121212;
+                color: #e0e0e0;
+            }
+
+            .header h1 {
+                color: #ffffff;
+            }
+
+            .stats {
+                background: #1e1e1e;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            }
+
+            .stat-label {
+                color: #b0b0b0;
+            }
+
+            #cy {
+                background-color: #1e1e1e;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            }
+
+            .control-button {
+                background: #2196F3;
+            }
+
+            .control-button:hover {
+                background: #1976D2;
+            }
+
+            .info-panel {
+                background: #1e1e1e;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            }
+
+            .info-title {
+                color: #ffffff;
+            }
+
+            .location-item {
+                background: #2a2a2a;
+            }
+
+            .location-file {
+                color: #b0b0b0;
+            }
+
+            .edge-info {
+                background: #1a2d3a;
+            }
+
+            .generated-time {
+                color: #888;
+            }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>📊 Function Call Graph</h1>
-        <p>JavaScript/TypeScript関数呼び出し関係の可視化</p>
-    </div>
-
-    <div class="stats">
-        <div class="stat-item">
-            <div class="stat-number" id="nodeCount">22</div>
-            <div class="stat-label">Functions</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number" id="edgeCount">29</div>
-            <div class="stat-label">Call Relationships</div>
+        <h1>Function Call Graph with Source Links</h1>
+        <div class="stats-container">
+            <div class="stats">
+                <div class="stat-value">31</div>
+                <div class="stat-label">Functions</div>
+            </div>
+            <div class="stats">
+                <div class="stat-value">39</div>
+                <div class="stat-label">Call Relationships</div>
+            </div>
         </div>
     </div>
 
-    <div id="cy"></div>
+    <div class="main-container">
+        <div class="graph-container">
+            <div id="cy"></div>
+            <div class="controls">
+                <button class="control-button" onclick="resetLayout()">Reset Layout</button>
+                <button class="control-button" onclick="fitToContent()">Fit to Content</button>
+                <button class="control-button" onclick="toggleNodeLabels()">Toggle Labels</button>
+                <button class="control-button" onclick="toggleInfoPanel()">Toggle Info Panel</button>
+            </div>
+        </div>
 
-    <div class="controls">
-        <button class="control-button" onclick="fitGraph()">🔍 Fit to Screen</button>
-        <button class="control-button" onclick="resetLayout()">🔄 Reset Layout</button>
-        <button class="control-button" onclick="toggleLabels()">🏷️ Toggle Labels</button>
-    </div>
-
-    <div class="info">
-        <p><strong>使い方:</strong></p>
-        <ul>
-            <li>🖱️ ノード（関数）をドラッグして位置を調整できます</li>
-            <li>🔍 マウスホイールでズームイン/アウトできます</li>
-            <li>👆 ノードをクリックすると詳細情報が表示されます</li>
-            <li>🎯 エッジ（矢印）は関数呼び出しの方向を示します</li>
-        </ul>
+        <div id="info-panel" class="info-panel hidden">
+            <div class="info-title">選択した要素の詳細</div>
+            <div id="info-content"></div>
+        </div>
     </div>
 
     <div class="generated-time">
-        Generated on: 2025/7/16 3:03:51
+        Generated: 2025/7/15 18:40:48
     </div>
 
     <script>
@@ -140,259 +300,813 @@
   "nodes": [
     {
       "id": "global",
-      "label": "global"
+      "label": "global",
+      "locations": [
+        {
+          "file": "setup.js",
+          "line": 51,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "setup.js",
+          "line": 81,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "setup.js",
+          "line": 137,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "parser.test.js",
+          "line": 4,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "generate-project-summary.cjs",
+          "line": 1009,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
     },
     {
       "id": "exit",
-      "label": "exit"
+      "label": "exit",
+      "locations": []
     },
     {
-      "id": "format",
-      "label": "format"
+      "id": "unknown_51",
+      "label": "unknown_51",
+      "locations": [
+        {
+          "file": "setup.js",
+          "line": 51,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
     },
     {
-      "id": "offset",
-      "label": "offset"
+      "id": "anonymous_172",
+      "label": "anonymous_172",
+      "locations": [
+        {
+          "file": "enhanced-convert-to-html.cjs",
+          "line": 174,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "enhanced-convert-to-html.cjs",
+          "line": 175,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "enhanced-convert-to-html.cjs",
+          "line": 181,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "enhanced-convert-to-html.cjs",
+          "line": 182,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "enhanced-convert-to-html.cjs",
+          "line": 190,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
+    },
+    {
+      "id": "has",
+      "label": "has",
+      "locations": []
+    },
+    {
+      "id": "set",
+      "label": "set",
+      "locations": []
+    },
+    {
+      "id": "get",
+      "label": "get",
+      "locations": []
+    },
+    {
+      "id": "unknown_81",
+      "label": "unknown_81",
+      "locations": [
+        {
+          "file": "setup.js",
+          "line": 81,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
+    },
+    {
+      "id": "unknown_137",
+      "label": "unknown_137",
+      "locations": [
+        {
+          "file": "setup.js",
+          "line": 137,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
     },
     {
       "id": "mml2json",
-      "label": "mml2json"
+      "label": "mml2json",
+      "locations": [
+        {
+          "file": "mml2json.js",
+          "line": 11,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
     },
     {
       "id": "compileMmlToCommands",
-      "label": "compileMmlToCommands"
+      "label": "compileMmlToCommands",
+      "locations": [
+        {
+          "file": "mml2json.js",
+          "line": 18,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "mml2json.js",
+          "line": 23,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "mml2json.js",
+          "line": 26,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "mml2json.js",
+          "line": 27,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "mml2json.js",
+          "line": 32,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "mml2json.js",
+          "line": 39,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
     },
     {
       "id": "getNodeId",
-      "label": "getNodeId"
+      "label": "getNodeId",
+      "locations": []
     },
     {
       "id": "getMmlCommands",
-      "label": "getMmlCommands"
+      "label": "getMmlCommands",
+      "locations": []
     },
     {
       "id": "func",
-      "label": "func"
+      "label": "func",
+      "locations": [
+        {
+          "file": "mml2json.js",
+          "line": 57,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "mml2json.js",
+          "line": 76,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "mml2json.js",
+          "line": 79,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "mml2json.js",
+          "line": 82,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "mml2json.js",
+          "line": 85,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "mml2json.js",
+          "line": 95,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "mml2json.js",
+          "line": 97,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "mml2json.js",
+          "line": 101,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "mml2json.js",
+          "line": 102,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "mml2json.js",
+          "line": 104,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
     },
     {
       "id": "repeat",
-      "label": "repeat"
+      "label": "repeat",
+      "locations": []
+    },
+    {
+      "id": "format",
+      "label": "format",
+      "locations": [
+        {
+          "file": "grammar.js",
+          "line": 25,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
+    },
+    {
+      "id": "offset",
+      "label": "offset",
+      "locations": []
     },
     {
       "id": "calcAttackToReleaseTicks",
-      "label": "calcAttackToReleaseTicks"
+      "label": "calcAttackToReleaseTicks",
+      "locations": [
+        {
+          "file": "mml2json.js",
+          "line": 116,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
     },
     {
       "id": "increaseStartTick",
-      "label": "increaseStartTick"
+      "label": "increaseStartTick",
+      "locations": []
     },
     {
       "id": "toInt",
-      "label": "toInt"
+      "label": "toInt",
+      "locations": []
     },
     {
       "id": "calcDuration",
-      "label": "calcDuration"
+      "label": "calcDuration",
+      "locations": []
     },
     {
       "id": "calcStartTick",
-      "label": "calcStartTick"
+      "label": "calcStartTick",
+      "locations": []
     },
     {
       "id": "calcLtick",
-      "label": "calcLtick"
+      "label": "calcLtick",
+      "locations": []
     },
     {
       "id": "describe",
-      "label": "describe"
+      "label": "describe",
+      "locations": []
+    },
+    {
+      "id": "unknown_4",
+      "label": "unknown_4",
+      "locations": [
+        {
+          "file": "parser.test.js",
+          "line": 4,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
     },
     {
       "id": "anonymous_5",
-      "label": "anonymous_5"
+      "label": "anonymous_5",
+      "locations": [
+        {
+          "file": "parser.test.js",
+          "line": 7,
+          "column": 1,
+          "type": "caller"
+        },
+        {
+          "file": "parser.test.js",
+          "line": 8,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
     },
     {
       "id": "expect",
-      "label": "expect"
+      "label": "expect",
+      "locations": []
     },
     {
       "id": "anonymous_17",
-      "label": "anonymous_17"
+      "label": "anonymous_17",
+      "locations": [
+        {
+          "file": "play.js",
+          "line": 17,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
     },
     {
       "id": "sub",
-      "label": "sub"
+      "label": "sub",
+      "locations": []
     },
     {
       "id": "run",
-      "label": "run"
+      "label": "run",
+      "locations": [
+        {
+          "file": "generate-project-summary.cjs",
+          "line": 1002,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
+    },
+    {
+      "id": "unknown_1009",
+      "label": "unknown_1009",
+      "locations": [
+        {
+          "file": "generate-project-summary.cjs",
+          "line": 1009,
+          "column": 1,
+          "type": "caller"
+        }
+      ]
     }
   ],
   "edges": [
     {
       "id": "edge-0",
       "source": "global",
-      "target": "exit"
+      "target": "exit",
+      "file": "setup.js",
+      "line": 51,
+      "column": 1,
+      "location": "setup.js:51:1"
     },
     {
       "id": "edge-1",
-      "source": "global",
-      "target": "exit"
+      "source": "unknown_51",
+      "target": "exit",
+      "file": "setup.js",
+      "line": 51,
+      "column": 1,
+      "location": "setup.js:51:1"
     },
     {
       "id": "edge-2",
-      "source": "global",
-      "target": "exit"
+      "source": "anonymous_172",
+      "target": "has",
+      "file": "enhanced-convert-to-html.cjs",
+      "line": 174,
+      "column": 1,
+      "location": "enhanced-convert-to-html.cjs:174:1"
     },
     {
       "id": "edge-3",
-      "source": "format",
-      "target": "offset"
+      "source": "anonymous_172",
+      "target": "set",
+      "file": "enhanced-convert-to-html.cjs",
+      "line": 175,
+      "column": 1,
+      "location": "enhanced-convert-to-html.cjs:175:1"
     },
     {
       "id": "edge-4",
-      "source": "mml2json",
-      "target": "compileMmlToCommands"
+      "source": "anonymous_172",
+      "target": "has",
+      "file": "enhanced-convert-to-html.cjs",
+      "line": 181,
+      "column": 1,
+      "location": "enhanced-convert-to-html.cjs:181:1"
     },
     {
       "id": "edge-5",
-      "source": "compileMmlToCommands",
-      "target": "getNodeId"
+      "source": "anonymous_172",
+      "target": "set",
+      "file": "enhanced-convert-to-html.cjs",
+      "line": 182,
+      "column": 1,
+      "location": "enhanced-convert-to-html.cjs:182:1"
     },
     {
       "id": "edge-6",
-      "source": "compileMmlToCommands",
-      "target": "getNodeId"
+      "source": "anonymous_172",
+      "target": "get",
+      "file": "enhanced-convert-to-html.cjs",
+      "line": 190,
+      "column": 1,
+      "location": "enhanced-convert-to-html.cjs:190:1"
     },
     {
       "id": "edge-7",
-      "source": "compileMmlToCommands",
-      "target": "getMmlCommands"
+      "source": "global",
+      "target": "exit",
+      "file": "setup.js",
+      "line": 81,
+      "column": 1,
+      "location": "setup.js:81:1"
     },
     {
       "id": "edge-8",
-      "source": "compileMmlToCommands",
-      "target": "getMmlCommands"
+      "source": "unknown_81",
+      "target": "exit",
+      "file": "setup.js",
+      "line": 81,
+      "column": 1,
+      "location": "setup.js:81:1"
     },
     {
       "id": "edge-9",
-      "source": "compileMmlToCommands",
-      "target": "func"
+      "source": "global",
+      "target": "exit",
+      "file": "setup.js",
+      "line": 137,
+      "column": 1,
+      "location": "setup.js:137:1"
     },
     {
       "id": "edge-10",
-      "source": "compileMmlToCommands",
-      "target": "repeat"
+      "source": "unknown_137",
+      "target": "exit",
+      "file": "setup.js",
+      "line": 137,
+      "column": 1,
+      "location": "setup.js:137:1"
     },
     {
       "id": "edge-11",
-      "source": "func",
-      "target": "getNodeId"
+      "source": "mml2json",
+      "target": "compileMmlToCommands",
+      "file": "mml2json.js",
+      "line": 11,
+      "column": 1,
+      "location": "mml2json.js:11:1"
     },
     {
       "id": "edge-12",
-      "source": "func",
-      "target": "calcAttackToReleaseTicks"
+      "source": "compileMmlToCommands",
+      "target": "getNodeId",
+      "file": "mml2json.js",
+      "line": 18,
+      "column": 1,
+      "location": "mml2json.js:18:1"
     },
     {
       "id": "edge-13",
-      "source": "func",
-      "target": "increaseStartTick"
+      "source": "compileMmlToCommands",
+      "target": "getNodeId",
+      "file": "mml2json.js",
+      "line": 23,
+      "column": 1,
+      "location": "mml2json.js:23:1"
     },
     {
       "id": "edge-14",
-      "source": "func",
-      "target": "toInt"
+      "source": "compileMmlToCommands",
+      "target": "getMmlCommands",
+      "file": "mml2json.js",
+      "line": 26,
+      "column": 1,
+      "location": "mml2json.js:26:1"
     },
     {
       "id": "edge-15",
-      "source": "func",
-      "target": "toInt"
+      "source": "compileMmlToCommands",
+      "target": "getMmlCommands",
+      "file": "mml2json.js",
+      "line": 27,
+      "column": 1,
+      "location": "mml2json.js:27:1"
     },
     {
       "id": "edge-16",
-      "source": "func",
-      "target": "repeat"
+      "source": "compileMmlToCommands",
+      "target": "func",
+      "file": "mml2json.js",
+      "line": 32,
+      "column": 1,
+      "location": "mml2json.js:32:1"
     },
     {
       "id": "edge-17",
-      "source": "func",
-      "target": "repeat"
+      "source": "compileMmlToCommands",
+      "target": "repeat",
+      "file": "mml2json.js",
+      "line": 39,
+      "column": 1,
+      "location": "mml2json.js:39:1"
     },
     {
       "id": "edge-18",
-      "source": "func",
-      "target": "getNodeId"
+      "source": "format",
+      "target": "offset",
+      "file": "grammar.js",
+      "line": 25,
+      "column": 1,
+      "location": "grammar.js:25:1"
     },
     {
       "id": "edge-19",
       "source": "func",
-      "target": "calcDuration"
+      "target": "getNodeId",
+      "file": "mml2json.js",
+      "line": 57,
+      "column": 1,
+      "location": "mml2json.js:57:1"
     },
     {
       "id": "edge-20",
       "source": "func",
-      "target": "calcStartTick"
+      "target": "calcAttackToReleaseTicks",
+      "file": "mml2json.js",
+      "line": 76,
+      "column": 1,
+      "location": "mml2json.js:76:1"
     },
     {
       "id": "edge-21",
       "source": "func",
-      "target": "increaseStartTick"
+      "target": "increaseStartTick",
+      "file": "mml2json.js",
+      "line": 79,
+      "column": 1,
+      "location": "mml2json.js:79:1"
     },
     {
       "id": "edge-22",
-      "source": "calcAttackToReleaseTicks",
-      "target": "calcLtick"
+      "source": "func",
+      "target": "toInt",
+      "file": "mml2json.js",
+      "line": 82,
+      "column": 1,
+      "location": "mml2json.js:82:1"
     },
     {
       "id": "edge-23",
-      "source": "global",
-      "target": "describe"
+      "source": "func",
+      "target": "toInt",
+      "file": "mml2json.js",
+      "line": 85,
+      "column": 1,
+      "location": "mml2json.js:85:1"
     },
     {
       "id": "edge-24",
-      "source": "anonymous_5",
-      "target": "expect"
+      "source": "func",
+      "target": "repeat",
+      "file": "mml2json.js",
+      "line": 95,
+      "column": 1,
+      "location": "mml2json.js:95:1"
     },
     {
       "id": "edge-25",
-      "source": "anonymous_5",
-      "target": "expect"
+      "source": "func",
+      "target": "repeat",
+      "file": "mml2json.js",
+      "line": 97,
+      "column": 1,
+      "location": "mml2json.js:97:1"
     },
     {
       "id": "edge-26",
-      "source": "anonymous_17",
-      "target": "sub"
+      "source": "func",
+      "target": "getNodeId",
+      "file": "mml2json.js",
+      "line": 101,
+      "column": 1,
+      "location": "mml2json.js:101:1"
     },
     {
       "id": "edge-27",
-      "source": "run",
-      "target": "exit"
+      "source": "func",
+      "target": "calcDuration",
+      "file": "mml2json.js",
+      "line": 102,
+      "column": 1,
+      "location": "mml2json.js:102:1"
     },
     {
       "id": "edge-28",
+      "source": "func",
+      "target": "calcStartTick",
+      "file": "mml2json.js",
+      "line": 102,
+      "column": 1,
+      "location": "mml2json.js:102:1"
+    },
+    {
+      "id": "edge-29",
+      "source": "func",
+      "target": "increaseStartTick",
+      "file": "mml2json.js",
+      "line": 104,
+      "column": 1,
+      "location": "mml2json.js:104:1"
+    },
+    {
+      "id": "edge-30",
+      "source": "calcAttackToReleaseTicks",
+      "target": "calcLtick",
+      "file": "mml2json.js",
+      "line": 116,
+      "column": 1,
+      "location": "mml2json.js:116:1"
+    },
+    {
+      "id": "edge-31",
       "source": "global",
-      "target": "run"
+      "target": "describe",
+      "file": "parser.test.js",
+      "line": 4,
+      "column": 1,
+      "location": "parser.test.js:4:1"
+    },
+    {
+      "id": "edge-32",
+      "source": "unknown_4",
+      "target": "describe",
+      "file": "parser.test.js",
+      "line": 4,
+      "column": 1,
+      "location": "parser.test.js:4:1"
+    },
+    {
+      "id": "edge-33",
+      "source": "anonymous_5",
+      "target": "expect",
+      "file": "parser.test.js",
+      "line": 7,
+      "column": 1,
+      "location": "parser.test.js:7:1"
+    },
+    {
+      "id": "edge-34",
+      "source": "anonymous_5",
+      "target": "expect",
+      "file": "parser.test.js",
+      "line": 8,
+      "column": 1,
+      "location": "parser.test.js:8:1"
+    },
+    {
+      "id": "edge-35",
+      "source": "anonymous_17",
+      "target": "sub",
+      "file": "play.js",
+      "line": 17,
+      "column": 1,
+      "location": "play.js:17:1"
+    },
+    {
+      "id": "edge-36",
+      "source": "run",
+      "target": "exit",
+      "file": "generate-project-summary.cjs",
+      "line": 1002,
+      "column": 1,
+      "location": "generate-project-summary.cjs:1002:1"
+    },
+    {
+      "id": "edge-37",
+      "source": "global",
+      "target": "run",
+      "file": "generate-project-summary.cjs",
+      "line": 1009,
+      "column": 1,
+      "location": "generate-project-summary.cjs:1009:1"
+    },
+    {
+      "id": "edge-38",
+      "source": "unknown_1009",
+      "target": "run",
+      "file": "generate-project-summary.cjs",
+      "line": 1009,
+      "column": 1,
+      "location": "generate-project-summary.cjs:1009:1"
     }
   ]
 };
+        const repo = "cat2151/tonejs-mml-to-json";
+        const branch = "main";
 
-        let showLabels = true;
+        // ダークモード検出
+        const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-        // Cytoscapeインスタンスを初期化
+        // ダークモード用のカラーパレット
+        const colors = {
+            light: {
+                node: '#2196F3',
+                nodeBorder: '#1976D2',
+                nodeSelected: '#FF5722',
+                nodeSelectedBorder: '#D84315',
+                nodeWithLocation: '#4CAF50',
+                edge: '#666',
+                edgeSelected: '#FF5722',
+                edgeWithLocation: '#4CAF50',
+                textBackground: 'white'
+            },
+            dark: {
+                node: '#64B5F6',
+                nodeBorder: '#42A5F5',
+                nodeSelected: '#FF7043',
+                nodeSelectedBorder: '#FF5722',
+                nodeWithLocation: '#66BB6A',
+                edge: '#999',
+                edgeSelected: '#FF7043',
+                edgeWithLocation: '#66BB6A',
+                textBackground: '#1e1e1e'
+            }
+        };
+
+        const currentColors = isDarkMode ? colors.dark : colors.light;
+
         const cy = cytoscape({
             container: document.getElementById('cy'),
 
             elements: [
                 // ノードを追加
                 ...graphData.nodes.map(node => ({
-                    data: { id: node.id, label: node.label }
+                    data: {
+                        id: node.id,
+                        label: node.label,
+                        locations: node.locations || []
+                    }
                 })),
                 // エッジを追加
                 ...graphData.edges.map(edge => ({
                     data: {
                         id: edge.id,
                         source: edge.source,
-                        target: edge.target
+                        target: edge.target,
+                        file: edge.file || '',
+                        line: edge.line || 0,
+                        column: edge.column || 0,
+                        location: edge.location || ''
                     }
                 }))
             ],
@@ -401,20 +1115,20 @@
                 {
                     selector: 'node',
                     style: {
-                        'background-color': '#2196F3',
+                        'background-color': currentColors.node,
                         'label': 'data(label)',
-                        'color': '#333',
+                        'color': isDarkMode ? '#ffffff' : '#333',
                         'text-valign': 'center',
                         'text-halign': 'center',
                         'font-size': '12px',
                         'font-weight': 'bold',
                         'text-wrap': 'wrap',
                         'text-max-width': '100px',
-                        'width': '60px',
-                        'height': '60px',
+                        'width': '70px',
+                        'height': '70px',
                         'border-width': '2px',
-                        'border-color': '#1976D2',
-                        'text-background-color': 'white',
+                        'border-color': currentColors.nodeBorder,
+                        'text-background-color': currentColors.textBackground,
                         'text-background-opacity': 0.8,
                         'text-background-padding': '3px'
                     }
@@ -422,16 +1136,23 @@
                 {
                     selector: 'node:selected',
                     style: {
-                        'background-color': '#FF5722',
-                        'border-color': '#D84315'
+                        'background-color': currentColors.nodeSelected,
+                        'border-color': currentColors.nodeSelectedBorder
+                    }
+                },
+                {
+                    selector: 'node[locations.length > 0]',
+                    style: {
+                        'border-width': '3px',
+                        'border-color': currentColors.nodeWithLocation
                     }
                 },
                 {
                     selector: 'edge',
                     style: {
                         'width': 2,
-                        'line-color': '#666',
-                        'target-arrow-color': '#666',
+                        'line-color': currentColors.edge,
+                        'target-arrow-color': currentColors.edge,
                         'target-arrow-shape': 'triangle',
                         'curve-style': 'bezier',
                         'arrow-scale': 1.2
@@ -440,86 +1161,156 @@
                 {
                     selector: 'edge:selected',
                     style: {
-                        'line-color': '#FF5722',
-                        'target-arrow-color': '#FF5722',
+                        'line-color': currentColors.edgeSelected,
+                        'target-arrow-color': currentColors.edgeSelected,
                         'width': 3
+                    }
+                },
+                {
+                    selector: 'edge[location]',
+                    style: {
+                        'line-color': currentColors.edgeWithLocation,
+                        'target-arrow-color': currentColors.edgeWithLocation
                     }
                 }
             ],
 
             layout: {
-                name: 'cose',
-                nodeRepulsion: 8000,
-                nodeOverlap: 20,
-                idealEdgeLength: 100,
-                animate: true,
-                animationDuration: 1000,
+                name: 'circle',
                 fit: true,
-                padding: 30
+                padding: 30,
+                avoidOverlap: true,
+                radius: 200
             }
         });
 
-        // ノードクリックイベント
+        // ノード選択時の処理
         cy.on('tap', 'node', function(evt) {
             const node = evt.target;
-            const nodeId = node.id();
-
-            // 接続されているエッジとノードをハイライト
-            const connectedEdges = node.connectedEdges();
-            const connectedNodes = connectedEdges.connectedNodes();
-
-            // すべての要素を薄くする
-            cy.elements().style('opacity', 0.3);
-
-            // 選択されたノードと接続要素をハイライト
-            node.style('opacity', 1);
-            connectedEdges.style('opacity', 1);
-            connectedNodes.style('opacity', 1);
-
-            // 3秒後に元に戻す
-            setTimeout(() => {
-                cy.elements().style('opacity', 1);
-            }, 3000);
-
-            console.log('Selected function:', nodeId);
+            const data = node.data();
+            showNodeInfo(data);
         });
 
-        // 背景クリックでハイライト解除
+        // エッジ選択時の処理
+        cy.on('tap', 'edge', function(evt) {
+            const edge = evt.target;
+            const data = edge.data();
+            showEdgeInfo(data);
+        });
+
+        // 背景クリック時の処理
         cy.on('tap', function(evt) {
             if (evt.target === cy) {
-                cy.elements().style('opacity', 1);
+                hideInfoPanel();
             }
         });
 
-        // 制御関数
-        function fitGraph() {
-            cy.fit();
+        function showNodeInfo(data) {
+            const panel = document.getElementById('info-panel');
+            const content = document.getElementById('info-content');
+
+            let html = '<div class="info-title">Function: ' + data.label + '</div>';
+
+            if (data.locations && data.locations.length > 0) {
+                html += '<h4>Locations:</h4>';
+                data.locations.forEach(loc => {
+                    const githubURL = generateGitHubURL(loc.file, loc.line);
+                    html += '<div class="location-item">';
+                    html += '<div class="location-file">' + loc.file + ':' + loc.line + ':' + loc.column + '</div>';
+                    if (githubURL) {
+                        html += '<div><a href="' + githubURL + '" target="_blank" class="location-link">View on GitHub</a></div>';
+                    }
+                    html += '</div>';
+                });
+            } else {
+                html += '<p>ソースコード位置情報がありません</p>';
+            }
+
+            content.innerHTML = html;
+            showInfoPanel();
+        }
+
+        function showEdgeInfo(data) {
+            const panel = document.getElementById('info-panel');
+            const content = document.getElementById('info-content');
+
+            let html = '<div class="info-title">Call: ' + data.source + ' → ' + data.target + '</div>';
+
+            if (data.location) {
+                html += '<h4>Call Location:</h4>';
+                html += '<div class="edge-info">';
+                html += '<div class="location-file">' + data.location + '</div>';
+                const githubURL = generateGitHubURL(data.file, data.line);
+                if (githubURL) {
+                    html += '<div><a href="' + githubURL + '" target="_blank" class="location-link">View on GitHub</a></div>';
+                }
+                html += '</div>';
+            } else {
+                html += '<p>呼び出し位置情報がありません</p>';
+            }
+
+            content.innerHTML = html;
+            showInfoPanel();
+        }
+
+        function hideInfoPanel() {
+            const panel = document.getElementById('info-panel');
+            panel.classList.add('hidden');
+        }
+
+        function showInfoPanel() {
+            const panel = document.getElementById('info-panel');
+            panel.classList.remove('hidden');
+        }
+
+        function toggleInfoPanel() {
+            const panel = document.getElementById('info-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        function generateGitHubURL(file, line) {
+            if (!repo || !file) return null;
+            const normalizedFile = file.replace(/\\/g, '/').replace(/^.*\/src\//, 'src/');
+            return 'https://github.com/' + repo + '/blob/' + branch + '/' + normalizedFile + '#L' + line;
         }
 
         function resetLayout() {
             cy.layout({
-                name: 'cose',
-                nodeRepulsion: 8000,
-                nodeOverlap: 20,
-                idealEdgeLength: 100,
-                animate: true,
-                animationDuration: 1000,
+                name: 'circle',
                 fit: true,
-                padding: 30
+                padding: 30,
+                avoidOverlap: true,
+                radius: 200
             }).run();
         }
 
-        function toggleLabels() {
-            showLabels = !showLabels;
-            if (showLabels) {
-                cy.style().selector('node').style('label', 'data(label)').update();
-            } else {
-                cy.style().selector('node').style('label', '').update();
-            }
+        function fitToContent() {
+            cy.fit();
         }
 
-        // 初期化完了のログ
-        console.log('Call graph loaded with', graphData.nodes.length, 'functions and', graphData.edges.length, 'call relationships');
+        let labelsVisible = true;
+        function toggleNodeLabels() {
+            labelsVisible = !labelsVisible;
+            cy.style()
+                .selector('node')
+                .style('label', labelsVisible ? 'data(label)' : '')
+                .update();
+        }
+
+        // 初期レイアウト
+        cy.ready(function() {
+            resetLayout();
+        });
+
+        // ダークモード切り替えの監視
+        if (window.matchMedia) {
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            mediaQuery.addListener(function(e) {
+                // ダークモードが切り替わった時にページをリロード
+                // （Cytoscape.jsのスタイルを動的に更新するのは複雑なため）
+                window.location.reload();
+            });
+        }
     </script>
 </body>
 </html>
