@@ -79,7 +79,60 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: javascript
-          queries: +./.github/codeql-queries
+          queries: ./.github/codeql-queries
+
+      - name: Verify CodeQL Configuration
+        run: |
+          echo "=== CODEQL INITIALIZATION VERIFICATION ==="
+          echo "CodeQL queries directory verification:"
+          if [ -d ".github/codeql-queries" ]; then
+            echo "✓ Query directory exists"
+            echo "Contents of .github/codeql-queries:"
+            ls -la .github/codeql-queries/
+            echo ""
+
+            # Check for required files
+            if [ -f ".github/codeql-queries/qlpack.yml" ]; then
+              echo "✓ qlpack.yml found"
+              echo "qlpack.yml content:"
+              cat .github/codeql-queries/qlpack.yml
+            else
+              echo "✗ FATAL: qlpack.yml missing"
+              echo "This will prevent custom queries from being loaded"
+              exit 1
+            fi
+            echo ""
+
+            if [ -f ".github/codeql-queries/callgraph.ql" ]; then
+              echo "✓ callgraph.ql found"
+              echo "Query file size: $(stat -c%s .github/codeql-queries/callgraph.ql) bytes"
+              echo "First 30 lines of callgraph.ql:"
+              head -30 .github/codeql-queries/callgraph.ql
+            else
+              echo "✗ FATAL: callgraph.ql missing"
+              echo "This means no callgraph query will be executed"
+              exit 1
+            fi
+          else
+            echo "✗ FATAL: .github/codeql-queries directory not found"
+            echo "Available directories in .github:"
+            ls -la .github/ || echo "No .github directory found"
+            exit 1
+          fi
+          echo ""
+          echo "=== WORKSPACE SOURCE FILES CHECK ==="
+          echo "JavaScript files that CodeQL should analyze:"
+          find . -name "*.js" -not -path "./node_modules/*" -not -path "./.git/*" | head -20
+          echo ""
+          echo "Source directory structure:"
+          if [ -d "src" ]; then
+            echo "✓ src/ directory exists"
+            ls -la src/
+          else
+            echo "✗ src/ directory not found"
+            echo "Looking for alternative source locations:"
+            find . -name "*.js" -not -path "./node_modules/*" -not -path "./.git/*" -exec dirname {} \; | sort | uniq
+          fi
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
@@ -111,15 +164,55 @@ jobs:
           find .. -name "*.sarif" -type f 2>/dev/null | head -20
           find ../results -name "*.sarif" -type f 2>/dev/null | head -20
           echo ""
+          echo "=== CODEQL QUERY CONFIGURATION VERIFICATION ==="
           echo "Checking if our custom query file exists:"
-          ls -la .github/codeql-queries/callgraph.ql
-          ls -la .github/codeql-queries/qlpack.yml
+          if [ -f ".github/codeql-queries/callgraph.ql" ]; then
+            echo "✓ callgraph.ql exists"
+            ls -la .github/codeql-queries/callgraph.ql
+          else
+            echo "✗ callgraph.ql NOT FOUND - THIS IS THE PROBLEM"
+            echo "Directory structure:"
+            find .github -type f -name "*.ql" -o -name "*.yml" 2>/dev/null || echo "No query files found"
+          fi
+
+          if [ -f ".github/codeql-queries/qlpack.yml" ]; then
+            echo "✓ qlpack.yml exists"
+            ls -la .github/codeql-queries/qlpack.yml
+          else
+            echo "✗ qlpack.yml NOT FOUND - THIS IS THE PROBLEM"
+          fi
           echo ""
-          echo "Custom query content preview:"
-          head -20 .github/codeql-queries/callgraph.ql
+          echo "=== CODEQL QUERY CONTENT VERIFICATION ==="
+          if [ -f ".github/codeql-queries/callgraph.ql" ]; then
+            echo "Custom query content preview:"
+            head -30 .github/codeql-queries/callgraph.ql
+          else
+            echo "*** FATAL ERROR: Custom callgraph query file is missing ***"
+            echo "Expected file: .github/codeql-queries/callgraph.ql"
+            echo "This explains why wrong query was executed"
+          fi
           echo ""
-          echo "qlpack.yml content:"
-          cat .github/codeql-queries/qlpack.yml
+          if [ -f ".github/codeql-queries/qlpack.yml" ]; then
+            echo "qlpack.yml content:"
+            cat .github/codeql-queries/qlpack.yml
+          else
+            echo "*** FATAL ERROR: qlpack.yml configuration file is missing ***"
+            echo "Expected file: .github/codeql-queries/qlpack.yml"
+          fi
+          echo ""
+          echo "=== CODEQL EXECUTION ENVIRONMENT ==="
+          echo "CodeQL version and configuration:"
+          codeql version 2>/dev/null || echo "CodeQL command not available in PATH"
+          echo ""
+          echo "Available languages in CodeQL:"
+          codeql resolve languages 2>/dev/null || echo "Cannot resolve CodeQL languages"
+          echo ""
+          echo "=== WORKSPACE FILES VERIFICATION ==="
+          echo "JavaScript/TypeScript files in workspace:"
+          find . -name "*.js" -o -name "*.ts" -o -name "*.mjs" -o -name "*.cjs" | head -20
+          echo ""
+          echo "Source files that should be analyzed:"
+          ls -la src/ 2>/dev/null || echo "src/ directory not found"
 
 
 
@@ -244,14 +337,87 @@ jobs:
                   schema: sarif.\$schema || 'unknown'
                 });
 
-                // SARIFファイル全体をダンプ（デバッグ用）
-                // console.log('=== COMPLETE SARIF JSON DUMP ===');
-                // console.log(JSON.stringify(sarif, null, 2));
-                // console.log('=== END SARIF JSON DUMP ===');
+                // CRITICAL: First check what CodeQL queries were actually executed
+                console.log('=== CODEQL QUERY VERIFICATION ===');
+                if (sarif.runs && sarif.runs.length > 0) {
+                  sarif.runs.forEach((run, runIndex) => {
+                    console.log('Run', runIndex, 'query execution details:');
+
+                    // Check tool driver information
+                    if (run.tool && run.tool.driver) {
+                      console.log('  Driver name:', run.tool.driver.name);
+                      console.log('  Driver version:', run.tool.driver.version);
+
+                      // Most important: What rules/queries were executed?
+                      if (run.tool.driver.rules) {
+                        console.log('  Total rules executed:', run.tool.driver.rules.length);
+                        console.log('  Executed rules:');
+                        run.tool.driver.rules.forEach((rule, i) => {
+                          console.log('    Rule', i + 1, ':', {
+                            id: rule.id,
+                            name: rule.name || 'no name',
+                            shortDescription: rule.shortDescription ? rule.shortDescription.text : 'no description'
+                          });
+                        });
+
+                        // Critical check: Is our callgraph query in the list?
+                        const callgraphRule = run.tool.driver.rules.find(r =>
+                          r.id && (
+                            r.id.includes('callgraph') ||
+                            r.id.includes('function-call-graph') ||
+                            r.id.includes('javascript/function-call-graph') ||
+                            r.id.includes('call-graph')
+                          )
+                        );
+
+                        if (callgraphRule) {
+                          console.log('  ✓ FOUND CALLGRAPH RULE:', callgraphRule.id);
+                        } else {
+                          console.log('  ✗ NO CALLGRAPH RULE FOUND - THIS IS THE ROOT CAUSE');
+                          console.log('  *** This explains why wrong results are being generated ***');
+                          console.log('  *** Expected rule ID: javascript/function-call-graph ***');
+                          console.log('  *** Available rule IDs:', run.tool.driver.rules.map(r => r.id).join(', '));
+
+                          // Provide specific guidance for this error
+                          console.log('  *** SPECIFIC GUIDANCE ***');
+                          console.log('  1. Check if .github/codeql-queries/callgraph.ql exists');
+                          console.log('  2. Verify qlpack.yml is correctly configured');
+                          console.log('  3. Ensure queries parameter in workflow is correct');
+                          console.log('  4. Check if CodeQL can find and parse the custom query');
+
+                          // Show what queries were actually executed instead
+                          const securityRules = run.tool.driver.rules.filter(r =>
+                            r.id && (r.id.includes('injection') || r.id.includes('security'))
+                          );
+                          if (securityRules.length > 0) {
+                            console.log('  *** DETECTED: Security queries were executed instead ***');
+                            console.log('  *** This suggests + prefix in queries config caused standard queries to run ***');
+                          }
+                        }
+                      } else {
+                        console.log('  ✗ No rules found in driver - CodeQL execution may have failed');
+                      }
+                    }
+
+                    // Check invocation information
+                    if (run.invocations && run.invocations.length > 0) {
+                      console.log('  Invocation details:');
+                      run.invocations.forEach((inv, i) => {
+                        console.log('    Invocation', i + 1, ':', {
+                          exitCode: inv.exitCode,
+                          executionSuccessful: inv.executionSuccessful,
+                          commandLine: inv.commandLine ? inv.commandLine.join(' ') : 'no command line',
+                          startTimeUtc: inv.startTimeUtc,
+                          endTimeUtc: inv.endTimeUtc
+                        });
+                      });
+                    }
+                  });
+                }
 
                 if (sarif.runs && sarif.runs.length > 0) {
                   sarif.runs.forEach((run, runIndex) => {
-                    console.log('=== RUN', runIndex, 'ANALYSIS ===');
+                    console.log('=== RUN', runIndex, 'RESULTS ANALYSIS ===');
                     console.log('Run', runIndex, 'basic info:', {
                       hasResults: !!run.results,
                       resultsLength: run.results ? run.results.length : 0,
@@ -334,24 +500,41 @@ jobs:
                   console.log('2. CodeQL callgraph query found no results');
                   console.log('3. SARIF file does not contain callgraph query results');
                   console.log('4. Message format is different than expected');
+                  console.log('');
+                  console.log('*** ROOT CAUSE ANALYSIS ***');
+                  console.log('Based on the SARIF analysis above:');
+
+                  // Check if security queries were executed instead
+                  const hasSecurityRules = sarif.runs && sarif.runs.some(run =>
+                    run.tool && run.tool.driver && run.tool.driver.rules &&
+                    run.tool.driver.rules.some(r => r.id && r.id.includes('injection'))
+                  );
+
+                  if (hasSecurityRules) {
+                    console.log('- ✗ Security queries were executed instead of callgraph query');
+                    console.log('- This confirms that the wrong CodeQL queries were used');
+                    console.log('- Solution: Fix the queries configuration in the workflow');
+                  } else {
+                    console.log('- No security queries detected, investigating other causes...');
+                  }
 
                   // 詳細なエラー情報を保存
                   const errorInfo = {
                     timestamp: new Date().toISOString(),
                     error: 'No call graph relationships found in SARIF',
                     sarifFile: '$sarif_file',
+                    diagnosis: hasSecurityRules ? 'Wrong queries executed (security instead of callgraph)' : 'Unknown cause',
                     sarifStructure: {
                       version: sarif.version,
                       runsCount: sarif.runs ? sarif.runs.length : 0,
                       totalResults: sarif.runs ? sarif.runs.reduce((acc, run) => acc + (run.results ? run.results.length : 0), 0) : 0,
                       allRuleIds: sarif.runs ? sarif.runs.flatMap(run =>
-                        run.results ? run.results.map(r => r.ruleId) : []
-                      ) : [],
-                      allMessages: sarif.runs ? sarif.runs.flatMap(run =>
-                        run.results ? run.results.map(r => r.message ? r.message.text : 'no message') : []
-                      ) : []
-                    },
-                    completeSarif: sarif
+                        run.results ? run.results.map(r => r.ruleId).filter(id => id) : []
+                      ).slice(0, 20) : [], // Limit to first 20 rule IDs
+                      sampleMessages: sarif.runs ? sarif.runs.flatMap(run =>
+                        run.results ? run.results.map(r => r.message ? r.message.text : 'no message').filter(msg => msg !== 'no message') : []
+                      ).slice(0, 5) : [] // Limit to first 5 messages
+                    }
                   };
                   fs.writeFileSync('callgraph-error-detail.json', JSON.stringify(errorInfo, null, 2));
 
