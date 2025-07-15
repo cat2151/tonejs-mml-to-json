@@ -3,21 +3,47 @@
 //
 // Enhanced Call Graph HTML Generator with Source Code Linking
 //
-// 重要な設計方針:
-// - フォールバック処理は実装しない
-// - SARIFファイルが存在しない場合は明確なエラーで終了する
-// - ソースコード位置情報が必須
-// - 「なんとなく動く」状態を作らず、根本原因の究明を促す
+// 改訂された設計方針:
+// - すべての関数呼び出し関係を表示（孤立ノードを防ぐ）
+// - ソースコード位置情報がある場合はGitHubリンクを提供
+// - 位置情報がない場合でも関数呼び出し関係は保持
+// - SARIFファイルが存在しない場合は明確なエラーで終了
 //
 // 機能:
-// - ソースコードの位置情報を保持
-// - ノードクリックでソースコードの場所を表示
+// - ソースコードの位置情報を保持（可能な場合）
+// - ノードクリックでソースコードの場所を表示（位置情報がある場合）
 // - GitHubリンク生成（可能な場合）
 // - 詳細な呼び出し情報の表示
+// - 匿名関数や動的関数も含めた完全な呼び出しグラフ
 //
 
 const fs = require('fs');
 const path = require('path');
+
+/**
+ * 有効なソースコードファイルかどうかを判定（ホワイトリスト方式）
+ */
+function isValidSourceFile(filePath) {
+  // ファイルパスを正規化
+  const normalizedPath = filePath.replace(/\\/g, '/');
+
+  // 許可するファイルのホワイトリスト
+  const allowedFiles = [
+    'src/main.js',
+    'src/mml2json.js',
+    'src/play.js'
+  ];
+
+  // 完全一致または末尾一致をチェック
+  for (const allowedFile of allowedFiles) {
+    if (normalizedPath === allowedFile || normalizedPath.endsWith('/' + allowedFile)) {
+      return true;
+    }
+  }
+
+  console.log(`Rejecting file (not in whitelist): ${normalizedPath}`);
+  return false;
+}
 
 /**
  * SARIFファイルから詳細な呼び出し情報を抽出
@@ -77,16 +103,23 @@ function extractDetailedCallGraph(sarifFile) {
             // "caller -> callee (at file:line:col)" の形式を解析
             const match = line.match(/^(.+?)\s*->\s*(.+?)\s*\(at\s+(.+):(\d+)(?::(\d+))?\)$/);
             if (match) {
-              matchedMessages++;
               const [, caller, callee, file, line, column] = match;
-              results.push({
-                caller: caller.trim(),
-                callee: callee.trim(),
-                file: file.trim(),
-                line: parseInt(line),
-                column: column ? parseInt(column) : 1,
-                fullLocation: `${file}:${line}:${column || 1}`
-              });
+              const trimmedFile = file.trim();
+
+              // JavaScriptソースファイルのみを対象とする
+              if (isValidSourceFile(trimmedFile)) {
+                matchedMessages++;
+                results.push({
+                  caller: caller.trim(),
+                  callee: callee.trim(),
+                  file: trimmedFile,
+                  line: parseInt(line),
+                  column: column ? parseInt(column) : 1,
+                  fullLocation: `${trimmedFile}:${line}:${column || 1}`
+                });
+              } else {
+                console.log(`Skipping non-source file: ${trimmedFile}`);
+              }
             }
           }
 
@@ -164,82 +197,124 @@ function extractDetailedCallGraph(sarifFile) {
 
 /**
  * 詳細データからCytoscape.js用のデータに変換
- * ソースコード位置情報がないノードやエッジは除外する
+ * すべての関数呼び出し関係を保持し、位置情報は可能な限り追加
  */
 function convertDetailedData(detailedData) {
   const nodes = new Map();
   const edges = [];
 
+  // calleeの位置情報を検索するためのマップ
+  const calleeLocationMap = new Map();
+
+  // 最初にすべてのcalleeの位置情報を収集
+  detailedData.forEach((item) => {
+    if (item.callee && item.file && item.line && item.line > 0 && isValidSourceFile(item.file)) {
+      if (!calleeLocationMap.has(item.callee)) {
+        calleeLocationMap.set(item.callee, []);
+      }
+      const existingLocations = calleeLocationMap.get(item.callee);
+      if (!existingLocations.some(loc => loc.file === item.file && loc.line === item.line)) {
+        existingLocations.push({
+          file: item.file,
+          line: item.line,
+          column: item.column || 1,
+          type: 'definition'
+        });
+      }
+    }
+  });
+
   detailedData.forEach((item, index) => {
-    // 位置情報が不完全なアイテムをスキップ
-    if (!item.file || !item.line || item.line <= 0) {
-      console.warn(`Skipping call relationship due to missing location info: ${item.caller} -> ${item.callee}`);
+    // 基本的な関数名の情報は必須（位置情報がなくても処理を継続）
+    if (!item.caller || !item.callee) {
+      console.warn(`Skipping call relationship due to missing function names: ${item.caller} -> ${item.callee}`);
       return;
     }
 
-    // ノードに位置情報を追加
+    // ノードを作成（位置情報は任意）
     if (!nodes.has(item.caller)) {
       nodes.set(item.caller, {
         id: item.caller,
         label: item.caller,
-        locations: []
+        locations: [],
+        hasLocationInfo: false,
+        hasCalleeLocationInfo: false
       });
     }
     if (!nodes.has(item.callee)) {
+      const calleeLocations = calleeLocationMap.get(item.callee) || [];
       nodes.set(item.callee, {
         id: item.callee,
         label: item.callee,
-        locations: []
+        locations: [...calleeLocations],
+        hasLocationInfo: calleeLocations.length > 0,
+        hasCalleeLocationInfo: calleeLocations.length > 0
       });
     }
 
-    // 呼び出し元の位置情報を追加
-    const callerNode = nodes.get(item.caller);
-    if (!callerNode.locations.some(loc => loc.file === item.file && loc.line === item.line)) {
-      callerNode.locations.push({
-        file: item.file,
-        line: item.line,
-        column: item.column,
-        type: 'caller'
-      });
+    // 位置情報がある場合のみ追加（caller用）
+    if (item.file && item.line && item.line > 0 && isValidSourceFile(item.file)) {
+      const callerNode = nodes.get(item.caller);
+      if (!callerNode.locations.some(loc => loc.file === item.file && loc.line === item.line)) {
+        callerNode.locations.push({
+          file: item.file,
+          line: item.line,
+          column: item.column || 1,
+          type: 'caller'
+        });
+        callerNode.hasLocationInfo = true;
+      }
     }
 
-    // エッジに詳細情報を追加（位置情報が確実にあるもののみ）
-    edges.push({
+    // calleeの位置情報も更新
+    const calleeNode = nodes.get(item.callee);
+    if (calleeLocationMap.has(item.callee)) {
+      calleeNode.hasCalleeLocationInfo = true;
+    }
+
+    // エッジは常に追加（位置情報は可能な場合のみ）
+    const edgeData = {
       id: `edge-${index}`,
       source: item.caller,
       target: item.callee,
-      file: item.file,
-      line: item.line,
-      column: item.column,
-      location: item.fullLocation
-    });
-  });
+      hasCalleeLocationInfo: calleeLocationMap.has(item.callee)
+    };
 
-  // 位置情報のないノードを除外
-  const filteredNodes = Array.from(nodes.values()).filter(node => {
-    if (!node.locations || node.locations.length === 0) {
-      console.warn(`Removing node without location info: ${node.id}`);
-      return false;
+    // 位置情報があれば追加
+    if (item.file && item.line && item.line > 0 && isValidSourceFile(item.file)) {
+      edgeData.file = item.file;
+      edgeData.line = item.line;
+      edgeData.column = item.column || 1;
+      edgeData.location = item.fullLocation || `${item.file}:${item.line}:${item.column || 1}`;
+      edgeData.hasLocationInfo = true;
+    } else {
+      edgeData.hasLocationInfo = false;
     }
-    return true;
+
+    edges.push(edgeData);
   });
 
-  // 除外されたノードを参照するエッジも除外
-  const nodeIds = new Set(filteredNodes.map(node => node.id));
-  const filteredEdges = edges.filter(edge => {
-    const isValid = nodeIds.has(edge.source) && nodeIds.has(edge.target);
-    if (!isValid) {
-      console.warn(`Removing edge referencing non-existent node: ${edge.source} -> ${edge.target}`);
-    }
-    return isValid;
-  });
+  // すべてのノードを保持（位置情報の有無に関係なく）
+  const allNodes = Array.from(nodes.values());
 
-  console.log(`Filtered results: ${filteredNodes.length} nodes (from ${nodes.size}), ${filteredEdges.length} edges (from ${edges.length})`);
+  // すべてのエッジを保持
+  const allEdges = edges;
+
+  console.log(`Conversion results: ${allNodes.length} nodes, ${allEdges.length} edges`);
+
+  // 位置情報の統計を表示
+  const nodesWithLocation = allNodes.filter(node => node.hasLocationInfo).length;
+  const nodesWithCalleeLocation = allNodes.filter(node => node.hasCalleeLocationInfo).length;
+  const edgesWithLocation = allEdges.filter(edge => edge.hasLocationInfo).length;
+  const edgesWithCalleeLocation = allEdges.filter(edge => edge.hasCalleeLocationInfo).length;
+
+  console.log(`Location info available: ${nodesWithLocation}/${allNodes.length} nodes (caller info), ${nodesWithCalleeLocation}/${allNodes.length} nodes (callee info)`);
+  console.log(`Edge location info: ${edgesWithLocation}/${allEdges.length} edges (call location), ${edgesWithCalleeLocation}/${allEdges.length} edges (callee has location)`);
+  console.log(`Whitelist filtering applied: only src/main.js, src/mml2json.js, src/play.js processed`);
 
   return {
-    nodes: filteredNodes,
-    edges: filteredEdges
+    nodes: allNodes,
+    edges: allEdges
   };
 }
 
@@ -578,6 +653,10 @@ function generateHTML(graphData, options = {}) {
                 <div class="stat-value">${graphData.edges.length}</div>
                 <div class="stat-label">Call Relationships</div>
             </div>
+            <div class="stats">
+                <div class="stat-value">${graphData.nodes.filter(n => n.hasCalleeLocationInfo).length}</div>
+                <div class="stat-label">With Callee Location</div>
+            </div>
         </div>
     </div>
 
@@ -588,6 +667,7 @@ function generateHTML(graphData, options = {}) {
                 <button class="control-button" onclick="resetLayout()">Reset Layout</button>
                 <button class="control-button" onclick="fitToContent()">Fit to Content</button>
                 <button class="control-button" onclick="toggleNodeLabels()">Toggle Labels</button>
+                <button class="control-button" onclick="toggleCalleeLocationFilter()">Hide No-Callee-Location</button>
                 <button class="control-button" onclick="toggleInfoPanel()">Toggle Info Panel</button>
             </div>
         </div>
@@ -647,7 +727,9 @@ function generateHTML(graphData, options = {}) {
                     data: {
                         id: node.id,
                         label: node.label,
-                        locations: node.locations || []
+                        locations: node.locations || [],
+                        hasLocationInfo: node.hasLocationInfo || false,
+                        hasCalleeLocationInfo: node.hasCalleeLocationInfo || false
                     }
                 })),
                 // エッジを追加
@@ -659,7 +741,9 @@ function generateHTML(graphData, options = {}) {
                         file: edge.file || '',
                         line: edge.line || 0,
                         column: edge.column || 0,
-                        location: edge.location || ''
+                        location: edge.location || '',
+                        hasLocationInfo: edge.hasLocationInfo || false,
+                        hasCalleeLocationInfo: edge.hasCalleeLocationInfo || false
                     }
                 }))
             ],
@@ -694,10 +778,25 @@ function generateHTML(graphData, options = {}) {
                     }
                 },
                 {
-                    selector: 'node[locations.length > 0]',
+                    selector: 'node[hasLocationInfo = true]',
                     style: {
                         'border-width': '3px',
                         'border-color': currentColors.nodeWithLocation
+                    }
+                },
+                {
+                    selector: 'node[hasCalleeLocationInfo = true]',
+                    style: {
+                        'border-width': '4px',
+                        'border-color': '#FF9800'  // オレンジ色でcallee位置情報ありを示す
+                    }
+                },
+                {
+                    selector: 'node[hasCalleeLocationInfo = false]',
+                    style: {
+                        'border-style': 'dotted',
+                        'border-width': '2px',
+                        'opacity': 0.6
                     }
                 },
                 {
@@ -720,10 +819,33 @@ function generateHTML(graphData, options = {}) {
                     }
                 },
                 {
-                    selector: 'edge[location]',
+                    selector: 'edge[hasLocationInfo = true]',
                     style: {
                         'line-color': currentColors.edgeWithLocation,
                         'target-arrow-color': currentColors.edgeWithLocation
+                    }
+                },
+                {
+                    selector: 'node[hasLocationInfo = false]',
+                    style: {
+                        'border-style': 'dashed',
+                        'border-width': '2px',
+                        'opacity': 0.8
+                    }
+                },
+                {
+                    selector: 'edge[hasCalleeLocationInfo = true]',
+                    style: {
+                        'line-color': '#FF9800',
+                        'target-arrow-color': '#FF9800',
+                        'width': 3
+                    }
+                },
+                {
+                    selector: 'edge[hasLocationInfo = false]',
+                    style: {
+                        'line-style': 'dashed',
+                        'opacity': 0.7
                     }
                 }
             ],
@@ -764,19 +886,28 @@ function generateHTML(graphData, options = {}) {
 
             let html = '<div class="info-title">Function: ' + data.label + '</div>';
 
-            if (data.locations && data.locations.length > 0) {
+            // Callee位置情報の表示
+            if (data.hasCalleeLocationInfo) {
+                html += '<p><strong>✓ This function has source location info</strong></p>';
+            } else {
+                html += '<p><strong>⚠ This function has NO source location info</strong></p>';
+                html += '<p><small>匿名関数、動的関数、または外部ライブラリの関数である可能性があります。</small></p>';
+            }
+
+            if (data.hasLocationInfo && data.locations && data.locations.length > 0) {
                 html += '<h4>Locations:</h4>';
                 data.locations.forEach(loc => {
                     const githubURL = generateGitHubURL(loc.file, loc.line);
                     html += '<div class="location-item">';
                     html += '<div class="location-file">' + loc.file + ':' + loc.line + ':' + loc.column + '</div>';
+                    html += '<div><small>Type: ' + loc.type + '</small></div>';
                     if (githubURL) {
                         html += '<div><a href="' + githubURL + '" target="_blank" class="location-link">View on GitHub</a></div>';
                     }
                     html += '</div>';
                 });
             } else {
-                html += '<p>ソースコード位置情報がありません</p>';
+                html += '<p>呼び出し位置情報がありません</p>';
             }
 
             content.innerHTML = html;
@@ -789,7 +920,15 @@ function generateHTML(graphData, options = {}) {
 
             let html = '<div class="info-title">Call: ' + data.source + ' → ' + data.target + '</div>';
 
-            if (data.location) {
+            // Callee位置情報の表示
+            if (data.hasCalleeLocationInfo) {
+                html += '<p><strong>✓ Target function (' + data.target + ') has source location</strong></p>';
+            } else {
+                html += '<p><strong>⚠ Target function (' + data.target + ') has NO source location</strong></p>';
+                html += '<p><small>呼び出し先が匿名関数や外部ライブラリ関数の可能性があります。</small></p>';
+            }
+
+            if (data.hasLocationInfo && data.location) {
                 html += '<h4>Call Location:</h4>';
                 html += '<div class="edge-info">';
                 html += '<div class="location-file">' + data.location + '</div>';
@@ -800,6 +939,7 @@ function generateHTML(graphData, options = {}) {
                 html += '</div>';
             } else {
                 html += '<p>呼び出し位置情報がありません</p>';
+                html += '<p><small>この呼び出しは動的に発生するか、CodeQLで検出できない方法で行われている可能性があります。</small></p>';
             }
 
             content.innerHTML = html;
@@ -872,12 +1012,34 @@ function generateHTML(graphData, options = {}) {
         }
 
         let labelsVisible = true;
+        let calleeLocationFilterEnabled = false;
+
         function toggleNodeLabels() {
             labelsVisible = !labelsVisible;
             cy.style()
                 .selector('node')
                 .style('label', labelsVisible ? 'data(label)' : '')
                 .update();
+        }
+
+        function toggleCalleeLocationFilter() {
+            calleeLocationFilterEnabled = !calleeLocationFilterEnabled;
+
+            const button = event.target;
+
+            if (calleeLocationFilterEnabled) {
+                // calleeの位置情報がないノードとエッジを非表示
+                cy.nodes('[hasCalleeLocationInfo = false]').style('display', 'none');
+                cy.edges('[hasCalleeLocationInfo = false]').style('display', 'none');
+                button.textContent = 'Show No-Callee-Location';
+                button.style.backgroundColor = '#FF5722';
+            } else {
+                // すべてのノードとエッジを表示
+                cy.nodes().style('display', 'element');
+                cy.edges().style('display', 'element');
+                button.textContent = 'Hide No-Callee-Location';
+                button.style.backgroundColor = '#2196F3';
+            }
         }
 
         // 初期レイアウト
@@ -973,7 +1135,12 @@ function main() {
   fs.writeFileSync('callgraph-enhanced.html', html);
 
   console.log(`✓ Enhanced call graph HTML generated with ${graphData.nodes.length} nodes and ${graphData.edges.length} edges`);
-  console.log('✓ Source code linking enabled');
+  console.log(`✓ ${graphData.nodes.filter(n => n.hasLocationInfo).length} nodes have caller location information`);
+  console.log(`✓ ${graphData.nodes.filter(n => n.hasCalleeLocationInfo).length} nodes have callee location information`);
+  console.log(`✓ ${graphData.edges.filter(e => e.hasLocationInfo).length} edges have call location information`);
+  console.log(`✓ ${graphData.edges.filter(e => e.hasCalleeLocationInfo).length} edges point to functions with location info`);
+  console.log('✓ Source code linking enabled for nodes/edges with location info');
+  console.log('✓ Callee location filter available for better analysis');
 }
 
 if (require.main === module) {
