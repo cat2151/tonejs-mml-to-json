@@ -609,7 +609,7 @@ ${prompts.development}
 
 ## 現在のオープンIssues
 ${issues.length === 0 ? 'オープン中のIssueはありません' : issues.map(issue =>
-  `#${issue.number}: ${issue.title}\n${issue.body}\nラベル: ${issue.labels.join(', ')}`
+  `[Issue #${issue.number}](issue-notes/${issue.number}.md): ${issue.title}\n${issue.body}\nラベル: ${issue.labels.join(', ')}`
 ).join('\n\n')}
 
 ## 最近の変更（過去7日間）
@@ -620,6 +620,7 @@ ${recentChanges.commits.join('\n')}
 ${recentChanges.changedFiles.join('\n')}
 
 上記の情報を基に、プロンプトで指定された形式で開発状況を生成してください。
+Issue番号を記載する際は、必ず [Issue #番号](issue-notes/番号.md) の形式でMarkdownリンクとして記載してください。
 `;
 
     try {
