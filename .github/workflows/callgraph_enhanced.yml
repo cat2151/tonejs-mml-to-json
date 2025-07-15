@@ -433,8 +433,8 @@ jobs:
 
           if node .github/scripts/enhanced-convert-to-html.cjs; then
             echo "Enhanced HTML conversion successful"
-            if [ -f "callgraph.html" ]; then
-              echo "HTML file generated in current directory, size: $(stat -c%s callgraph.html 2>/dev/null || echo "unknown") bytes"
+            if [ -f "callgraph-enhanced.html" ]; then
+              echo "HTML file generated in current directory, size: $(stat -c%s callgraph-enhanced.html 2>/dev/null || echo "unknown") bytes"
             else
               echo "*** FATAL ERROR: HTML file not found after conversion ***"
               echo "Enhanced converter failed to generate output file"
@@ -471,11 +471,11 @@ jobs:
           # fi
 
           # HTMLファイルが存在することを確認してコピー
-          if [ -f "callgraph.html" ]; then
-            cp callgraph.html generated-docs/callgraph.html
-            echo "Copied callgraph.html ($(stat -c%s callgraph.html 2>/dev/null || echo "unknown") bytes)"
+          if [ -f "callgraph-enhanced.html" ]; then
+            cp callgraph-enhanced.html generated-docs/callgraph-enhanced.html
+            echo "Copied callgraph-enhanced.html ($(stat -c%s callgraph-enhanced.html 2>/dev/null || echo "unknown") bytes)"
           else
-            echo "ERROR: callgraph.html not found in current directory"
+            echo "ERROR: callgraph-enhanced.html not found in current directory"
             exit 1
           fi
 

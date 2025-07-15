@@ -384,7 +384,7 @@ function main() {
     const html = generateHTML(graphData);
 
     // HTMLファイルをカレントディレクトリに保存
-    const outputPath = 'callgraph.html';
+    const outputPath = 'callgraph-org.html';
     fs.writeFileSync(outputPath, html, 'utf8');
 
     console.log(`Call graph HTML generated: ${outputPath}`);

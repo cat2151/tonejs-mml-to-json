@@ -970,7 +970,7 @@ function main() {
 
   // HTMLを生成
   const html = generateHTML(graphData, options);
-  fs.writeFileSync('callgraph.html', html);
+  fs.writeFileSync('callgraph-enhanced.html', html);
 
   console.log(`✓ Enhanced call graph HTML generated with ${graphData.nodes.length} nodes and ${graphData.edges.length} edges`);
   console.log('✓ Source code linking enabled');

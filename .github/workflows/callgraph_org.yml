@@ -448,8 +448,8 @@ jobs:
           echo "=== Running HTML conversion ==="
           if node .github/scripts/org-convert-to-html.cjs; then
             echo "HTML conversion successful"
-            if [ -f "callgraph.html" ]; then
-              echo "HTML file generated in current directory, size: $(stat -c%s callgraph.html 2>/dev/null || echo "unknown") bytes"
+            if [ -f "callgraph-org.html" ]; then
+              echo "HTML file generated in current directory, size: $(stat -c%s callgraph-org.html 2>/dev/null || echo "unknown") bytes"
             else
               echo "ERROR: HTML file not found after conversion"
               exit 1
@@ -484,11 +484,11 @@ jobs:
           # fi
 
           # HTMLファイルが存在することを確認してコピー
-          if [ -f "callgraph.html" ]; then
-            cp callgraph.html generated-docs/callgraph.html
-            echo "Copied callgraph.html ($(stat -c%s callgraph.html 2>/dev/null || echo "unknown") bytes)"
+          if [ -f "callgraph-org.html" ]; then
+            cp callgraph-org.html generated-docs/callgraph-org.html
+            echo "Copied callgraph-org.html ($(stat -c%s callgraph-org.html 2>/dev/null || echo "unknown") bytes)"
           else
-            echo "ERROR: callgraph.html not found in current directory"
+            echo "ERROR: callgraph-org.html not found in current directory"
             exit 1
           fi
 
