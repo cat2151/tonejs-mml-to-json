@@ -475,13 +475,13 @@ jobs:
           echo "=== Copying all generated files to generated-docs ==="
 
           # CSVファイルが存在することを確認してコピー
-          if [ -f "callgraph.csv" ]; then
-            cp callgraph.csv generated-docs/callgraph.csv
-            echo "Copied callgraph.csv ($(wc -l < callgraph.csv) lines)"
-          else
-            echo "ERROR: callgraph.csv not found in current directory"
-            exit 1
-          fi
+          # if [ -f "callgraph.csv" ]; then
+          #   cp callgraph.csv generated-docs/callgraph.csv
+          #   echo "Copied callgraph.csv ($(wc -l < callgraph.csv) lines)"
+          # else
+          #   echo "ERROR: callgraph.csv not found in current directory"
+          #   exit 1
+          # fi
 
           # HTMLファイルが存在することを確認してコピー
           if [ -f "callgraph.html" ]; then
@@ -493,60 +493,60 @@ jobs:
           fi
 
           # JSON デバッグファイルをコピー
-          if [ -f "sarif-debug.json" ]; then
-            cp sarif-debug.json generated-docs/sarif-debug.json
-            echo "Copied sarif-debug.json"
-          fi
+          # if [ -f "sarif-debug.json" ]; then
+          #   cp sarif-debug.json generated-docs/sarif-debug.json
+          #   echo "Copied sarif-debug.json"
+          # fi
 
-          if [ -f "sarif-error.json" ]; then
-            cp sarif-error.json generated-docs/sarif-error.json
-            echo "Copied sarif-error.json"
-          fi
+          # if [ -f "sarif-error.json" ]; then
+          #   cp sarif-error.json generated-docs/sarif-error.json
+          #   echo "Copied sarif-error.json"
+          # fi
 
           # SARIFファイルの情報を保存（ファイルサイズが小さい場合のみ）
-          if [ -n "$SARIF_FILE" ] && [ -f "$SARIF_FILE" ]; then
-            file_size=$(stat -c%s "$SARIF_FILE" 2>/dev/null || echo "0")
-            if [ "$file_size" -lt 1048576 ]; then  # 1MB未満の場合のみ
-              cp "$SARIF_FILE" generated-docs/latest.sarif
-              echo "Copied SARIF file (size: $file_size bytes)"
-            else
-              echo "SARIF file too large (size: $file_size bytes), creating summary instead"
-              # サイズ情報とファイル名のみ保存
-              echo "SARIF file: $SARIF_FILE" > generated-docs/sarif-info.txt
-              echo "Size: $file_size bytes" >> generated-docs/sarif-info.txt
-              echo "Date: $(date)" >> generated-docs/sarif-info.txt
-            fi
-          fi
+          # if [ -n "$SARIF_FILE" ] && [ -f "$SARIF_FILE" ]; then
+          #   file_size=$(stat -c%s "$SARIF_FILE" 2>/dev/null || echo "0")
+          #   if [ "$file_size" -lt 1048576 ]; then  # 1MB未満の場合のみ
+          #     cp "$SARIF_FILE" generated-docs/latest.sarif
+          #     echo "Copied SARIF file (size: $file_size bytes)"
+          #   else
+          #     echo "SARIF file too large (size: $file_size bytes), creating summary instead"
+          #     # サイズ情報とファイル名のみ保存
+          #     echo "SARIF file: $SARIF_FILE" > generated-docs/sarif-info.txt
+          #     echo "Size: $file_size bytes" >> generated-docs/sarif-info.txt
+          #     echo "Date: $(date)" >> generated-docs/sarif-info.txt
+          #   fi
+          # fi
 
           # デバッグ情報を保存
-          echo "=== Debug Information ===" > generated-docs/debug-info.txt
-          echo "Workflow run: ${{ github.run_id }}" >> generated-docs/debug-info.txt
-          echo "Run number: ${{ github.run_number }}" >> generated-docs/debug-info.txt
-          echo "Timestamp: $(date)" >> generated-docs/debug-info.txt
-          echo "Event: ${{ github.event_name }}" >> generated-docs/debug-info.txt
-          echo "Branch: ${{ github.ref_name }}" >> generated-docs/debug-info.txt
-          echo "" >> generated-docs/debug-info.txt
-          echo "Files in current directory:" >> generated-docs/debug-info.txt
-          ls -la . >> generated-docs/debug-info.txt
-          echo "" >> generated-docs/debug-info.txt
-          echo "CSV file status:" >> generated-docs/debug-info.txt
-          if [ -f "generated-docs/callgraph.csv" ]; then
-            echo "CSV exists in generated-docs, line count: $(wc -l < generated-docs/callgraph.csv)" >> generated-docs/debug-info.txt
-            echo "CSV size: $(stat -c%s generated-docs/callgraph.csv 2>/dev/null || echo "unknown") bytes" >> generated-docs/debug-info.txt
-            echo "First 5 lines of CSV:" >> generated-docs/debug-info.txt
-            head -5 generated-docs/callgraph.csv >> generated-docs/debug-info.txt
-          else
-            echo "ERROR: CSV does not exist in generated-docs" >> generated-docs/debug-info.txt
-          fi
-          echo "" >> generated-docs/debug-info.txt
-          echo "HTML file status:" >> generated-docs/debug-info.txt
-          if [ -f "generated-docs/callgraph.html" ]; then
-            echo "HTML exists in generated-docs, size: $(stat -c%s generated-docs/callgraph.html 2>/dev/null || echo "unknown") bytes" >> generated-docs/debug-info.txt
-            echo "HTML file first few lines:" >> generated-docs/debug-info.txt
-            head -10 generated-docs/callgraph.html >> generated-docs/debug-info.txt
-          else
-            echo "ERROR: HTML does not exist in generated-docs" >> generated-docs/debug-info.txt
-          fi
+          # echo "=== Debug Information ===" > generated-docs/debug-info.txt
+          # echo "Workflow run: ${{ github.run_id }}" >> generated-docs/debug-info.txt
+          # echo "Run number: ${{ github.run_number }}" >> generated-docs/debug-info.txt
+          # echo "Timestamp: $(date)" >> generated-docs/debug-info.txt
+          # echo "Event: ${{ github.event_name }}" >> generated-docs/debug-info.txt
+          # echo "Branch: ${{ github.ref_name }}" >> generated-docs/debug-info.txt
+          # echo "" >> generated-docs/debug-info.txt
+          # echo "Files in current directory:" >> generated-docs/debug-info.txt
+          # ls -la . >> generated-docs/debug-info.txt
+          # echo "" >> generated-docs/debug-info.txt
+          # echo "CSV file status:" >> generated-docs/debug-info.txt
+          # if [ -f "generated-docs/callgraph.csv" ]; then
+          #   echo "CSV exists in generated-docs, line count: $(wc -l < generated-docs/callgraph.csv)" >> generated-docs/debug-info.txt
+          #   echo "CSV size: $(stat -c%s generated-docs/callgraph.csv 2>/dev/null || echo "unknown") bytes" >> generated-docs/debug-info.txt
+          #   echo "First 5 lines of CSV:" >> generated-docs/debug-info.txt
+          #   head -5 generated-docs/callgraph.csv >> generated-docs/debug-info.txt
+          # else
+          #   echo "ERROR: CSV does not exist in generated-docs" >> generated-docs/debug-info.txt
+          # fi
+          # echo "" >> generated-docs/debug-info.txt
+          # echo "HTML file status:" >> generated-docs/debug-info.txt
+          # if [ -f "generated-docs/callgraph.html" ]; then
+          #   echo "HTML exists in generated-docs, size: $(stat -c%s generated-docs/callgraph.html 2>/dev/null || echo "unknown") bytes" >> generated-docs/debug-info.txt
+          #   echo "HTML file first few lines:" >> generated-docs/debug-info.txt
+          #   head -10 generated-docs/callgraph.html >> generated-docs/debug-info.txt
+          # else
+          #   echo "ERROR: HTML does not exist in generated-docs" >> generated-docs/debug-info.txt
+          # fi
 
           # ファイルをステージングに追加
           git add generated-docs/
