@@ -137,6 +137,7 @@ class ProjectSummaryGenerator {
       projectInfo.functionHierarchy = await this.analyzeFunctionCallHierarchy(projectInfo.fileAnalysis);
     } catch (error) {
       console.warn('Could not analyze function hierarchy:', error.message);
+      projectInfo.functionHierarchy = {};
     }
 
     return projectInfo;
@@ -495,12 +496,16 @@ class ProjectSummaryGenerator {
 
     // 共通のフォーマット関数
     const formatFunctionHierarchy = (hierarchy) => {
+      if (!hierarchy || typeof hierarchy !== 'object' || Object.keys(hierarchy).length === 0) {
+        return '関数呼び出し階層を分析できませんでした';
+      }
+
       let result = '';
       const processedFunctions = new Set();
 
       // エントリーポイント（他から呼ばれない関数）を探す
       const entryPoints = Object.keys(hierarchy).filter(func =>
-        hierarchy[func].calledBy.length === 0
+        hierarchy[func] && hierarchy[func].calledBy && hierarchy[func].calledBy.length === 0
       );
 
       const buildTree = (func, depth = 0) => {
@@ -510,11 +515,13 @@ class ProjectSummaryGenerator {
         const indent = '  '.repeat(depth);
         let tree = `${indent}- ${func} (${hierarchy[func].file})\n`;
 
-        hierarchy[func].calls.forEach(calledFunc => {
-          if (hierarchy[calledFunc]) {
-            tree += buildTree(calledFunc, depth + 1);
-          }
-        });
+        if (hierarchy[func] && hierarchy[func].calls) {
+          hierarchy[func].calls.forEach(calledFunc => {
+            if (hierarchy[calledFunc]) {
+              tree += buildTree(calledFunc, depth + 1);
+            }
+          });
+        }
 
         return tree;
       };
