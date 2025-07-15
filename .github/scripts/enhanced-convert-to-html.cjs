@@ -70,26 +70,33 @@ function extractDetailedCallGraph(sarifFile) {
           totalMessages++;
           const text = result.message.text;
 
-          // "caller -> callee (at file:line:col)" の形式を解析
-          const match = text.match(/^(.+?)\s*->\s*(.+?)\s*\(at\s+(.+):(\d+):(\d+)\)$/);
-          if (match) {
-            matchedMessages++;
-            const [, caller, callee, file, line, column] = match;
-            results.push({
-              caller: caller.trim(),
-              callee: callee.trim(),
-              file: file.trim(),
-              line: parseInt(line),
-              column: parseInt(column),
-              fullLocation: `${file}:${line}:${column}`
-            });
-          } else {
-            // マッチしなかったメッセージを記録（最初の10個まで）
+          // メッセージが複数行の場合を考慮して各行を処理
+          const lines = text.split('\n').filter(line => line.trim().length > 0);
+
+          for (const line of lines) {
+            // "caller -> callee (at file:line:col)" の形式を解析
+            const match = line.match(/^(.+?)\s*->\s*(.+?)\s*\(at\s+(.+):(\d+)(?::(\d+))?\)$/);
+            if (match) {
+              matchedMessages++;
+              const [, caller, callee, file, line, column] = match;
+              results.push({
+                caller: caller.trim(),
+                callee: callee.trim(),
+                file: file.trim(),
+                line: parseInt(line),
+                column: column ? parseInt(column) : 1,
+                fullLocation: `${file}:${line}:${column || 1}`
+              });
+            }
+          }
+
+          // どの行も期待される形式でない場合のみデバッグ情報を保存
+          if (!lines.some(line => line.includes(' -> ') && line.includes('(at '))) {
             if (unmatchedMessages.length < 10) {
               unmatchedMessages.push({
                 runIndex: runIndex + 1,
                 resultIndex: resultIndex + 1,
-                message: text,
+                message: text.length > 200 ? text.substring(0, 200) + '...' : text,
                 ruleId: result.ruleId || 'unknown'
               });
             }
