@@ -12,75 +12,53 @@
 
 import javascript
 
-from CallExpr call, string callerName, string calleeName
+from CallExpr call, string callerName, string calleeName, string debugInfo
 where
-  // より広範囲の関数呼び出しを検出
+  // 呼び出し元を特定
   (
-    // 1. 関数宣言内からの呼び出し
+    // 名前付き関数内からの呼び出し
     exists(Function caller |
       call.getEnclosingFunction() = caller and
       exists(caller.getName()) and
-      callerName = caller.getName()
+      callerName = caller.getName() and
+      debugInfo = "from_named_function"
     )
     or
-    // 2. イベントハンドラー内からの呼び出し (より広範囲)
+    // 無名関数・アロー関数内からの呼び出し
     exists(Function arrow |
       call.getEnclosingFunction() = arrow and
       not exists(arrow.getName()) and
-      callerName = "anonymous_" + arrow.getLocation().getStartLine()
+      callerName = "anonymous_" + arrow.getLocation().getStartLine() and
+      debugInfo = "from_anonymous_function"
     )
     or
-    // 3. オブジェクトメソッド内からの呼び出し
-    exists(Property prop |
-      call.getParent*() = prop.getValue() and
-      prop.isMethod() and
-      callerName = prop.getName()
-    )
-    or
-    // 4. グローバルスコープからの呼び出し
+    // グローバルスコープからの呼び出し
     (
       not exists(call.getEnclosingFunction()) and
-      callerName = "global"
+      callerName = "global" and
+      debugInfo = "from_global"
     )
   ) and
 
-  // 呼び出し先の名前を特定（より柔軟に）
+  // 呼び出し先を特定
   (
-    // 直接的な関数名
+    // 直接的な関数名への呼び出し
     exists(Identifier id |
       call.getCallee() = id and
       calleeName = id.getName()
     )
     or
-    // メソッド呼び出し
+    // メソッド呼び出し obj.method()
     exists(PropAccess prop |
       call.getCallee() = prop and
       calleeName = prop.getPropertyName()
     )
-    or
-    // コンストラクタ呼び出し
-    exists(NewExpr newCall |
-      newCall = call and
-      exists(Identifier id |
-        newCall.getCallee() = id and
-        calleeName = "new_" + id.getName()
-      )
-    )
   ) and
 
-  // フィルタリング条件を緩和
+  // フィルタリング - 基本的なもののみ
   callerName != "" and
   calleeName != "" and
   calleeName != "require" and
-  not calleeName.matches("console%") and
-  not calleeName.matches("%prototype%") and
-  not calleeName.matches("Object%") and
-  not calleeName.matches("Array%") and
-  not calleeName.matches("JSON%") and
-  not calleeName.matches("Math%") and
-  not calleeName.matches("Date%") and
-  not calleeName.matches("String%") and
-  not calleeName.matches("Number%") and
-  not calleeName.matches("Boolean%")
+  not calleeName.matches("console%")
 
-select call, callerName + " -> " + calleeName
+select call, callerName + " -> " + calleeName + " (" + debugInfo + " at " + call.getLocation().toString() + ")"

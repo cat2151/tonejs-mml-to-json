@@ -20,6 +20,13 @@ jobs:
       - name: Check for user commits in last 24 hours
         id: check
         run: |
+          # 手動実行の場合は常に実行
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+            echo "Manual execution, proceeding with analysis"
+            exit 0
+          fi
+
           # 過去24時間のコミットを取得
           since=$(date -d '24 hours ago' --iso-8601=seconds)
           echo "Checking commits since: $since"
@@ -53,6 +60,17 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: ./.github/codeql-queries/callgraph.ql
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
       - name: Generate call graph using simple static analysis
         run: |
           echo "Generating call graph using simple static analysis..."
@@ -79,27 +97,39 @@ jobs:
           npm install
 
       - name: Wait for CodeQL results
-        run: sleep 30
+        run: sleep 10
 
-      - name: Find and process SARIF results
+      - name: Find and process CodeQL results
         run: |
-          echo "Looking for SARIF files..."
-          find . -name "*.sarif" -type f | head -5
+          echo "Looking for CodeQL SARIF files..."
 
-          # CodeQLの結果ファイルを探す
+          # GitHub Actionsの結果ディレクトリを確認
+          if [ -d "../results" ]; then
+            echo "Found results directory"
+            find ../results -name "*.sarif" -type f | head -10
+          fi
+
+          # 現在のディレクトリも確認
+          find . -name "*.sarif" -type f | head -10
+
+          # CodeQLの結果ファイルを探す（より広範囲に）
           sarif_file=""
-          for file in $(find . -name "*.sarif" -type f); do
-            echo "Checking SARIF file: $file"
-            if grep -q "callgraph\|function-call-graph" "$file" 2>/dev/null; then
-              sarif_file="$file"
-              echo "Found callgraph SARIF file: $file"
-              break
+          for dir in . .. ../results; do
+            if [ -d "$dir" ]; then
+              for file in $(find "$dir" -name "*.sarif" -type f 2>/dev/null); do
+                echo "Checking SARIF file: $file"
+                if grep -q "callgraph\|function-call-graph\|javascript/function-call-graph" "$file" 2>/dev/null; then
+                  sarif_file="$file"
+                  echo "Found callgraph SARIF file: $file"
+                  break 2
+                fi
+              done
             fi
           done
 
           if [ -z "$sarif_file" ]; then
             # フォールバック: 最新のSARIFファイルを使用
-            sarif_file=$(find . -name "*.sarif" -type f | head -1)
+            sarif_file=$(find . .. ../results -name "*.sarif" -type f 2>/dev/null | head -1)
             echo "Using fallback SARIF file: $sarif_file"
           fi
 
@@ -131,10 +161,17 @@ jobs:
 
                         if (result.message && result.message.text) {
                           const text = result.message.text;
-                          // 'caller -> callee' の形式を期待
-                          if (text.includes(' -> ')) {
-                            results.push(text);
-                            console.log('Added result:', text);
+                          console.log('Processing result:', text);
+
+                          // 'caller -> callee' の形式を期待（デバッグ情報があれば除去）
+                          let cleanText = text;
+                          if (text.includes(' (')) {
+                            cleanText = text.substring(0, text.indexOf(' ('));
+                          }
+
+                          if (cleanText.includes(' -> ')) {
+                            results.push(cleanText);
+                            console.log('Added result:', cleanText);
                           } else {
                             console.log('Skipped result (no arrow):', text);
                           }
