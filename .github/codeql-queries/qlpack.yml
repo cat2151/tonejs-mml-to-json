@@ -1,0 +1,4 @@
+name: tonejs-mml-to-json/callgraph-queries
+version: 1.0.0
+dependencies:
+  codeql/javascript-all: "*"

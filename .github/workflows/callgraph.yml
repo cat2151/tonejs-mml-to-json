@@ -66,12 +66,26 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: javascript
-          queries: +./.github/codeql-queries/callgraph.ql
+          queries: +./.github/codeql-queries
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:javascript"
+
+      - name: Check CodeQL Analysis Results
+        run: |
+          echo "=== CHECKING CODEQL ANALYSIS RESULTS ==="
+          echo "Looking for SARIF files immediately after analysis:"
+          find . -name "*.sarif" -type f -exec ls -la {} \;
+          find .. -name "*.sarif" -type f -exec ls -la {} \; 2>/dev/null || echo "No SARIF files in parent directory"
+          find ../results -name "*.sarif" -type f -exec ls -la {} \; 2>/dev/null || echo "No results directory or SARIF files found"
+          echo ""
+          echo "Current working directory:"
+          pwd
+          echo ""
+          echo "All files in current directory:"
+          find . -type f -name "*" | sort
 
       - name: Debug CodeQL execution
         run: |
@@ -86,9 +100,13 @@ jobs:
           echo ""
           echo "Checking if our custom query file exists:"
           ls -la .github/codeql-queries/callgraph.ql
+          ls -la .github/codeql-queries/qlpack.yml
           echo ""
           echo "Custom query content preview:"
           head -20 .github/codeql-queries/callgraph.ql
+          echo ""
+          echo "qlpack.yml content:"
+          cat .github/codeql-queries/qlpack.yml
 
 
 
@@ -139,7 +157,7 @@ jobs:
                 echo "File size: $(stat -c%s "$file" 2>/dev/null || echo "unknown") bytes"
 
                 # ファイル内容をチェック
-                if grep -q "callgraph\|function-call-graph\|javascript/function-call-graph" "$file" 2>/dev/null; then
+                if grep -q "javascript/function-call-graph\|callgraph" "$file" 2>/dev/null; then
                   echo "✓ Contains callgraph-related content"
                   sarif_file="$file"
                   break 2
@@ -147,6 +165,12 @@ jobs:
                   echo "✗ No callgraph content found"
                   echo "  First few rules in this SARIF:"
                   grep -o '"id":"[^"]*"' "$file" | head -10 || echo "  No rules found"
+                  echo "  Checking for callgraph results in run.results:"
+                  if grep -q '"message".*"->"' "$file" 2>/dev/null; then
+                    echo "  ✓ Found arrow-formatted messages - treating as callgraph file"
+                    sarif_file="$file"
+                    break 2
+                  fi
                 fi
               done
             fi
@@ -269,7 +293,8 @@ jobs:
                         // 特にコールグラフ関連のルールかチェック
                         const isCallgraphRule = result.ruleId && (
                           result.ruleId.includes('callgraph') ||
-                          result.ruleId.includes('function-call') ||
+                          result.ruleId.includes('function-call-graph') ||
+                          result.ruleId.includes('javascript/function-call-graph') ||
                           result.ruleId.includes('call-graph')
                         );
                         console.log('Is callgraph rule:', isCallgraphRule);
@@ -280,13 +305,24 @@ jobs:
 
                           // 'caller -> callee' の形式を期待
                           let cleanText = text;
-                          if (text.includes(' (')) {
-                            cleanText = text.substring(0, text.indexOf(' ('));
-                          }
 
-                          if (cleanText.includes(' -> ')) {
+                          // メッセージから矢印形式を抽出
+                          if (text.includes(' -> ')) {
+                            // (at file:line:col) の部分を除去
+                            if (text.includes(' (at ')) {
+                              cleanText = text.substring(0, text.indexOf(' (at '));
+                            }
                             results.push(cleanText);
                             console.log('*** FOUND CALL RELATIONSHIP:', cleanText);
+                          } else if (text.includes(' (at ')) {
+                            // (at file:line:col) の前の部分をチェック
+                            const beforeLocation = text.substring(0, text.indexOf(' (at '));
+                            if (beforeLocation.includes(' -> ')) {
+                              results.push(beforeLocation);
+                              console.log('*** FOUND CALL RELATIONSHIP (before location):', beforeLocation);
+                            } else {
+                              console.log('*** NO ARROW FOUND in before-location text:', beforeLocation);
+                            }
                           } else {
                             console.log('*** NO ARROW FOUND in:', text);
                           }
