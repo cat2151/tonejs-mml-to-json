@@ -3,7 +3,7 @@
  * @description Extract all function call relationships for JavaScript/TypeScript code
  * @kind problem
  * @problem.severity info
- * @precision high
+ * @precision medium
  * @id javascript/function-call-graph
  * @tags callgraph
  *       maintainability
@@ -12,30 +12,75 @@
 
 import javascript
 
-from DataFlow::CallNode call, Function caller, Function callee
+from CallExpr call, string callerName, string calleeName
 where
-  // 呼び出し元関数を特定
-  caller = call.getEnclosingFunction() and
-
-  // 呼び出し先関数を特定
+  // より広範囲の関数呼び出しを検出
   (
-    // 直接的な関数呼び出し
-    callee = call.getACallee()
+    // 1. 関数宣言内からの呼び出し
+    exists(Function caller |
+      call.getEnclosingFunction() = caller and
+      exists(caller.getName()) and
+      callerName = caller.getName()
+    )
     or
-    // メソッド呼び出しの場合
-    exists(DataFlow::PropRead read |
-      read = call.getReceiver().getAPropertyRead() and
-      callee = read.getAPropertySource()
+    // 2. イベントハンドラー内からの呼び出し (より広範囲)
+    exists(Function arrow |
+      call.getEnclosingFunction() = arrow and
+      not exists(arrow.getName()) and
+      callerName = "anonymous_" + arrow.getLocation().getStartLine()
+    )
+    or
+    // 3. オブジェクトメソッド内からの呼び出し
+    exists(Property prop |
+      call.getParent*() = prop.getValue() and
+      prop.isMethod() and
+      callerName = prop.getName()
+    )
+    or
+    // 4. グローバルスコープからの呼び出し
+    (
+      not exists(call.getEnclosingFunction()) and
+      callerName = "global"
     )
   ) and
 
-  // 名前が存在する関数のみを対象とする
-  exists(caller.getName()) and
-  exists(callee.getName()) and
+  // 呼び出し先の名前を特定（より柔軟に）
+  (
+    // 直接的な関数名
+    exists(Identifier id |
+      call.getCallee() = id and
+      calleeName = id.getName()
+    )
+    or
+    // メソッド呼び出し
+    exists(PropAccess prop |
+      call.getCallee() = prop and
+      calleeName = prop.getPropertyName()
+    )
+    or
+    // コンストラクタ呼び出し
+    exists(NewExpr newCall |
+      newCall = call and
+      exists(Identifier id |
+        newCall.getCallee() = id and
+        calleeName = "new_" + id.getName()
+      )
+    )
+  ) and
 
-  // 自己再帰呼び出しは除外しない（含める）
-  // 匿名関数や無名関数は除外
-  not caller.getName() = "" and
-  not callee.getName() = ""
+  // フィルタリング条件を緩和
+  callerName != "" and
+  calleeName != "" and
+  calleeName != "require" and
+  not calleeName.matches("console%") and
+  not calleeName.matches("%prototype%") and
+  not calleeName.matches("Object%") and
+  not calleeName.matches("Array%") and
+  not calleeName.matches("JSON%") and
+  not calleeName.matches("Math%") and
+  not calleeName.matches("Date%") and
+  not calleeName.matches("String%") and
+  not calleeName.matches("Number%") and
+  not calleeName.matches("Boolean%")
 
-select call, caller.getName() + " -> " + callee.getName()
+select call, callerName + " -> " + calleeName

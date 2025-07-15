@@ -43,28 +43,20 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      security-events: write
-      actions: read
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript
-          queries: ./.github/codeql-queries/callgraph.ql
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:javascript"
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: Generate call graph using simple static analysis
+        run: |
+          echo "Generating call graph using simple static analysis..."
+          node .github/scripts/simple-callgraph.js
 
       - name: Create temporary package.json for script dependencies
         run: |
@@ -97,8 +89,10 @@ jobs:
           # CodeQLの結果ファイルを探す
           sarif_file=""
           for file in $(find . -name "*.sarif" -type f); do
-            if grep -q "callgraph" "$file" 2>/dev/null; then
+            echo "Checking SARIF file: $file"
+            if grep -q "callgraph\|function-call-graph" "$file" 2>/dev/null; then
               sarif_file="$file"
+              echo "Found callgraph SARIF file: $file"
               break
             fi
           done
@@ -106,10 +100,14 @@ jobs:
           if [ -z "$sarif_file" ]; then
             # フォールバック: 最新のSARIFファイルを使用
             sarif_file=$(find . -name "*.sarif" -type f | head -1)
+            echo "Using fallback SARIF file: $sarif_file"
           fi
 
           if [ -n "$sarif_file" ]; then
             echo "Using SARIF file: $sarif_file"
+            echo "=== SARIF file content preview ==="
+            head -50 "$sarif_file"
+            echo "=== End SARIF preview ==="
 
             # SARIFファイルからカスタムクエリの結果を抽出してCSVに変換
             node -e "
@@ -118,21 +116,35 @@ jobs:
                 const sarif = JSON.parse(fs.readFileSync('$sarif_file', 'utf8'));
                 const results = [];
 
+                console.log('SARIF structure:', {
+                  hasRuns: !!sarif.runs,
+                  runsLength: sarif.runs ? sarif.runs.length : 0
+                });
+
                 if (sarif.runs && sarif.runs.length > 0) {
-                  sarif.runs.forEach(run => {
+                  sarif.runs.forEach((run, runIndex) => {
+                    console.log('Run', runIndex, 'has', run.results ? run.results.length : 0, 'results');
+
                     if (run.results) {
-                      run.results.forEach(result => {
+                      run.results.forEach((result, resultIndex) => {
+                        console.log('Result', resultIndex, ':', result.message ? result.message.text : 'no message');
+
                         if (result.message && result.message.text) {
                           const text = result.message.text;
                           // 'caller -> callee' の形式を期待
                           if (text.includes(' -> ')) {
                             results.push(text);
+                            console.log('Added result:', text);
+                          } else {
+                            console.log('Skipped result (no arrow):', text);
                           }
                         }
                       });
                     }
                   });
                 }
+
+                console.log('Total results found:', results.length);
 
                 // CSVヘッダーとデータを出力
                 let csv = 'caller,callee\n';
@@ -158,6 +170,38 @@ jobs:
 
       - name: Generate HTML graph
         run: |
+          echo "=== Debug: CSV file content ==="
+          if [ -f "callgraph.csv" ]; then
+            echo "CSV file exists, content:"
+            cat callgraph.csv
+            echo "=== End CSV content ==="
+
+            # CSVが空の場合はフォールバック解析を実行
+            line_count=$(wc -l < callgraph.csv)
+            if [ "$line_count" -le 1 ]; then
+              echo "CSV is empty, running fallback analysis..."
+              node .github/scripts/simple-callgraph.js
+
+              if [ -f "callgraph-simple.csv" ]; then
+                echo "Using fallback analysis results"
+                cp callgraph-simple.csv callgraph.csv
+                echo "Updated CSV content:"
+                cat callgraph.csv
+              fi
+            fi
+          else
+            echo "CSV file does not exist, running fallback analysis..."
+            node .github/scripts/simple-callgraph.js
+
+            if [ -f "callgraph-simple.csv" ]; then
+              echo "Using fallback analysis results"
+              cp callgraph-simple.csv callgraph.csv
+            else
+              echo "Creating empty CSV as fallback"
+              echo "caller,callee" > callgraph.csv
+            fi
+          fi
+
           node .github/scripts/convert-to-html.cjs
 
       - name: Commit and push results
