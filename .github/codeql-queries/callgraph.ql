@@ -126,7 +126,8 @@ where
       "setTimeout", "setInterval", "clearTimeout", "clearInterval",
       "addEventListener", "removeEventListener", "querySelector",
       "querySelectorAll", "getElementById", "getElementsByClassName",
-      "alert", "confirm", "prompt", "fetch", "require", "import"
+      "alert", "confirm", "prompt", "fetch", "require", "import",
+      "constructor", "toString", "valueOf", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "__proto__"
     ]
   )
 
