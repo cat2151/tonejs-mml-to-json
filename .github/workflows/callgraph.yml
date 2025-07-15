@@ -442,8 +442,8 @@ jobs:
           echo "=== Running HTML conversion ==="
           if node .github/scripts/convert-to-html.cjs; then
             echo "HTML conversion successful"
-            if [ -f "callgraph.html" ]; then
-              echo "HTML file generated, size: $(stat -c%s callgraph.html 2>/dev/null || echo "unknown") bytes"
+            if [ -f "generated-docs/callgraph.html" ]; then
+              echo "HTML file generated, size: $(stat -c%s generated-docs/callgraph.html 2>/dev/null || echo "unknown") bytes"
             else
               echo "ERROR: HTML file not found after conversion"
               exit 1
