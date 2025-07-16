@@ -5,295 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Function Call Graph with Source Links</title>
     <script src="https://unpkg.com/cytoscape@3.29.2/dist/cytoscape.min.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .header h1 {
-            color: #333;
-            margin: 0;
-            font-size: 24px;
-            transition: color 0.3s ease;
-        }
-
-        .stats-container {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .stats {
-            background: white;
-            padding: 10px 15px;
-            border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
-            min-width: 80px;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #2196F3;
-            margin-bottom: 2px;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #666;
-            transition: color 0.3s ease;
-        }
-
-        .main-container {
-            display: flex;
-            gap: 15px;
-            height: calc(100vh - 120px);
-            min-height: 500px;
-            position: relative;
-        }
-
-        .graph-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0; /* flexアイテムのはみ出しを防ぐ */
-        }
-
-        #cy {
-            width: 100%;
-            flex: 1;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .controls {
-            margin-top: 10px;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .control-button {
-            background: #2196F3;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: background-color 0.3s ease;
-        }
-
-        .control-button:hover {
-            background: #1976D2;
-        }
-
-        .info-panel {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            width: 320px;
-            max-width: 100vw;
-            max-height: 100%;
-            overflow-y: auto;
-            transition: all 0.3s ease;
-            flex-shrink: 0;
-            box-sizing: border-box;
-        }
-
-        .info-panel.hidden {
-            width: 0;
-            padding: 0;
-            overflow: hidden;
-            min-width: 0;
-        }
-
-        .info-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 10px;
-            transition: color 0.3s ease;
-        }
-
-        .location-item {
-            background: #f8f9fa;
-            padding: 8px 12px;
-            margin: 5px 0;
-            border-radius: 4px;
-            border-left: 4px solid #2196F3;
-            transition: background-color 0.3s ease;
-        }
-
-        .location-file {
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 13px;
-            color: #666;
-            transition: color 0.3s ease;
-        }
-
-        .location-link {
-            color: #2196F3;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .location-link:hover {
-            text-decoration: underline;
-        }
-
-        .edge-info {
-            background: #e3f2fd;
-            padding: 8px 12px;
-            margin: 5px 0;
-            border-radius: 4px;
-            border-left: 4px solid #1976D2;
-            transition: background-color 0.3s ease;
-        }
-
-        .generated-time {
-            text-align: center;
-            color: #999;
-            font-size: 11px;
-            margin-top: 10px;
-            transition: color 0.3s ease;
-        }
-
-        /* レスポンシブデザイン */
-        @media (max-width: 1024px) {
-            .main-container {
-                flex-direction: column;
-                height: auto;
-                min-height: 400px;
-            }
-
-            .info-panel {
-                width: 100% !important;
-                max-height: 300px;
-                order: 2;
-            }
-
-            .info-panel.hidden {
-                height: 0;
-                padding: 0;
-                min-height: 0;
-            }
-
-            .graph-container {
-                order: 1;
-                min-height: 400px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .stats-container {
-                justify-content: center;
-            }
-
-            .controls {
-                justify-content: center;
-            }
-
-            .control-button {
-                padding: 6px 12px;
-                font-size: 12px;
-            }
-        }
-
-        /* ダークモード対応 */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background-color: #121212;
-                color: #e0e0e0;
-            }
-
-            .header h1 {
-                color: #ffffff;
-            }
-
-            .stats {
-                background: #1e1e1e;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            }
-
-            .stat-label {
-                color: #b0b0b0;
-            }
-
-            #cy {
-                background-color: #1e1e1e;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            }
-
-            .control-button {
-                background: #2196F3;
-            }
-
-            .control-button:hover {
-                background: #1976D2;
-            }
-
-            .info-panel {
-                background: #1e1e1e;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            }
-
-            .info-title {
-                color: #ffffff;
-            }
-
-            .location-item {
-                background: #2a2a2a;
-            }
-
-            .location-file {
-                color: #b0b0b0;
-            }
-
-            .edge-info {
-                background: #1a2d3a;
-            }
-
-            .generated-time {
-                color: #888;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="../.github/scripts/callgraph_enhanced/style.css">
 </head>
 <body>
     <div class="header">
         <h1>Function Call Graph with Source Links</h1>
         <div class="stats-container">
             <div class="stats">
-                <div class="stat-value">17</div>
+                <div class="stat-value">19</div>
                 <div class="stat-label">Functions</div>
             </div>
             <div class="stats">
-                <div class="stat-value">5</div>
+                <div class="stat-value">22</div>
                 <div class="stat-label">Call Relationships</div>
+            </div>
+            <div class="stats">
+                <div class="stat-value">13</div>
+                <div class="stat-label">With Callee Location</div>
             </div>
         </div>
     </div>
@@ -303,8 +31,10 @@
             <div id="cy"></div>
             <div class="controls">
                 <button class="control-button" onclick="resetLayout()">Reset Layout</button>
+                <button class="control-button" onclick="switchLayout(this)">レイアウト切替</button>
                 <button class="control-button" onclick="fitToContent()">Fit to Content</button>
                 <button class="control-button" onclick="toggleNodeLabels()">Toggle Labels</button>
+                <button class="control-button" onclick="toggleCalleeLocationFilter()">Hide No-Callee-Location</button>
                 <button class="control-button" onclick="toggleInfoPanel()">Toggle Info Panel</button>
             </div>
         </div>
@@ -316,753 +46,741 @@
     </div>
 
     <div class="generated-time">
-        Generated: 2025/7/15 19:39:25
+        Generated: 2025/7/16 18:18:34
     </div>
 
     <script>
-        const graphData = {
+      const graphData = {
   "nodes": [
     {
-      "id": "anonymous_173",
-      "label": "anonymous_173",
+      "id": "onclick (main.js:11)",
+      "label": "onclick (main.js:11)",
       "locations": [
         {
-          "file": "enhanced-convert-to-html.cjs",
-          "line": 181,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "enhanced-convert-to-html.cjs",
-          "line": 182,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "enhanced-convert-to-html.cjs",
-          "line": 188,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "enhanced-convert-to-html.cjs",
-          "line": 189,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "enhanced-convert-to-html.cjs",
-          "line": 197,
-          "column": 1,
-          "type": "caller"
+          "file": "src/main.js",
+          "line": 13,
+          "column": 5,
+          "type": "caller",
+          "sourceLine": "    play();"
         }
-      ]
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": false
     },
     {
-      "id": "anonymous_230",
-      "label": "anonymous_230",
+      "id": "play (html5.js:1707)",
+      "label": "play (html5.js:1707)",
       "locations": [
         {
-          "file": "enhanced-convert-to-html.cjs",
-          "line": 231,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "global",
-      "label": "global",
-      "locations": [
-        {
-          "file": "callgraph-enhanced.html",
-          "line": 816,
-          "column": 1,
-          "type": "caller"
+          "file": "src/main.js",
+          "line": 13,
+          "column": 5,
+          "type": "definition",
+          "sourceLine": "    play();"
         },
         {
-          "file": "callgraph.html",
-          "line": 816,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "callgraph-enhanced.html",
-          "line": 1089,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "callgraph-enhanced.html",
-          "line": 1095,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "callgraph-enhanced.html",
-          "line": 1096,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "callgraph.html",
-          "line": 1089,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "callgraph.html",
-          "line": 1095,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "callgraph.html",
-          "line": 1096,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "generate-project-summary.cjs",
-          "line": 1009,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "unknown_816",
-      "label": "unknown_816",
-      "locations": [
-        {
-          "file": "callgraph-enhanced.html",
-          "line": 816,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "callgraph.html",
-          "line": 816,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "anonymous_946",
-      "label": "anonymous_946",
-      "locations": [
-        {
-          "file": "callgraph-enhanced.html",
-          "line": 948,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "callgraph.html",
-          "line": 948,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "anonymous_953",
-      "label": "anonymous_953",
-      "locations": [
-        {
-          "file": "callgraph-enhanced.html",
-          "line": 955,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "callgraph.html",
-          "line": 955,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "unknown_1089",
-      "label": "unknown_1089",
-      "locations": [
-        {
-          "file": "callgraph-enhanced.html",
-          "line": 1089,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "callgraph.html",
-          "line": 1089,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "unknown_1095",
-      "label": "unknown_1095",
-      "locations": [
-        {
-          "file": "callgraph-enhanced.html",
-          "line": 1095,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "callgraph.html",
-          "line": 1095,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "unknown_1096",
-      "label": "unknown_1096",
-      "locations": [
-        {
-          "file": "callgraph-enhanced.html",
-          "line": 1096,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "callgraph.html",
-          "line": 1096,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "anonymous_1096",
-      "label": "anonymous_1096",
-      "locations": [
-        {
-          "file": "callgraph-enhanced.html",
-          "line": 1099,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "callgraph.html",
-          "line": 1099,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "run",
-      "label": "run",
-      "locations": [
-        {
-          "file": "generate-project-summary.cjs",
-          "line": 1002,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "unknown_1009",
-      "label": "unknown_1009",
-      "locations": [
-        {
-          "file": "generate-project-summary.cjs",
-          "line": 1009,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "mml2json",
-      "label": "mml2json",
-      "locations": [
-        {
-          "file": "mml2json.js",
-          "line": 11,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "compileMmlToCommands",
-      "label": "compileMmlToCommands",
-      "locations": [
-        {
-          "file": "mml2json.js",
-          "line": 18,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "mml2json.js",
-          "line": 23,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "mml2json.js",
-          "line": 26,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "mml2json.js",
-          "line": 27,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "mml2json.js",
-          "line": 32,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "mml2json.js",
-          "line": 39,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "func",
-      "label": "func",
-      "locations": [
-        {
-          "file": "mml2json.js",
-          "line": 57,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "mml2json.js",
-          "line": 76,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "mml2json.js",
-          "line": 79,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "mml2json.js",
-          "line": 82,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "mml2json.js",
-          "line": 85,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "mml2json.js",
-          "line": 95,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "mml2json.js",
-          "line": 97,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "mml2json.js",
-          "line": 101,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "mml2json.js",
-          "line": 102,
-          "column": 1,
-          "type": "caller"
-        },
-        {
-          "file": "mml2json.js",
-          "line": 104,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "calcAttackToReleaseTicks",
-      "label": "calcAttackToReleaseTicks",
-      "locations": [
-        {
-          "file": "mml2json.js",
-          "line": 116,
-          "column": 1,
-          "type": "caller"
-        }
-      ]
-    },
-    {
-      "id": "anonymous_17",
-      "label": "anonymous_17",
-      "locations": [
-        {
-          "file": "play.js",
+          "file": "src/main.js",
           "line": 17,
-          "column": 1,
-          "type": "caller"
+          "column": 3,
+          "type": "definition",
+          "sourceLine": "  play();"
         }
-      ]
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": true,
+      "calleeFncDef": null
+    },
+    {
+      "id": "anonymous_3 (main.js:3)",
+      "label": "anonymous_3 (main.js:3)",
+      "locations": [
+        {
+          "file": "src/main.js",
+          "line": 17,
+          "column": 3,
+          "type": "caller",
+          "sourceLine": "  play();"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": false
+    },
+    {
+      "id": "mml2json (mml2json.js:1)",
+      "label": "mml2json (mml2json.js:1)",
+      "locations": [
+        {
+          "file": "src/mml2json.js",
+          "line": 11,
+          "column": 18,
+          "type": "caller",
+          "sourceLine": "  let commands = compileMmlToCommands(mml);"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": true
+    },
+    {
+      "id": "compileMmlToCommands (mml2json.js:14)",
+      "label": "compileMmlToCommands (mml2json.js:14)",
+      "locations": [
+        {
+          "file": "src/mml2json.js",
+          "line": 11,
+          "column": 18,
+          "type": "definition",
+          "sourceLine": "  let commands = compileMmlToCommands(mml);"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 18,
+          "column": 17,
+          "type": "caller",
+          "sourceLine": "      \"nodeId\": getNodeId(),"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 23,
+          "column": 17,
+          "type": "caller",
+          "sourceLine": "      \"nodeId\": getNodeId(),"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 26,
+          "column": 28,
+          "type": "caller",
+          "sourceLine": "    for (let i = 0, imax = getMmlCommands().length; i < imax; i++) {"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 27,
+          "column": 34,
+          "type": "caller",
+          "sourceLine": "      let m, checked = {}, def = getMmlCommands()[i];"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 39,
+          "column": 24,
+          "type": "caller",
+          "sourceLine": "            let mask = repeat(m[0].length, \" \");"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": true,
+      "calleeFncDef": "  function compileMmlToCommands(mml) {"
+    },
+    {
+      "id": "getNodeId (mml2json.js:153)",
+      "label": "getNodeId (mml2json.js:153)",
+      "locations": [
+        {
+          "file": "src/mml2json.js",
+          "line": 18,
+          "column": 17,
+          "type": "definition",
+          "sourceLine": "      \"nodeId\": getNodeId(),"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 23,
+          "column": 17,
+          "type": "definition",
+          "sourceLine": "      \"nodeId\": getNodeId(),"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 57,
+          "column": 27,
+          "type": "definition",
+          "sourceLine": "                \"nodeId\": getNodeId(),"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 101,
+          "column": 25,
+          "type": "definition",
+          "sourceLine": "              \"nodeId\": getNodeId(),"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": true,
+      "calleeFncDef": "  function getNodeId() {"
+    },
+    {
+      "id": "getMmlCommands (mml2json.js:50)",
+      "label": "getMmlCommands (mml2json.js:50)",
+      "locations": [
+        {
+          "file": "src/mml2json.js",
+          "line": 26,
+          "column": 28,
+          "type": "definition",
+          "sourceLine": "    for (let i = 0, imax = getMmlCommands().length; i < imax; i++) {"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 27,
+          "column": 34,
+          "type": "definition",
+          "sourceLine": "      let m, checked = {}, def = getMmlCommands()[i];"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": true,
+      "calleeFncDef": "  function getMmlCommands() {"
+    },
+    {
+      "id": "repeat (es6.js:208)",
+      "label": "repeat (es6.js:208)",
+      "locations": [
+        {
+          "file": "src/mml2json.js",
+          "line": 39,
+          "column": 24,
+          "type": "definition",
+          "sourceLine": "            let mask = repeat(m[0].length, \" \");"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 95,
+          "column": 20,
+          "type": "definition",
+          "sourceLine": "              pm = repeat(m[2].length, \"#\");  // TODO ## -> note number +2 (Tone.js ## 非対応)"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 97,
+          "column": 20,
+          "type": "definition",
+          "sourceLine": "              pm = repeat(m[2].length, \"b\");"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": true,
+      "calleeFncDef": null
+    },
+    {
+      "id": "func (mml2json.js:54)",
+      "label": "func (mml2json.js:54)",
+      "locations": [
+        {
+          "file": "src/mml2json.js",
+          "line": 57,
+          "column": 27,
+          "type": "caller",
+          "sourceLine": "                \"nodeId\": getNodeId(),"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": false
+    },
+    {
+      "id": "func (mml2json.js:75)",
+      "label": "func (mml2json.js:75)",
+      "locations": [
+        {
+          "file": "src/mml2json.js",
+          "line": 76,
+          "column": 25,
+          "type": "caller",
+          "sourceLine": "          const ticks = calcAttackToReleaseTicks(m[3], m[4]);"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 79,
+          "column": 13,
+          "type": "caller",
+          "sourceLine": "            increaseStartTick(ticks);"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 82,
+          "column": 24,
+          "type": "caller",
+          "sourceLine": "            lCommand = toInt(m[3]);"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 85,
+          "column": 22,
+          "type": "caller",
+          "sourceLine": "            octave = toInt(m[3]);"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 95,
+          "column": 20,
+          "type": "caller",
+          "sourceLine": "              pm = repeat(m[2].length, \"#\");  // TODO ## -> note number +2 (Tone.js ## 非対応)"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 97,
+          "column": 20,
+          "type": "caller",
+          "sourceLine": "              pm = repeat(m[2].length, \"b\");"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 101,
+          "column": 25,
+          "type": "caller",
+          "sourceLine": "              \"nodeId\": getNodeId(),"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 102,
+          "column": 44,
+          "type": "caller",
+          "sourceLine": "              \"args\": [m[1] + pm + octave, calcDuration(ticks), calcStartTick()]"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 104,
+          "column": 13,
+          "type": "caller",
+          "sourceLine": "            increaseStartTick(ticks);"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": false
+    },
+    {
+      "id": "calcAttackToReleaseTicks (mml2json.js:111)",
+      "label": "calcAttackToReleaseTicks (mml2json.js:111)",
+      "locations": [
+        {
+          "file": "src/mml2json.js",
+          "line": 76,
+          "column": 25,
+          "type": "definition",
+          "sourceLine": "          const ticks = calcAttackToReleaseTicks(m[3], m[4]);"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 116,
+          "column": 16,
+          "type": "caller",
+          "sourceLine": "      result = calcLtick();"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": true,
+      "calleeFncDef": "  function calcAttackToReleaseTicks(divide, points) {"
+    },
+    {
+      "id": "increaseStartTick (mml2json.js:147)",
+      "label": "increaseStartTick (mml2json.js:147)",
+      "locations": [
+        {
+          "file": "src/mml2json.js",
+          "line": 79,
+          "column": 13,
+          "type": "definition",
+          "sourceLine": "            increaseStartTick(ticks);"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 104,
+          "column": 13,
+          "type": "definition",
+          "sourceLine": "            increaseStartTick(ticks);"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": true,
+      "calleeFncDef": "  function increaseStartTick(ticks) {"
+    },
+    {
+      "id": "toInt (mml2json.js:136)",
+      "label": "toInt (mml2json.js:136)",
+      "locations": [
+        {
+          "file": "src/mml2json.js",
+          "line": 82,
+          "column": 24,
+          "type": "definition",
+          "sourceLine": "            lCommand = toInt(m[3]);"
+        },
+        {
+          "file": "src/mml2json.js",
+          "line": 85,
+          "column": 22,
+          "type": "definition",
+          "sourceLine": "            octave = toInt(m[3]);"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": true,
+      "calleeFncDef": "  function toInt(x) {"
+    },
+    {
+      "id": "calcDuration (mml2json.js:139)",
+      "label": "calcDuration (mml2json.js:139)",
+      "locations": [
+        {
+          "file": "src/mml2json.js",
+          "line": 102,
+          "column": 44,
+          "type": "definition",
+          "sourceLine": "              \"args\": [m[1] + pm + octave, calcDuration(ticks), calcStartTick()]"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": true,
+      "calleeFncDef": "  function calcDuration(ticks) {"
+    },
+    {
+      "id": "calcStartTick (mml2json.js:144)",
+      "label": "calcStartTick (mml2json.js:144)",
+      "locations": [
+        {
+          "file": "src/mml2json.js",
+          "line": 102,
+          "column": 65,
+          "type": "definition",
+          "sourceLine": "              \"args\": [m[1] + pm + octave, calcDuration(ticks), calcStartTick()]"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": true,
+      "calleeFncDef": "  function calcStartTick() {"
+    },
+    {
+      "id": "calcLtick (mml2json.js:150)",
+      "label": "calcLtick (mml2json.js:150)",
+      "locations": [
+        {
+          "file": "src/mml2json.js",
+          "line": 116,
+          "column": 16,
+          "type": "definition",
+          "sourceLine": "      result = calcLtick();"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": true,
+      "calleeFncDef": "  function calcLtick() {"
+    },
+    {
+      "id": "play (play.js:1)",
+      "label": "play (play.js:1)",
+      "locations": [
+        {
+          "file": "src/play.js",
+          "line": 7,
+          "column": 16,
+          "type": "caller",
+          "sourceLine": "    let json = mml2json(mml);"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": false
+    },
+    {
+      "id": "anonymous_17 (play.js:17)",
+      "label": "anonymous_17 (play.js:17)",
+      "locations": [
+        {
+          "file": "src/play.js",
+          "line": 17,
+          "column": 27,
+          "type": "caller",
+          "sourceLine": "    j.forEach (element => sub(element));"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": false
+    },
+    {
+      "id": "sub (es3.js:1954)",
+      "label": "sub (es3.js:1954)",
+      "locations": [
+        {
+          "file": "src/play.js",
+          "line": 17,
+          "column": 27,
+          "type": "definition",
+          "sourceLine": "    j.forEach (element => sub(element));"
+        }
+      ],
+      "hasLocationInfo": true,
+      "hasCalleeLocationInfo": true,
+      "calleeFncDef": null
     }
   ],
   "edges": [
     {
-      "id": "edge-30",
-      "source": "global",
-      "target": "run",
-      "file": "generate-project-summary.cjs",
-      "line": 1009,
-      "column": 1,
-      "location": "generate-project-summary.cjs:1009:1"
+      "id": "edge-0",
+      "source": "onclick (main.js:11)",
+      "target": "play (html5.js:1707)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/main.js",
+      "line": 13,
+      "column": 5,
+      "location": "src/main.js:13:5",
+      "hasLocationInfo": true,
+      "sourceLine": "    play();"
     },
     {
-      "id": "edge-31",
-      "source": "unknown_1009",
-      "target": "run",
-      "file": "generate-project-summary.cjs",
-      "line": 1009,
-      "column": 1,
-      "location": "generate-project-summary.cjs:1009:1"
+      "id": "edge-1",
+      "source": "anonymous_3 (main.js:3)",
+      "target": "play (html5.js:1707)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/main.js",
+      "line": 17,
+      "column": 3,
+      "location": "src/main.js:17:3",
+      "hasLocationInfo": true,
+      "sourceLine": "  play();"
     },
     {
-      "id": "edge-32",
-      "source": "mml2json",
-      "target": "compileMmlToCommands",
-      "file": "mml2json.js",
+      "id": "edge-2",
+      "source": "mml2json (mml2json.js:1)",
+      "target": "compileMmlToCommands (mml2json.js:14)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
       "line": 11,
-      "column": 1,
-      "location": "mml2json.js:11:1"
+      "column": 18,
+      "location": "src/mml2json.js:11:18",
+      "hasLocationInfo": true,
+      "sourceLine": "  let commands = compileMmlToCommands(mml);"
     },
     {
-      "id": "edge-37",
-      "source": "compileMmlToCommands",
-      "target": "func",
-      "file": "mml2json.js",
-      "line": 32,
-      "column": 1,
-      "location": "mml2json.js:32:1"
+      "id": "edge-3",
+      "source": "compileMmlToCommands (mml2json.js:14)",
+      "target": "getNodeId (mml2json.js:153)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 18,
+      "column": 17,
+      "location": "src/mml2json.js:18:17",
+      "hasLocationInfo": true,
+      "sourceLine": "      \"nodeId\": getNodeId(),"
     },
     {
-      "id": "edge-40",
-      "source": "func",
-      "target": "calcAttackToReleaseTicks",
-      "file": "mml2json.js",
+      "id": "edge-4",
+      "source": "compileMmlToCommands (mml2json.js:14)",
+      "target": "getNodeId (mml2json.js:153)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 23,
+      "column": 17,
+      "location": "src/mml2json.js:23:17",
+      "hasLocationInfo": true,
+      "sourceLine": "      \"nodeId\": getNodeId(),"
+    },
+    {
+      "id": "edge-5",
+      "source": "compileMmlToCommands (mml2json.js:14)",
+      "target": "getMmlCommands (mml2json.js:50)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 26,
+      "column": 28,
+      "location": "src/mml2json.js:26:28",
+      "hasLocationInfo": true,
+      "sourceLine": "    for (let i = 0, imax = getMmlCommands().length; i < imax; i++) {"
+    },
+    {
+      "id": "edge-6",
+      "source": "compileMmlToCommands (mml2json.js:14)",
+      "target": "getMmlCommands (mml2json.js:50)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 27,
+      "column": 34,
+      "location": "src/mml2json.js:27:34",
+      "hasLocationInfo": true,
+      "sourceLine": "      let m, checked = {}, def = getMmlCommands()[i];"
+    },
+    {
+      "id": "edge-7",
+      "source": "compileMmlToCommands (mml2json.js:14)",
+      "target": "repeat (es6.js:208)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 39,
+      "column": 24,
+      "location": "src/mml2json.js:39:24",
+      "hasLocationInfo": true,
+      "sourceLine": "            let mask = repeat(m[0].length, \" \");"
+    },
+    {
+      "id": "edge-8",
+      "source": "func (mml2json.js:54)",
+      "target": "getNodeId (mml2json.js:153)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 57,
+      "column": 27,
+      "location": "src/mml2json.js:57:27",
+      "hasLocationInfo": true,
+      "sourceLine": "                \"nodeId\": getNodeId(),"
+    },
+    {
+      "id": "edge-9",
+      "source": "func (mml2json.js:75)",
+      "target": "calcAttackToReleaseTicks (mml2json.js:111)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
       "line": 76,
-      "column": 1,
-      "location": "mml2json.js:76:1"
+      "column": 25,
+      "location": "src/mml2json.js:76:25",
+      "hasLocationInfo": true,
+      "sourceLine": "          const ticks = calcAttackToReleaseTicks(m[3], m[4]);"
+    },
+    {
+      "id": "edge-10",
+      "source": "func (mml2json.js:75)",
+      "target": "increaseStartTick (mml2json.js:147)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 79,
+      "column": 13,
+      "location": "src/mml2json.js:79:13",
+      "hasLocationInfo": true,
+      "sourceLine": "            increaseStartTick(ticks);"
+    },
+    {
+      "id": "edge-11",
+      "source": "func (mml2json.js:75)",
+      "target": "toInt (mml2json.js:136)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 82,
+      "column": 24,
+      "location": "src/mml2json.js:82:24",
+      "hasLocationInfo": true,
+      "sourceLine": "            lCommand = toInt(m[3]);"
+    },
+    {
+      "id": "edge-12",
+      "source": "func (mml2json.js:75)",
+      "target": "toInt (mml2json.js:136)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 85,
+      "column": 22,
+      "location": "src/mml2json.js:85:22",
+      "hasLocationInfo": true,
+      "sourceLine": "            octave = toInt(m[3]);"
+    },
+    {
+      "id": "edge-13",
+      "source": "func (mml2json.js:75)",
+      "target": "repeat (es6.js:208)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 95,
+      "column": 20,
+      "location": "src/mml2json.js:95:20",
+      "hasLocationInfo": true,
+      "sourceLine": "              pm = repeat(m[2].length, \"#\");  // TODO ## -> note number +2 (Tone.js ## 非対応)"
+    },
+    {
+      "id": "edge-14",
+      "source": "func (mml2json.js:75)",
+      "target": "repeat (es6.js:208)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 97,
+      "column": 20,
+      "location": "src/mml2json.js:97:20",
+      "hasLocationInfo": true,
+      "sourceLine": "              pm = repeat(m[2].length, \"b\");"
+    },
+    {
+      "id": "edge-15",
+      "source": "func (mml2json.js:75)",
+      "target": "getNodeId (mml2json.js:153)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 101,
+      "column": 25,
+      "location": "src/mml2json.js:101:25",
+      "hasLocationInfo": true,
+      "sourceLine": "              \"nodeId\": getNodeId(),"
+    },
+    {
+      "id": "edge-16",
+      "source": "func (mml2json.js:75)",
+      "target": "calcDuration (mml2json.js:139)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 102,
+      "column": 44,
+      "location": "src/mml2json.js:102:44",
+      "hasLocationInfo": true,
+      "sourceLine": "              \"args\": [m[1] + pm + octave, calcDuration(ticks), calcStartTick()]"
+    },
+    {
+      "id": "edge-17",
+      "source": "func (mml2json.js:75)",
+      "target": "calcStartTick (mml2json.js:144)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 102,
+      "column": 65,
+      "location": "src/mml2json.js:102:65",
+      "hasLocationInfo": true,
+      "sourceLine": "              \"args\": [m[1] + pm + octave, calcDuration(ticks), calcStartTick()]"
+    },
+    {
+      "id": "edge-18",
+      "source": "func (mml2json.js:75)",
+      "target": "increaseStartTick (mml2json.js:147)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 104,
+      "column": 13,
+      "location": "src/mml2json.js:104:13",
+      "hasLocationInfo": true,
+      "sourceLine": "            increaseStartTick(ticks);"
+    },
+    {
+      "id": "edge-19",
+      "source": "calcAttackToReleaseTicks (mml2json.js:111)",
+      "target": "calcLtick (mml2json.js:150)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/mml2json.js",
+      "line": 116,
+      "column": 16,
+      "location": "src/mml2json.js:116:16",
+      "hasLocationInfo": true,
+      "sourceLine": "      result = calcLtick();"
+    },
+    {
+      "id": "edge-20",
+      "source": "play (play.js:1)",
+      "target": "mml2json (mml2json.js:1)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/play.js",
+      "line": 7,
+      "column": 16,
+      "location": "src/play.js:7:16",
+      "hasLocationInfo": true,
+      "sourceLine": "    let json = mml2json(mml);"
+    },
+    {
+      "id": "edge-21",
+      "source": "anonymous_17 (play.js:17)",
+      "target": "sub (es3.js:1954)",
+      "hasCalleeLocationInfo": true,
+      "file": "src/play.js",
+      "line": 17,
+      "column": 27,
+      "location": "src/play.js:17:27",
+      "hasLocationInfo": true,
+      "sourceLine": "    j.forEach (element => sub(element));"
     }
   ]
 };
-        const repo = "cat2151/tonejs-mml-to-json";
-        const branch = "main";
-
-        // ダークモード検出
-        const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-        // ダークモード用のカラーパレット
-        const colors = {
-            light: {
-                node: '#2196F3',
-                nodeBorder: '#1976D2',
-                nodeSelected: '#FF5722',
-                nodeSelectedBorder: '#D84315',
-                nodeWithLocation: '#4CAF50',
-                edge: '#666',
-                edgeSelected: '#FF5722',
-                edgeWithLocation: '#4CAF50',
-                textBackground: 'white'
-            },
-            dark: {
-                node: '#64B5F6',
-                nodeBorder: '#42A5F5',
-                nodeSelected: '#FF7043',
-                nodeSelectedBorder: '#FF5722',
-                nodeWithLocation: '#66BB6A',
-                edge: '#999',
-                edgeSelected: '#FF7043',
-                edgeWithLocation: '#66BB6A',
-                textBackground: '#1e1e1e'
-            }
-        };
-
-        const currentColors = isDarkMode ? colors.dark : colors.light;
-
-        const cy = cytoscape({
-            container: document.getElementById('cy'),
-
-            elements: [
-                // ノードを追加
-                ...graphData.nodes.map(node => ({
-                    data: {
-                        id: node.id,
-                        label: node.label,
-                        locations: node.locations || []
-                    }
-                })),
-                // エッジを追加
-                ...graphData.edges.map(edge => ({
-                    data: {
-                        id: edge.id,
-                        source: edge.source,
-                        target: edge.target,
-                        file: edge.file || '',
-                        line: edge.line || 0,
-                        column: edge.column || 0,
-                        location: edge.location || ''
-                    }
-                }))
-            ],
-
-            style: [
-                {
-                    selector: 'node',
-                    style: {
-                        'background-color': currentColors.node,
-                        'label': 'data(label)',
-                        'color': isDarkMode ? '#ffffff' : '#333',
-                        'text-valign': 'center',
-                        'text-halign': 'center',
-                        'font-size': '12px',
-                        'font-weight': 'bold',
-                        'text-wrap': 'wrap',
-                        'text-max-width': '100px',
-                        'width': '70px',
-                        'height': '70px',
-                        'border-width': '2px',
-                        'border-color': currentColors.nodeBorder,
-                        'text-background-color': currentColors.textBackground,
-                        'text-background-opacity': 0.8,
-                        'text-background-padding': '3px'
-                    }
-                },
-                {
-                    selector: 'node:selected',
-                    style: {
-                        'background-color': currentColors.nodeSelected,
-                        'border-color': currentColors.nodeSelectedBorder
-                    }
-                },
-                {
-                    selector: 'node[locations.length > 0]',
-                    style: {
-                        'border-width': '3px',
-                        'border-color': currentColors.nodeWithLocation
-                    }
-                },
-                {
-                    selector: 'edge',
-                    style: {
-                        'width': 2,
-                        'line-color': currentColors.edge,
-                        'target-arrow-color': currentColors.edge,
-                        'target-arrow-shape': 'triangle',
-                        'curve-style': 'bezier',
-                        'arrow-scale': 1.2
-                    }
-                },
-                {
-                    selector: 'edge:selected',
-                    style: {
-                        'line-color': currentColors.edgeSelected,
-                        'target-arrow-color': currentColors.edgeSelected,
-                        'width': 3
-                    }
-                },
-                {
-                    selector: 'edge[location]',
-                    style: {
-                        'line-color': currentColors.edgeWithLocation,
-                        'target-arrow-color': currentColors.edgeWithLocation
-                    }
-                }
-            ],
-
-            layout: {
-                name: 'circle',
-                fit: true,
-                padding: 30,
-                avoidOverlap: true,
-                radius: 200
-            }
-        });
-
-        // ノード選択時の処理
-        cy.on('tap', 'node', function(evt) {
-            const node = evt.target;
-            const data = node.data();
-            showNodeInfo(data);
-        });
-
-        // エッジ選択時の処理
-        cy.on('tap', 'edge', function(evt) {
-            const edge = evt.target;
-            const data = edge.data();
-            showEdgeInfo(data);
-        });
-
-        // 背景クリック時の処理
-        cy.on('tap', function(evt) {
-            if (evt.target === cy) {
-                hideInfoPanel();
-            }
-        });
-
-        function showNodeInfo(data) {
-            const panel = document.getElementById('info-panel');
-            const content = document.getElementById('info-content');
-
-            let html = '<div class="info-title">Function: ' + data.label + '</div>';
-
-            if (data.locations && data.locations.length > 0) {
-                html += '<h4>Locations:</h4>';
-                data.locations.forEach(loc => {
-                    const githubURL = generateGitHubURL(loc.file, loc.line);
-                    html += '<div class="location-item">';
-                    html += '<div class="location-file">' + loc.file + ':' + loc.line + ':' + loc.column + '</div>';
-                    if (githubURL) {
-                        html += '<div><a href="' + githubURL + '" target="_blank" class="location-link">View on GitHub</a></div>';
-                    }
-                    html += '</div>';
-                });
-            } else {
-                html += '<p>ソースコード位置情報がありません</p>';
-            }
-
-            content.innerHTML = html;
-            showInfoPanel();
-        }
-
-        function showEdgeInfo(data) {
-            const panel = document.getElementById('info-panel');
-            const content = document.getElementById('info-content');
-
-            let html = '<div class="info-title">Call: ' + data.source + ' → ' + data.target + '</div>';
-
-            if (data.location) {
-                html += '<h4>Call Location:</h4>';
-                html += '<div class="edge-info">';
-                html += '<div class="location-file">' + data.location + '</div>';
-                const githubURL = generateGitHubURL(data.file, data.line);
-                if (githubURL) {
-                    html += '<div><a href="' + githubURL + '" target="_blank" class="location-link">View on GitHub</a></div>';
-                }
-                html += '</div>';
-            } else {
-                html += '<p>呼び出し位置情報がありません</p>';
-            }
-
-            content.innerHTML = html;
-            showInfoPanel();
-        }
-
-        function hideInfoPanel() {
-            const panel = document.getElementById('info-panel');
-            panel.classList.add('hidden');
-        }
-
-        function showInfoPanel() {
-            const panel = document.getElementById('info-panel');
-            panel.classList.remove('hidden');
-        }
-
-        function toggleInfoPanel() {
-            const panel = document.getElementById('info-panel');
-            const isHidden = panel.classList.contains('hidden');
-
-            if (isHidden) {
-                panel.classList.remove('hidden');
-                // パネルが表示されたことを視覚的に示すため、少し強調
-                panel.style.transform = 'scale(1.02)';
-                setTimeout(() => {
-                    panel.style.transform = 'scale(1)';
-                }, 200);
-            } else {
-                panel.classList.add('hidden');
-            }
-        }
-
-        function generateGitHubURL(file, line) {
-            if (!repo || !file) return null;
-
-            // ファイルパスを正規化（srcディレクトリを保持）
-            let normalizedFile = file.replace(/\\/g, '/');
-
-            // プロジェクトルートからの相対パスに変換
-            if (normalizedFile.includes('/src/')) {
-                // 最後のsrcディレクトリ以降を取得
-                const srcIndex = normalizedFile.lastIndexOf('/src/');
-                normalizedFile = normalizedFile.substring(srcIndex + 1); // '/src/' -> 'src/'
-            } else if (normalizedFile.startsWith('src/')) {
-                // 既にsrcから始まっている場合はそのまま
-                normalizedFile = normalizedFile;
-            } else {
-                // srcディレクトリがない場合はファイル名のみ
-                const lastSlash = normalizedFile.lastIndexOf('/');
-                if (lastSlash !== -1) {
-                    normalizedFile = normalizedFile.substring(lastSlash + 1);
-                }
-            }
-
-            return 'https://github.com/' + repo + '/blob/' + branch + '/' + normalizedFile + '#L' + line;
-        }
-
-        function resetLayout() {
-            cy.layout({
-                name: 'circle',
-                fit: true,
-                padding: 30,
-                avoidOverlap: true,
-                radius: 200
-            }).run();
-        }
-
-        function fitToContent() {
-            cy.fit();
-        }
-
-        let labelsVisible = true;
-        function toggleNodeLabels() {
-            labelsVisible = !labelsVisible;
-            cy.style()
-                .selector('node')
-                .style('label', labelsVisible ? 'data(label)' : '')
-                .update();
-        }
-
-        // 初期レイアウト
-        cy.ready(function() {
-            resetLayout();
-        });
-
-        // ダークモード切り替えの監視
-        if (window.matchMedia) {
-            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            mediaQuery.addListener(function(e) {
-                // ダークモードが切り替わった時にページをリロード
-                // （Cytoscape.jsのスタイルを動的に更新するのは複雑なため）
-                window.location.reload();
-            });
-        }
+      const repo = "";
+      const branch = "main";
     </script>
+    <script src="../.github/scripts/callgraph_enhanced/callgraph.js"></script>
 </body>
 </html>
