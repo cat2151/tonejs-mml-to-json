@@ -61,7 +61,9 @@ jobs:
 
       - name: Install CodeQL query packs
         run: |
+          pushd .github/codeql-queries
           /opt/codeql/codeql pack install
+          popd
 
       - name: Check CodeQL exists
         run: |
