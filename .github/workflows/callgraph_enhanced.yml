@@ -48,6 +48,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Remove old CodeQL packages cache
+        run: rm -rf ~/.codeql/packages
+
       - name: Check Node.js version
         run: |
           node .github/scripts/callgraph_enhanced/check-node-version.cjs
