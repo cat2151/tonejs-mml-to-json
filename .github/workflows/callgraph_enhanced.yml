@@ -59,6 +59,10 @@ jobs:
           sudo mv codeql /opt/codeql
           echo "/opt/codeql" >> $GITHUB_PATH
 
+      - name: Install CodeQL query packs
+        run: |
+          /opt/codeql/codeql pack install
+
       - name: Check CodeQL exists
         run: |
           node .github/scripts/callgraph_enhanced/check-codeql-exists.cjs
