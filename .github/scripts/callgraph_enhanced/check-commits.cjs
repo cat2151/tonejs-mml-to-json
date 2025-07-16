@@ -31,11 +31,15 @@ function main() {
     const userCommits = log.split('\n').filter(name => name && name !== 'github-actions[bot]').length;
     console.log(`User commits in last 24 hours: ${userCommits}`);
     if (userCommits > 0) {
-      console.log('should-run=true');
       console.log('Found user commits, proceeding with analysis');
+      if (process.env.GITHUB_OUTPUT) {
+        require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'should-run=true\n');
+      }
     } else {
-      console.log('should-run=false');
       console.log('No user commits found, skipping analysis');
+      if (process.env.GITHUB_OUTPUT) {
+        require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'should-run=false\n');
+      }
     }
   } catch (e) {
     console.error('Error checking commits:', e.message);
