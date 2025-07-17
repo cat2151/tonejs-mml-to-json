@@ -1,21 +1,21 @@
-Last updated: 2025-07-17
+Last updated: 2025-07-18
 
 # Development Status
 
 ## 現在のIssues
-- MMLからTone.js互換JSONへの変換機能の実装が主要目標であり、複数のIssueがオープンしています。
-- そのためのTDD環境の整備と主要関数の準備（[Issue #3](issue-notes/3.md), [Issue #5](issue-notes/5.md), [Issue #6](issue-notes/6.md), [Issue #7](issue-notes/7.md)）を進めています。
-- 並行して、GitHub Actionsを用いたコールグラフ自動生成（[Issue #10](issue-notes/10.md)）とローカル開発環境（[Issue #8](issue-notes/8.md), [Issue #9](issue-notes/9.md)）の改善にも取り組んでいます。
+- MMLからJSONへの変換機能のTDDベースでの再実装と、それに必要なテストケースの自動生成準備を進めています。([Issue #3], [Issue #5], [Issue #6], [Issue #7])
+- 開発ワークフローを効率化するため、`pnpm watch` コマンドの機能拡張とVSCode起動時の自動実行を目指しています。([Issue #8], [Issue #9])
+- また、GitHub Actionsを利用したコードコールグラフの自動生成と、CI/CD環境の安定化に取り組んでいます。([Issue #10])
 
 ## 次の一手候補
-1. GitHub Actionsでのコールグラフ生成の安定化
-   - 最初の小さな一歩: [Issue #10](issue-notes/10.md)に関連する最近のコミット履歴とGitHub Actionsのログを詳細に分析し、`codeql-action/init`ステップのエラー原因を特定する。特に`qlpack.yml`やワークフロー設定に誤りがないか確認し、修正をコミットしてActionsの再実行を試みる。
+1. 開発ワークフローの自動化と効率化の継続
+   - 最初の小さな一歩: [Issue #8](issue-notes/8.md) に着手し、現在の `package.json` の `watch` スクリプトを確認し、`serve` コマンドや `onchange` パッケージの導入について調査する。
 
-2. 開発用`pnpm watch`スクリプトの機能強化と自動化
-   - 最初の小さな一歩: [Issue #8](issue-notes/8.md)に基づき、`package.json`の`scripts`に`watch`コマンドの初期バージョンを定義する。まず、PEGファイルの変更を監視して自動でビルドする部分（例: `pegjs --watch`）を実装し、ビルド後に簡単なテストが実行されるように設定を検討する。
+2. MML to JSON変換機能のTDD準備を本格化
+   - 最初の小さな一歩: [Issue #5](issue-notes/5.md) に着手し、Agentに与えるプロンプトを具体化し、現在の `mml2json` の仕様と期待される出力を明確にするドキュメントを作成する。
 
-3. `mml2json`関数のTDD用テストケースの生成
-   - 最初の小さな一歩: [Issue #5](issue-notes/5.md)の準備として、`mml2json`関数のテストケースを生成するための具体的なプロンプトを作成する。プロンプトには、`MML c`のようなシンプルなMML入力例と、それに対応するTone.js互換の期待JSON出力構造を含め、AI AgentがTDDに使えるテストコードを生成できるように明確に指示する。
+3. GitHub Actionsによるコールグラフ生成の安定化
+   - 最初の小さな一歩: [Issue #10](issue-notes/10.md) に着手し、最新のGitHub Actionsの失敗ログを確認し、具体的なエラー箇所と`agent`への指示内容を再検討する。
 
 ---
-Generated at: 2025-07-17 07:04:04 JST
+Generated at: 2025-07-18 07:03:48 JST

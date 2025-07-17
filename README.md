@@ -16,43 +16,43 @@
 | 📖 Call Graph | [generated-docs/callgraph-enhanced.html](https://cat2151.github.io/tonejs-mml-to-json/generated-docs/callgraph-enhanced.html) |
 | 📊 Development Status | [generated-docs/development-status.md](generated-docs/development-status.md) |
 
-# Overview in 3 Sentences
-- Converts music written in MML (Music Macro Language) into a JSON format that can be played in a browser.
-- You can create music with simple text and play it on your website.
-- This tool specializes in music conversion; actual playback is handled by a separate project (`tonejs-json-sequencer`).
+# Explanation in 3 Lines
+- Converts music written in MML (Music Macro Language) into a JSON format playable in browsers.
+- You can create music using simple text and play it on your website.
+- This tool specializes in music conversion, while actual playback is handled by a separate project (`tonejs-json-sequencer`).
 
 # Notes
-- What are the advantages of writing music in MML (Music Macro Language)?
-  - **Conciseness and Portability**: Text-based and lightweight, platform-independent on the web.
-  - **Programmer-Friendly**: Code-like notation, easy Git management and generation.
-  - **Web Development Affinity**: Direct playback in browsers, real-time editing, lightweight delivery.
+- What are the benefits of writing music in MML (Music Macro Language)?
+  - **Conciseness and Portability**: Text-based, lightweight, platform-independent for the web.
+  - **Programmer Friendliness**: Code-like notation, easy Git management and generation.
+  - **Web Development Compatibility**: Direct playback in browsers, real-time editing, lightweight distribution.
   - **Low Learning Curve**: Simple syntax, allows for gradual learning.
   - **Modular Design**: Conversion and playback are separated, allowing independent evolution of each.
-  - **Adaptability to Dialects**: Easily supports MML dialects specific to various systems, as simple conversions can be readily created using PEG.
+  - **Adaptability to Dialects**: Easily supports system-specific MML dialects, with the assumption that simple converters can be readily built by users using PEG.
 
 - Why are `tonejs-json-sequencer` and `tonejs-mml-to-json` separate projects?
-  - This is due to an emphasis on **development independence and speed**.
-    - Allows focus on MML parser development.
+  - **Emphasis on development independence and speed:**
+    - Allows focusing on MML parser development.
     - Enables rapid evolution without being constrained by dependencies between parser and playback functionalities.
   - For more details, please refer to [tonejs-json-sequencer](https://github.com/cat2151/tonejs-json-sequencer).
 
 # Notes Under Consideration
 ## Input/Output Definitions
-- *Illustrate with examples to visualize the concept.*
-- Input Example
+- *Illustrative examples to visualize the concept.*
+- Input Example:
   - `o4 l16 e`
-- Intermediate Format Example
-  - *Designed as a loosely coupled, thin layer to facilitate independent modifications.*
+- Intermediate Format Example:
+  - *Loose coupling with thin layers, making each easily modifiable.*
   - JSON (AST)
-  - JSON (Pre-processed)
-    - What is processing?
-      - Node ID assignment, etc.
-- Output Example
-  - JSON (Post-processed)
-    - Format recognized by `tonejs-json-sequencer`.
-    - Details omitted for brevity; the TDD test cases serve as the definitive specification.
+  - JSON (pre-processed)
+    - What is "processing"?
+      - Node ID numbering, etc.
+- Output Example:
+  - JSON (post-processed)
+    - Format recognized by tonejs-json-sequencer
+    - Details omitted; specific test cases in TDD will serve as detailed specifications.
 ## TDD Approach
 - The test targets are `mml2ast`, `ast2ast`, and `ast2json`, respectively.
   - Refer to the TDD for `mml2abc` / `chord2mml`.
 
-*Note: README.md is automatically generated from README.ja.md via GitHub Actions using Gemini's translation.*
+*README.md is automatically generated from README.ja.md using Gemini translation via GitHub Actions.*
