@@ -1,21 +1,21 @@
-Last updated: 2025-07-16
+Last updated: 2025-07-17
 
 # Development Status
 
 ## 現在のIssues
-- 開発環境の自動化と効率化に関する改善が進められており、GitHub Actionsでのコールグラフ生成やpnpm watchの強化が進行中です。
-- 主要なMMLパーシング機能（mml2ast, ast2json, mml2json）のTDD（テスト駆動開発）準備が多数のissueとしてオープンされています。
-- 特に、既存のmml2json関数をPEGからTDDで再実装するために、現在のコードベースからテストケースを生成するタスクが挙げられています。
+- MMLからTone.js互換JSONへの変換機能の実装が主要目標であり、複数のIssueがオープンしています。
+- そのためのTDD環境の整備と主要関数の準備（[Issue #3](issue-notes/3.md), [Issue #5](issue-notes/5.md), [Issue #6](issue-notes/6.md), [Issue #7](issue-notes/7.md)）を進めています。
+- 並行して、GitHub Actionsを用いたコールグラフ自動生成（[Issue #10](issue-notes/10.md)）とローカル開発環境（[Issue #8](issue-notes/8.md), [Issue #9](issue-notes/9.md)）の改善にも取り組んでいます。
 
 ## 次の一手候補
-1. [Issue #5](issue-notes/5.md): mml2json関数のTDD用テストケースをagentに生成させる
-   - 最初の小さな一歩: Agentに対して、現在の`src/mml2json/index.ts`の内容を提供し、`mml2json`関数の既存の振る舞いを網羅するTDD形式のテストケース（入力MMLと期待されるTone.js JSON）を生成するよう指示するプロンプトを作成する。
+1. GitHub Actionsでのコールグラフ生成の安定化
+   - 最初の小さな一歩: [Issue #10](issue-notes/10.md)に関連する最近のコミット履歴とGitHub Actionsのログを詳細に分析し、`codeql-action/init`ステップのエラー原因を特定する。特に`qlpack.yml`やワークフロー設定に誤りがないか確認し、修正をコミットしてActionsの再実行を試みる。
 
-2. [Issue #6](issue-notes/6.md): mml2astのTDD準備をする
-   - 最初の小さな一歩: `src/mml2ast/`ディレクトリ内に`test`ディレクトリを作成し、`mml2ast.test.ts`ファイルを新規作成する。
+2. 開発用`pnpm watch`スクリプトの機能強化と自動化
+   - 最初の小さな一歩: [Issue #8](issue-notes/8.md)に基づき、`package.json`の`scripts`に`watch`コマンドの初期バージョンを定義する。まず、PEGファイルの変更を監視して自動でビルドする部分（例: `pegjs --watch`）を実装し、ビルド後に簡単なテストが実行されるように設定を検討する。
 
-3. [Issue #8](issue-notes/8.md): pnpm script watchを、「1行コマンド実行したらpage openし、PEGファイルをwatchして、PEG更新時に自動でbuildしてtest」というものにする
-   - 最初の小さな一歩: `package.json`の`scripts`セクションに`watch`コマンドを追加し、`peggy`のwatch機能と、ローカルサーバーを起動しページを自動的に開くコマンド（例: `npm-run-all --parallel watch:peggy serve`のような形式）を組み合わせる方法を調査する。
+3. `mml2json`関数のTDD用テストケースの生成
+   - 最初の小さな一歩: [Issue #5](issue-notes/5.md)の準備として、`mml2json`関数のテストケースを生成するための具体的なプロンプトを作成する。プロンプトには、`MML c`のようなシンプルなMML入力例と、それに対応するTone.js互換の期待JSON出力構造を含め、AI AgentがTDDに使えるテストコードを生成できるように明確に指示する。
 
 ---
-Generated at: 2025-07-16 07:03:51 JST
+Generated at: 2025-07-17 07:04:04 JST
