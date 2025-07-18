@@ -41,7 +41,6 @@ const colors = {
 
 const currentColors = isDarkMode ? colors.dark : colors.light;
 
-// レイアウト候補
 const layoutNames = ['breadthfirst', 'concentric', 'cose', 'grid', 'circle'];
 let currentLayoutIndex = 0;
 
@@ -147,8 +146,18 @@ function getLayoutConfig(name) {
     switch (name) {
         case 'cose':
             return {
-                name: 'cose', fit: true, padding: 30, animate: true,
-                nodeRepulsion: 8000, idealEdgeLength: 120, edgeElasticity: 0.2, gravity: 0.25, numIter: 1000
+                name: 'cose',
+                fit: true,          // ←もう一度trueに戻す（座標がズレない）
+                padding: 50,        // 余白は控えめ
+                animate: true,
+                randomize: false,   // ←初期配置を固定して安定させる
+                nodeRepulsion: 8000, // ←ほどよい反発（200000は強すぎた）
+                idealEdgeLength: 120, // ←適度な長さに戻す
+                edgeElasticity: 0.45,
+                gravity: 1.2,        // ←少し強めて中央に集める
+                numIter: 1000,       // ほどほどに
+                componentSpacing: 80,
+                nestingFactor: 0.9
             };
         case 'breadthfirst':
             return {
@@ -345,6 +354,101 @@ function resetLayout() {
     currentLayoutIndex = 0;
     const layout = cy.layout(getLayoutConfig(layoutNames[currentLayoutIndex]));
     layout.run();
+
+    watchNodeMovementAndFixOverlapsWrap();
+}
+
+function watchNodeMovementAndFixOverlapsWrap() {
+    watchNodeMovementAndFixOverlaps(100, 20);
+}
+
+let movementWatcherTimer;
+
+/**
+ * ノードの動きを監視して、動きが止まったら重なり修正をする関数
+ * @param {number} interval - チェック間隔(ms)
+ * @param {number} maxChecks - 最大チェック回数
+ */
+function watchNodeMovementAndFixOverlaps(interval, maxChecks) {
+    let prevPositions = new Map();
+    let checks = 0;
+    let stableCount = 0;
+    const movementThreshold = 1.0; // 動き判定閾値(px)
+    const stableThreshold = 3;     // 何回連続で動かないと止まった判定するか
+
+    // 初期ノード位置を記録
+    cy.nodes().forEach(node => {
+        prevPositions.set(node.id(), {...node.position()});
+    });
+
+    if (movementWatcherTimer) {
+        clearInterval(movementWatcherTimer);
+        movementWatcherTimer = null;
+    }
+
+    movementWatcherTimer = setInterval(() => {
+        let moving = false;
+
+        cy.nodes().forEach(node => {
+            const prevPos = prevPositions.get(node.id());
+            const currentPos = node.position();
+            if (Math.abs(currentPos.x - prevPos.x) > movementThreshold || Math.abs(currentPos.y - prevPos.y) > movementThreshold) {
+                moving = true;
+                prevPositions.set(node.id(), {...currentPos});
+            }
+        });
+
+        if (!moving) {
+            stableCount++;
+        } else {
+            stableCount = 0;
+        }
+
+        checks++;
+
+        if (stableCount >= stableThreshold || checks >= maxChecks) {
+            clearInterval(movementWatcherTimer);
+            movementWatcherTimer = null;
+            if (!moving) {
+              console.log('ノードの動きが止まった！重なり修正開始 (check' + checks + '回)');
+            } else {
+              console.log('時間切れ！重なり修正開始');
+            }
+
+            resolveNodeOverlaps(60, 0.6, 3);
+            cy.fit();
+        }
+    }, interval);
+}
+
+/**
+ * ノード同士の重なりを軽減する関数
+ * @param {number} minDistance - ノード間の最小距離(px)
+ * @param {number} shiftRatio - ズラし量(0~1)
+ * @param {number} iterations - 繰り返し回数
+ */
+function resolveNodeOverlaps(minDistance, shiftRatio, iterations) {
+    for (let iter = 0; iter < iterations; iter++) {
+        cy.nodes().forEach(node => {
+            const pos = node.position();
+            const closeNodes = cy.nodes().filter(other => {
+                if (node.id() === other.id()) return false;
+                const otherPos = other.position();
+                const dx = pos.x - otherPos.x;
+                const dy = pos.y - otherPos.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                return dist < minDistance;
+            });
+
+            closeNodes.forEach(other => {
+                const otherPos = other.position();
+                other.position({
+                    x: otherPos.x + minDistance * shiftRatio,
+                    y: otherPos.y + minDistance * shiftRatio
+                });
+            });
+        });
+    }
 }
 
 function switchLayout(button) {
@@ -354,6 +458,8 @@ function switchLayout(button) {
     const layout = cy.layout(getLayoutConfig(layoutName));
     layout.run();
     if (button) button.textContent = 'レイアウト切替 (' + layoutName + ')';
+
+    watchNodeMovementAndFixOverlapsWrap();
 }
 
 function resetNodeStates() {
