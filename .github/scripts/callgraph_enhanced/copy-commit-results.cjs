@@ -37,7 +37,7 @@ if (isWSL || isAct) {
 try {
   execSync('git add generated-docs/callgraph-enhanced.html');
   execSync('git commit -m "Update callgraph-enhanced.html [auto]"');
-  execSync('git push');
+  execSync('git push || echo "No changes to push"');
   console.log('コミット・プッシュ完了');
 } catch (e) {
   console.error('コミット・プッシュに失敗:', e.message);
