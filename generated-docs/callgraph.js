@@ -415,37 +415,51 @@ function watchNodeMovementAndFixOverlaps(interval, maxChecks) {
               console.log('時間切れ！重なり修正開始');
             }
 
-            resolveNodeOverlaps(60, 0.6, 3);
+            resolveNodeOverlaps(100, 0.2, 10);
             cy.fit();
         }
     }, interval);
 }
 
 /**
- * ノード同士の重なりを軽減する関数
+ * ノード同士の重なりを軽減する
+ * 反発力ベースで自然に押しのける
  * @param {number} minDistance - ノード間の最小距離(px)
- * @param {number} shiftRatio - ズラし量(0~1)
+ * @param {number} shiftRatio - 移動の強さ(0~1)
  * @param {number} iterations - 繰り返し回数
  */
 function resolveNodeOverlaps(minDistance, shiftRatio, iterations) {
     for (let iter = 0; iter < iterations; iter++) {
         cy.nodes().forEach(node => {
             const pos = node.position();
-            const closeNodes = cy.nodes().filter(other => {
-                if (node.id() === other.id()) return false;
+            
+            cy.nodes().forEach(other => {
+                if (node.id() === other.id()) return; // 自分自身はスキップ
+
                 const otherPos = other.position();
                 const dx = pos.x - otherPos.x;
                 const dy = pos.y - otherPos.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                return dist < minDistance;
-            });
 
-            closeNodes.forEach(other => {
-                const otherPos = other.position();
-                other.position({
-                    x: otherPos.x + minDistance * shiftRatio,
-                    y: otherPos.y + minDistance * shiftRatio
-                });
+                if (dist < minDistance && dist > 0.0001) {
+                    // 反発力の大きさ（距離が近いほど強く押す）
+                    const force = (1 - dist / minDistance) * shiftRatio;
+
+                    // 正規化ベクトル（方向だけを表す）
+                    const nx = dx / dist;
+                    const ny = dy / dist;
+
+                    // お互いを少しずつ押しのける（対称に動かす）
+                    node.position({
+                        x: pos.x + nx * force * (minDistance / 2),
+                        y: pos.y + ny * force * (minDistance / 2)
+                    });
+
+                    other.position({
+                        x: otherPos.x - nx * force * (minDistance / 2),
+                        y: otherPos.y - ny * force * (minDistance / 2)
+                    });
+                }
             });
         });
     }
