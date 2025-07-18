@@ -42,7 +42,7 @@ const colors = {
 const currentColors = isDarkMode ? colors.dark : colors.light;
 
 // レイアウト候補
-const layoutNames = ['cose', 'breadthfirst', 'concentric', 'circle'];
+const layoutNames = ['breadthfirst', 'concentric', 'cose', 'grid', 'circle'];
 let currentLayoutIndex = 0;
 
 const cy = cytoscape({
@@ -160,11 +160,46 @@ function getLayoutConfig(name) {
                 concentric: function(node) { return node.degree(); },
                 levelWidth: function(nodes) { return 2; }
             };
+        case 'grid':
+            return {
+                name: 'grid',
+                fit: true,
+                padding: 30,
+                animate: true,
+                avoidOverlap: true,
+                spacingFactor: 1.2,
+                rows: undefined, // 自動計算
+                cols: undefined
+            };
         case 'circle':
+            return {
+                name: 'circle',
+                fit: true,
+                padding: 30,
+                animate: true,
+                radius: 200,
+                ready: function() {
+                    placeCentralNode();
+                }
+            };
         default:
             return {
                 name: 'circle', fit: true, padding: 30, animate: true, radius: 200
             };
+    }
+}
+
+function placeCentralNode() {
+    // エッジ数が一番多いノードを探す
+    let maxDegreeNode = cy.nodes().max(function(node) {
+        return node.degree(); // degree() = in+outの合計
+    }).ele;
+
+    if (maxDegreeNode.nonempty()) {
+        // 中央に配置（画面中央座標を取得して移動）
+        const centerPos = { x: cy.width() / 2, y: cy.height() / 2 };
+        maxDegreeNode.position(centerPos);
+        maxDegreeNode.lock(); // レイアウトで動かないよう固定
     }
 }
 
@@ -313,11 +348,19 @@ function resetLayout() {
 }
 
 function switchLayout(button) {
+    resetNodeStates();
     currentLayoutIndex = (currentLayoutIndex + 1) % layoutNames.length;
     const layoutName = layoutNames[currentLayoutIndex];
     const layout = cy.layout(getLayoutConfig(layoutName));
     layout.run();
     if (button) button.textContent = 'レイアウト切替 (' + layoutName + ')';
+}
+
+function resetNodeStates() {
+    cy.nodes().unlock();          // すべてのロック解除
+    cy.nodes().positions(() => {  // 古い座標をクリア（nullにしておく）
+        return null;
+    });
 }
 
 function fitToContent() {
