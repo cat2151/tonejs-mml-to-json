@@ -1,17 +1,9 @@
 # GitHub Actions Workflow for Call Graph Generation
-#
-# 重要な設計方針:
-# - フォールバック処理は実装しない
-# - 問題が発生した場合は明確なエラーメッセージと共に即座に失敗させる
-# - 「なんとなく動く」状態を作らず、根本原因の究明を促す
-# - 設定ミスや依存関係の問題を隠蔽しない
-#
-# この方針により:
-# - デバッグが容易になる
-# - 問題の早期発見が可能になる
-# - 予期しない動作を防げる
-#
 name: Generate Call Graph
+
+# TODO Windowsネイティブでのtestをしていた名残が残っているので、今後整理していく。今はWSL act でtestしており、Windowsネイティブ環境依存問題が解決した
+#  ChatGPTにレビューさせるとそこそこ有用そうな提案が得られたので、今後それをやる予定
+#  agentに自己チェックさせる手も、セカンドオピニオンとして選択肢に入れておく
 
 on:
   schedule:
@@ -57,16 +49,14 @@ jobs:
 
       - name: Install CodeQL CLI
         run: |
-          wget https://github.com/github/codeql-cli-binaries/releases/download/v2.16.5/codeql-linux64.zip
+          wget https://github.com/github/codeql-cli-binaries/releases/download/v2.22.1/codeql-linux64.zip
           unzip codeql-linux64.zip
           sudo mv codeql /opt/codeql
           echo "/opt/codeql" >> $GITHUB_PATH
 
       - name: Install CodeQL query packs
         run: |
-          pushd .github/codeql-queries
-          /opt/codeql/codeql pack install
-          popd
+          /opt/codeql/codeql pack install .github/codeql-queries
 
       - name: Check CodeQL exists
         run: |
