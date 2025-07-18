@@ -15,7 +15,7 @@ function generateHTML(graphData, options = {}) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title}</title>
     <script src="https://unpkg.com/cytoscape@3.29.2/dist/cytoscape.min.js"></script>
-    <link rel="stylesheet" href="../.github/scripts/callgraph_enhanced/style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="header">
@@ -64,7 +64,7 @@ function generateHTML(graphData, options = {}) {
       const repo = ${JSON.stringify(repo)};
       const branch = ${JSON.stringify(branch)};
     </script>
-    <script src="../.github/scripts/callgraph_enhanced/callgraph.js"></script>
+    <script src="callgraph.js"></script>
 </body>
 </html>`;
 }
