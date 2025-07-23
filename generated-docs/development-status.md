@@ -1,21 +1,26 @@
-Last updated: 2025-07-23
+Last updated: 2025-07-24
 
+```markdown
 # Development Status
 
 ## 現在のIssues
-- GitHub Actions関連では、プロジェクト概要生成と関数コールグラフHTMLビジュアライズ生成の共通ワークフロー化が課題としてオープンされています。
-- 開発環境においては、`pnpm watch`のVSCode起動時自動実行と、`pnpm script watch`の機能拡張（PEGファイルの監視と自動ビルド・テスト）が挙げられています。
-- 主要なMML変換機能の実装に関しては、`mml2ast`と`ast2json`のTDD準備、`mml2json`関数のTDD用テストケース生成、そしてMMLの`c`音符をTone.jsの形式に変換するTDD実装が進行中です。
+- コア機能であるMMLからJSONへの変換（[Issue #3]）をTDDで実装するため、関連する`mml2ast`や`ast2json`のTDD準備（[Issue #6], [Issue #7]）とテストケース生成（[Issue #5]）が進行中です。
+- 開発効率を高めるために、`pnpm watch`スクリプトの機能拡張とVSCode起動時の自動実行化（[Issue #8], [Issue #9]）が課題となっています。
+- さらに、GitHub Actionsを用いたプロジェクト概要や関数コールグラフ生成の共通ワークフロー化（[Issue #16], [Issue #18]）によるCI/CD環境の整備も進められています。
 
 ## 次の一手候補
-1. MML変換コアロジックのTDD準備と実装
-   - 最初の小さな一歩: [Issue #5](issue-notes/5.md) に基づき、現在の`mml2json`関数の動作を分析し、それを網羅するテストケース（成功ケース、失敗ケース、エッジケースを含む）を生成する。この際、既存のコードから期待される出力形式を抽出し、入力MMLに対するJSON出力を明確に定義するプロンプトをAIに与える。
+1. MMLからTone.js JSONへの変換機能のTDDによる実装推進
+   - 最初の小さな一歩: [Issue #3]で示されているMML "c"をパースし、Tone.jsが演奏できるJSON形式に変換するための最初のテストケースを定義する。
+     - プロンプト: 「MML "c"を`tonejs-json-sequencer`が演奏できる形式に変換する仕様を定義し、そのためのJestテストファイルを作成してください。」
 
-2. 開発環境の効率化（`pnpm watch`スクリプトの改善）
-   - 最初の小さな一歩: [Issue #8](issue-notes/8.md) に基づき、`package.json`の`watch`スクリプトを更新し、PEGファイルの変更を検出して自動的にビルドとテストが実行されるように設定する。まずはシンプルなファイル変更監視とコマンド実行の連携を確立する。
+2. 開発効率向上のための`pnpm watch`スクリプトの完成
+   - 最初の小さな一歩: [Issue #8]に記載されている、1行コマンドで「ページオープン、PEGファイルのwatch、PEG更新時の自動ビルドとテスト実行」を統合した`pnpm watch`スクリプトの初期実装に着手する。
+     - プロンプト: 「`package.json`の`scripts`セクションに、PEGファイルの監視、変更時の自動ビルド、テスト実行、そして指定ポートでのページ自動オープンを統合した`watch`スクリプトを追加してください。」
 
-3. GitHub Actionsの共通ワークフロー基盤の整備
-   - 最初の小さな一歩: [Issue #18](issue-notes/18.md) と [Issue #16](issue-notes/16.md) を参照し、現在の`project概要生成`と`関数コールグラフhtmlビジュアライズ生成`のGitHub Actionsワークフローを比較分析する。共通化できそうな処理ブロックや、再利用可能な入力・出力パターンを特定し、共通ワークフローの初期設計を行う。
+3. GitHub ActionsによるCI/CDとドキュメント自動生成の共通化
+   - 最初の小さな一歩: [Issue #18]「GitHub Actions「project概要生成」を共通ワークフロー化する」に着手し、既存のプロジェクト概要生成ワークフローを再利用可能な共通ワークフローとして抽象化する。
+     - プロンプt: 「`.github/workflows`ディレクトリ内に、`project-summary-generator.yml`などの共通ワークフローファイルを定義し、既存のプロジェクト概要生成ロジックをそこに移行してください。」
+```
 
 ---
-Generated at: 2025-07-23 07:03:48 JST
+Generated at: 2025-07-24 07:04:01 JST
