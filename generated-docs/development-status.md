@@ -1,26 +1,19 @@
-Last updated: 2025-07-24
+Last updated: 2025-07-25
 
-```markdown
 # Development Status
 
 ## 現在のIssues
-- コア機能であるMMLからJSONへの変換（[Issue #3]）をTDDで実装するため、関連する`mml2ast`や`ast2json`のTDD準備（[Issue #6], [Issue #7]）とテストケース生成（[Issue #5]）が進行中です。
-- 開発効率を高めるために、`pnpm watch`スクリプトの機能拡張とVSCode起動時の自動実行化（[Issue #8], [Issue #9]）が課題となっています。
-- さらに、GitHub Actionsを用いたプロジェクト概要や関数コールグラフ生成の共通ワークフロー化（[Issue #16], [Issue #18]）によるCI/CD環境の整備も進められています。
+- GitHub Actionsの共通ワークフロー化（プロジェクト概要、コールグラフHTMLビジュアライズ）と、開発環境の自動化（pnpm watchの機能拡張と自動起動）に関するIssueがオープン中です。
+- 主要機能であるMMLからJSONへの変換について、TDDによる再実装の準備（テストケース生成、`mml2ast`/`ast2json`のTDD環境構築）が進められています。
+- 具体的には、MML "c" をTone.jsが演奏可能な形式に変換する機能のTDD実装が目標とされています。
 
 ## 次の一手候補
-1. MMLからTone.js JSONへの変換機能のTDDによる実装推進
-   - 最初の小さな一歩: [Issue #3]で示されているMML "c"をパースし、Tone.jsが演奏できるJSON形式に変換するための最初のテストケースを定義する。
-     - プロンプト: 「MML "c"を`tonejs-json-sequencer`が演奏できる形式に変換する仕様を定義し、そのためのJestテストファイルを作成してください。」
-
-2. 開発効率向上のための`pnpm watch`スクリプトの完成
-   - 最初の小さな一歩: [Issue #8]に記載されている、1行コマンドで「ページオープン、PEGファイルのwatch、PEG更新時の自動ビルドとテスト実行」を統合した`pnpm watch`スクリプトの初期実装に着手する。
-     - プロンプト: 「`package.json`の`scripts`セクションに、PEGファイルの監視、変更時の自動ビルド、テスト実行、そして指定ポートでのページ自動オープンを統合した`watch`スクリプトを追加してください。」
-
-3. GitHub ActionsによるCI/CDとドキュメント自動生成の共通化
-   - 最初の小さな一歩: [Issue #18]「GitHub Actions「project概要生成」を共通ワークフロー化する」に着手し、既存のプロジェクト概要生成ワークフローを再利用可能な共通ワークフローとして抽象化する。
-     - プロンプt: 「`.github/workflows`ディレクトリ内に、`project-summary-generator.yml`などの共通ワークフローファイルを定義し、既存のプロジェクト概要生成ロジックをそこに移行してください。」
-```
+1. MMLパーシング・変換機能のTDD準備を進める
+   - 最初の小さな一歩: [Issue #5](issue-notes/5.md) に対応するため、`mml2json` 関数のTDD用テストケースを生成するプロンプトをAI agentに与える。例えば「現在の `mml2json` 関数のコードベースを分析し、主要なMML構文（単音、休符、タイ、スラーなど）を網羅するテストケース（MML文字列と期待されるTone.js JSON出力のペア）を生成してください。」
+2. 開発環境の自動化を改善する
+   - 最初の小さな一歩: [Issue #8](issue-notes/8.md) に対応するため、`package.json` の `scripts.watch` を編集し、PEGファイルの変更を監視して自動でビルド・テストが実行されるように設定する。
+3. GitHub Actionsの共通ワークフロー化に着手する
+   - 最初の小さな一歩: [Issue #18](issue-notes/18.md) に対応するため、既存の「project概要生成」GitHub Actionsワークフローを分析し、共通ワークフローとして再利用可能な部分を特定する。
 
 ---
-Generated at: 2025-07-24 07:04:01 JST
+Generated at: 2025-07-25 07:03:55 JST

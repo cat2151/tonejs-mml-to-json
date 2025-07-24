@@ -1,42 +1,41 @@
-Last updated: 2025-07-24
+Last updated: 2025-07-25
 
 # Project Overview
 
 ## プロジェクト概要
-- MML (Music Macro Language) 形式の楽譜データを、Web Audio APIを活用した音楽データ形式へ変換します。
-- 具体的には、MMLをブラウザ上で動作する音楽ライブラリTone.jsが解釈可能なJSONシーケンサーフォーマットに変換します。
-- このプロジェクトにより、MMLを用いた音楽をWebブラウザ上で手軽に再生・シーケンスすることが可能になります。
+- MML（Music Macro Language）記法を解析し、音楽データを抽出します。
+- 抽出したMMLデータを、Tone.jsライブラリが利用可能なJSONシーケンサー形式に変換します。
+- この変換を通じて、ウェブブラウザ上でMML音楽の再生を可能にするMMLコンバーターおよびプレーヤーを提供します。
 
 ## 技術スタック
-- フロントエンド: HTML5 - ブラウザベースのMMLプレイヤーを構築するための標準マークアップ言語。
+- フロントエンド:
+    - HTML5: ブラウザベースのMMLプレイヤーのインターフェースを提供します。
 - 音楽・オーディオ:
-  - Tone.js - Web Audio APIを抽象化し、ブラウザでの高度な音声処理を容易にするJavaScriptライブラリ。
-  - Tone.js CDN - unpkg経由でTone.jsライブラリを配信し、プロジェクトへの組み込みを簡素化。
-  - MML (Music Macro Language) - 音楽をテキストで記述するための記法。このプロジェクトではそのパーサーを扱います。
-  - Web Audio API - ブラウザのネイティブな音声処理機能を提供し、Tone.jsを通じて利用されます。
+    - Tone.js: Web Audio APIを抽象化し、ブラウザでの高機能な音声合成・再生を可能にするJavaScriptライブラリです。unpkg経由でCDN配信されています。
+    - MML (Music Macro Language): 音楽をテキストで記述するための記法であり、このプロジェクトのパーサーによって処理されます。
+    - Web Audio API: ブラウザに組み込まれた音声処理APIで、Tone.jsを通じて利用されます。
 - 開発ツール:
-  - Node.js runtime - JavaScriptコードをサーバーサイドや開発環境で実行するためのランタイム環境。
-  - npm scripts - package.jsonで定義されたスクリプトを実行し、開発タスクを自動化するツール。
-  - pnpm - 高速でディスク効率の良いパッケージマネージャー。
-  - Google Generative AI - AIによる文書生成、特にプロジェクト要約などのドキュメント作成をサポート。
-  - @octokit/rest - GitHub APIと連携し、リポジトリ情報の取得やIssue管理などの自動化を可能にするライブラリ。
-  - dotenv - 環境変数を管理し、機密情報などをコードから分離。
+    - Node.js runtime: JavaScriptコードの実行環境として使用されます。
+    - npm scripts: プロジェクト内の様々な開発タスク（テスト、ビルド、ドキュメント生成など）を実行するためのタスクランナーです。5つのスクリプトが定義されています。
+    - pnpm: 効率的かつ高速なパッケージマネージャーで、依存関係の管理に使用されます。
+    - Google Generative AI: ドキュメント生成などの開発支援にAIを活用します。
+    - @octokit/rest: GitHub APIと連携し、リポジトリ操作や自動化に利用されます。
 - テスト:
-  - Vitest - 高速なViteベースのテストフレームワークで、JavaScript/TypeScriptコードの単体テストや統合テストに使用。
-  - TDD (Test-Driven Development) - テストを先に書き、それに合わせてコードを開発する手法。
+    - Vitest: Viteを基盤とした高速なJavaScriptテストフレームワークで、ユニットテストや統合テストに使用されます。
+    - TDD (Test-Driven Development): テストを先に書く開発手法を採用し、品質と設計の向上を目指します。
 - ビルドツール:
-  - Peggy - PEG (Parsing Expression Grammar) に基づくパーサージェネレーターで、MMLのような特定文法の解析器を自動生成。
-  - PEG文法定義 - MML音楽記法を解析するための文法ルールを記述したファイル。
+    - Peggy: PEG (Parsing Expression Grammar) に基づくパーサージェネレーターです。
+    - PEG文法定義: MML音楽記法を解析するためのPEG文法が定義されており、これを用いてパーサーが生成されます。
 - 言語機能:
-  - ES Modules - モダンなJavaScriptのモジュールシステムで、コードの分割と再利用を効率化。
+    - ES Modules: モダンなJavaScriptのモジュールシステムで、コードの分割と再利用を効率的に行います。
 - 自動化・CI/CD:
-  - GitHub Actions - リポジトリ上でのイベントに基づいて自動化ワークフローを実行するCI/CDサービス。
-    - プロジェクト要約自動生成 - AIを利用してプロジェクトの概要ドキュメントを自動生成。
-    - Issue自動管理 - GitHub Issuesの作成、更新、クローズなどを自動化。
-    - README多言語翻訳 - READMEファイルを複数の言語に自動翻訳。
-    - i18n automation - 国際化（i18n）関連の自動翻訳ワークフロー。
+    - GitHub Actions: コードの変更を検知して自動的にテスト、ビルド、デプロイなどのタスクを実行するCI/CDプラットフォームです。以下の4つのワークフローが定義されています。
+        - プロジェクト要約自動生成: プロジェクトの概要ドキュメントを自動生成します。
+        - Issue自動管理: GitHub Issuesの管理を自動化します。
+        - README多言語翻訳: READMEファイルを複数の言語に自動翻訳します。
+        - i18n automation: 国際化（i18n）関連の自動翻訳ワークフローを指します。
 - 開発標準:
-  - EditorConfig - 異なるエディタやIDE間でコードのスタイル（インデント、改行など）を統一するための設定ファイル。
+    - EditorConfig: 異なるIDEやエディタを使用する開発者間で、コードの書式設定（インデントスタイル、文字コードなど）を統一するためのファイル形式です。
 
 ## ファイル階層ツリー
 ```
@@ -90,82 +89,122 @@ Last updated: 2025-07-24
 ```
 
 ## ファイル詳細説明
-- **`.editorconfig`**: コードエディタ間の設定（インデントスタイル、文字コードなど）を統一し、一貫性のあるコードフォーマットを維持するための設定ファイルです。
-- **`.gitignore`**: Gitのバージョン管理から除外するファイルやディレクトリ（例: ビルド成果物、依存関係のインストールディレクトリなど）を指定するファイルです。
-- **`LICENSE`**: このプロジェクトのソフトウェアライセンス情報が記述されています。
-- **`README.ja.md`**, **`README.md`**: それぞれ日本語版と英語版のプロジェクト説明ドキュメントです。プロジェクトの概要、セットアップ方法、使い方などが記載されています。
-- **`dev-setup/README.md`**: 開発環境のセットアップに関する情報や手順が記述されています。
-- **`dev-setup/setup.js`**: 開発環境の初期設定や、開発に必要なツールやデータの準備を行うためのJavaScriptスクリプトです。
-- **`generated-docs/`**: 自動生成されたドキュメントを格納するディレクトリです。
-  - **`callgraph-enhanced.html`**: インタラクティブな関数呼び出しグラフを表示するためのHTMLファイルです。
-  - **`callgraph.js`**: 関数呼び出しグラフのデータ処理、描画ロジック、およびインタラクティブ機能を提供するJavaScriptコードです。
-  - **`development-status.md`**: プロジェクトの開発状況や進捗が記述されたドキュメントで、AIによって自動生成される可能性があります。
-  - **`project-overview.md`**: プロジェクトの概要が記述されたドキュメントで、AIによって自動生成される可能性があります。
-  - **`style.css`**: `generated-docs`内のHTMLドキュメント（特に呼び出しグラフ）のスタイルを定義するCSSファイルです。
-- **`index.html`**: プロジェクトのライブデモや、アプリケーションのメインのエントリーポイントとなる静的HTMLファイルです。
-- **`issue-notes/`**: 開発中に発生した課題、検討事項、バグ報告などを記録したMarkdownファイル群が格納されています。
-- **`package.json`**: プロジェクトのメタデータ（名前、バージョン、説明など）、依存関係、開発依存関係、およびnpmスクリプトを定義するファイルです。
-- **`pnpm-lock.yaml`**: `pnpm`パッケージマネージャーが生成するロックファイルで、プロジェクトの依存関係の正確なバージョンと構造を記録し、再現可能なビルドを保証します。
-- **`src/`**: アプリケーションの主要なソースコードが格納されているディレクトリです。
-  - **`grammar.js`**: `grammar.pegjs`からPeggyパーサージェネレーターによって自動生成されたMMLパーサーのJavaScriptコードです。MML文字列を解析し、その構造を理解するために使用されます。
-  - **`grammar.pegjs`**: MML (Music Macro Language) を解析するためのPEG (Parsing Expression Grammar) 文法が定義されたファイルです。このファイルが`grammar.js`を生成する元となります。
-  - **`index.html`**: `src`ディレクトリ内のこのHTMLファイルは、MMLプレイヤーのフロントエンド部分を提供し、Web Audio APIとTone.jsを使用して音楽再生インターフェースを構築します。
-  - **`main.js`**: アプリケーションのエントリーポイント、または主要な初期化ロジックを含むJavaScriptファイルです。
-  - **`mml2json.js`**: MML文字列をTone.jsのJSONシーケンサーフォーマットに変換する核心的なロジックが実装されているJavaScriptファイルです。
-  - **`play.js`**: `mml2json.js`で生成されたJSONデータを受け取り、Tone.jsライブラリを介して実際に音を再生する機能を提供するJavaScriptファイルです。
-- **`test/parser.test.js`**: MMLパーサー（`src/grammar.js`）の機能が正しく動作するかどうかを検証するためのテストコードです。
-- **`vitest.config.js`**: Vitestテストフレームワークの設定ファイルで、テストの実行方法や環境に関する設定が含まれています。
+- **.editorconfig**: エディタの設定を統一し、異なる開発環境間でのコードスタイルの一貫性を保つための設定ファイルです。
+- **.gitignore**: Gitのバージョン管理から除外するファイルやディレクトリを指定します。
+- **LICENSE**: プロジェクトのライセンス情報が記述されています。
+- **README.ja.md**: プロジェクトの日本語版説明書です。
+- **README.md**: プロジェクトの英語版説明書（メインのREADME）です。
+- **dev-setup/README.md**: 開発環境のセットアップに関する情報が記述されています。
+- **dev-setup/setup.js**: 開発環境のセットアップに関連するスクリプトです。主にVitestのインポートや、テスト関連の処理を記述する可能性があります。
+- **generated-docs/callgraph-enhanced.html**: 生成された関数呼び出しグラフをインタラクティブに表示するためのHTMLファイルです。
+- **generated-docs/callgraph.js**: 関数呼び出しグラフのレンダリング、インタラクション（ノード情報表示、レイアウト調整など）を担当するJavaScriptコードです。
+- **generated-docs/development-status.md**: プロジェクトの開発状況に関するドキュメントです。
+- **generated-docs/project-overview.md**: プロジェクトの概要を自動生成するドキュメントです（本出力自体がこのファイルの生成に貢献している可能性があります）。
+- **generated-docs/style.css**: 生成されたドキュメントや関数呼び出しグラフのスタイルを定義するCSSファイルです。
+- **index.html**: プロジェクトのルートにあるHTMLファイルで、デモページやアプリケーションのエントリーポイントとして機能します。
+- **issue-notes/**: GitHub Issuesに関連するメモや詳細情報を管理するディレクトリです。個々のファイルは特定のIssueに関するノートです。（来訪者向けのため個々の内容は省略）
+- **package.json**: Node.jsプロジェクトの設定ファイルで、プロジェクトのメタデータ、依存関係、スクリプトなどが定義されています。
+- **pnpm-lock.yaml**: pnpmパッケージマネージャーが生成するロックファイルで、依存関係の正確なバージョンとツリー構造を記録し、ビルドの再現性を保証します。
+- **src/grammar.js**: `src/grammar.pegjs`からPeggyによって生成されたMMLパーサーのJavaScriptコードです。MML文字列を解析し、構文木を生成するコアロジックを含みます。
+- **src/grammar.pegjs**: MML（Music Macro Language）を解析するためのPEG（Parsing Expression Grammar）形式の文法定義ファイルです。ここからパーサーが生成されます。
+- **src/index.html**: `src`ディレクトリ内のデモページやアプリケーションのHTMLファイルで、メインのアプリケーションUIを提供します。
+- **src/main.js**: メインのJavaScriptエントリポイントファイルで、アプリケーションの初期化や主要なロジックを連携させます。
+- **src/mml2json.js**: MML文字列をTone.jsのJSONシーケンサー形式に変換する主要なロジックが実装されているファイルです。音楽コマンドの解析、タイミング計算、JSON構造へのマッピングを行います。
+- **src/play.js**: 変換されたJSONデータをTone.jsライブラリを使用して実際にブラウザで再生する機能を提供するファイルです。
+- **test/parser.test.js**: `src/grammar.js`で定義されたMMLパーサーの正確性を検証するためのVitestテストファイルです。
+- **vitest.config.js**: Vitestテストフレームワークの設定ファイルです。
 
 ## 関数詳細説明
-- **`catch`** (dev-setup/setup.js): エラー発生時に処理を捕捉し、適切なエラーハンドリングを行うための一般的な関数またはブロックです。具体的な処理内容は呼び出し元のコンテキストに依存します。
-- **`escapeHtml`** (generated-docs/callgraph.js): HTML特殊文字（`<`, `>`, `&`など）をエンティティ参照に変換し、XSS（クロスサイトスクリプティング）攻撃を防ぎつつ、安全にHTMLコンテンツを表示できるようにする関数です。
-- **`getLayoutConfig`** (generated-docs/callgraph.js): 関数呼び出しグラフのレイアウトに関する設定情報を取得する関数です。グラフの表示方法やノードの配置ルールを決定します。
-- **`placeCentralNode`** (generated-docs/callgraph.js): グラフの中心となるノード（関数）を配置する関数です。グラフの視覚的な開始点やフォーカルポイントを設定します。
-- **`showNodeInfo`** (generated-docs/callgraph.js): グラフ上のノード（関数）が選択された際に、その関数の詳細情報（名前、ファイルパス、行数など）を専用のパネルに表示する関数です。
-- **`showEdgeInfo`** (generated-docs/callgraph.js): グラフ上のエッジ（関数間の呼び出し関係）が選択された際に、その呼び出しの詳細情報（呼び出し元、呼び出し先など）を情報パネルに表示する関数です。
-- **`hideInfoPanel`** (generated-docs/callgraph.js): 関数やエッジの詳細情報を表示している情報パネルを非表示にする関数です。
-- **`showInfoPanel`** (generated-docs/callgraph.js): 関数やエッジの詳細情報を表示する情報パネルを表示する関数です。
-- **`toggleInfoPanel`** (generated-docs/callgraph.js): 情報パネルの表示状態（表示/非表示）を切り替える関数です。
-- **`generateGitHubURL`** (generated-docs/callgraph.js): グラフ上の要素（関数、ファイルなど）に関連するGitHubリポジトリ内のURL（例: ソースコードへのリンク）を生成する関数です。
-- **`resetLayout`** (generated-docs/callgraph.js): グラフのレイアウトを初期状態にリセットする関数です。ユーザーがレイアウトを変更した後、元の配置に戻したい場合などに使用されます。
-- **`watchNodeMovementAndFixOverlapsWrap`** (generated-docs/callgraph.js): ノードの動きを監視し、他のノードとの重なりを修正する処理をラップする関数です。主にイベントリスナーとして機能します。
-- **`watchNodeMovementAndFixOverlaps`** (generated-docs/callgraph.js): ノードが移動した際に、他のノードとの視覚的な重なりを防ぐために位置を調整する関数です。
-- **`resolveNodeOverlaps`** (generated-docs/callgraph.js): 複数のノードが重なっている場合に、それらを適切に配置し直して重なりを解消する関数です。
-- **`switchLayout`** (generated-docs/callgraph.js): 関数呼び出しグラフの異なるレイアウトアルゴリズム（例: 木構造、強制指向など）を切り替える関数です。
-- **`resetNodeStates`** (generated-docs/callgraph.js): グラフ内のすべてのノードの状態（選択状態、ハイライトなど）を初期値にリセットする関数です。
-- **`fitToContent`** (generated-docs/callgraph.js): グラフ全体が現在のビューポートに収まるようにズームレベルや位置を調整する関数です。
-- **`toggleNodeLabels`** (generated-docs/callgraph.js): グラフノードに表示されるラベル（関数名など）の表示/非表示を切り替える関数です。
-- **`toggleCalleeLocationFilter`** (generated-docs/callgraph.js): 呼び出し先関数の位置に基づいてフィルタリングを適用/解除する関数です。
-- **`replace`, `function`, `max`, `on`, `if`, `for`, `ready`, `addListener`, `switch`** (generated-docs/callgraph.js): これらの関数はJavaScriptの組み込み関数、言語キーワード、または一般的なユーティリティ関数であり、`generated-docs/callgraph.js`内でグラフ描画やUIインタラクションのロジックの一部として利用されています。具体的な機能は呼び出しコンテキストによって異なりますが、それぞれ文字列置換、関数定義、最大値計算、イベントリスナー登録、条件分岐、繰り返し、DOM準備イベント、イベントリスナー追加、多分岐処理を行います。
-- **`hex`, `unicodeEscape`, `literalEscape`, `classEscape`** (src/grammar.js): これらはPeggyによって生成されたパーサーの内部ヘルパー関数で、文字列リテラルや文字クラス、Unicodeエスケープシーケンスなどの正規表現や文字列解析におけるエスケープ処理を担当します。
-- **`describeExpectation`, `describeExpected`, `describeFound`** (src/grammar.js): Peggyパーサーがパースエラーを報告する際に、期待された入力形式や実際に見つかった内容を分かりやすく説明するための内部ヘルパー関数です。
-- **`peg$parse`** (src/grammar.js): Peggyパーサーのメインエントリポイントとなる関数で、MML文字列を受け取り、定義された文法に従って解析します。
-- **`peg$f0`** (src/grammar.js): Peggyによって自動生成される、特定のルールに関連する内部的なファクトリ関数やヘルパー関数です。
-- **`text`, `offset`, `range`, `location`, `expected`, `error`** (src/grammar.js): これらはパース中に現在のテキスト、オフセット（位置）、範囲、ソースコード上の場所、期待されるトークン、エラー情報などを管理するためのパーサー内部の状態変数や関数です。
-- **`peg$getUnicode`** (src/grammar.js): Unicode文字の取得や処理に関連するPeggyパーサーの内部関数です。
-- **`peg$literalExpectation`, `peg$classExpectation`, `peg$anyExpectation`, `peg$endExpectation`, `peg$otherExpectation`** (src/grammar.js): Peggyがパース時に「期待されるもの」を表現するための内部的なオブジェクトを生成するヘルパー関数です。
-- **`peg$computePosDetails`, `peg$computeLocation`** (src/grammar.js): パース中の現在位置の詳細（行、列など）や、エラーが発生した位置の正確な情報を計算するための内部関数です。
-- **`peg$fail`, `peg$buildSimpleError`, `peg$buildStructuredError`, `peg$throw`** (src/grammar.js): パースが失敗した際にエラーを生成、構築、スローするためのPeggyパーサーの内部エラーハンドリング関数です。
-- **`peg$parsestart`, `peg$parsenote`** (src/grammar.js): `src/grammar.pegjs`で定義された`start`と`note`というMMLの主要なパースルールに対応する具体的なパース処理を行う関数です。
-- **`constructor`, `format`, `if`, `buildMessage`, `literal`, `class`, `any`, `end`, `other`, `for`, `switch`, `while`** (src/grammar.js): これらはPeggyパーサーが自動生成する際に内部的に利用されるJavaScriptの基本的な構造やユーティリティ関数です。MMLの文法解析ロジックの一部として機能します。
-- **`start`** (src/grammar.pegjs): MMLパーサーのルートとなる文法ルール定義です。MML文字列全体のパースを開始するエントリポイント。
-- **`note`** (src/grammar.pegjs): MMLの個々の音符（例: `c4`, `e8`）を解析するための文法ルール定義です。
-- **`mml2json`** (src/mml2json.js): MML文字列をTone.jsのシーケンサーが解釈できるJSONフォーマットに変換するメイン関数です。このプロジェクトの中核機能を提供します。
-- **`compileMmlToCommands`** (src/mml2json.js): MML文字列を、処理しやすい中間的なコマンドリストにコンパイルする関数です。
-- **`getMmlCommands`** (src/mml2json.js): MML文字列から個々の音楽コマンド（音符、休符、テンポ変更など）を抽出する関数です。
-- **`calcAttackToReleaseTicks`** (src/mml2json.js): 音符のアタック（発音）からリリース（消音）までの時間（ティック数）を計算する関数です。
-- **`repeat`** (src/mml2json.js): MMLの繰り返し記号（例: `[cde]2`）を処理し、指定された回数分音楽コマンドを繰り返す関数です。
-- **`toInt`** (src/mml2json.js): 文字列を安全に整数に変換するユーティリティ関数です。
-- **`calcDuration`** (src/mml2json.js): MMLの音符の長さ指定（例: `4`, `8`）に基づいて、その持続時間（ティック数）を計算する関数です。
-- **`calcStartTick`** (src/mml2json.js): 各音符やイベントがシーケンスのどの時間（ティック数）から開始するかを計算する関数です。
-- **`increaseStartTick`** (src/mml2json.js): 現在のティック数を次のイベントの開始ティックに更新するために増加させる関数です。
-- **`calcLtick`** (src/mml2json.js): MMLのLコマンド（音符のデフォルトの長さ設定）が指定された際に、それに対応するティック値を計算する関数です。
-- **`getNodeId`** (src/mml2json.js): 特定のノード（音符やコマンド）にユニークなIDを割り当てる、または取得する関数です。
-- **`sort`, `function`, `switch`, `for`, `if`** (src/mml2json.js): `mml2json.js`内でデータ構造のソート、匿名関数の定義、条件分岐、繰り返し処理など、変換ロジックを構成する基本的なJavaScriptの制御構造やユーティリティ関数です。
-- **`play`** (src/play.js): 変換されたTone.js JSONシーケンスデータを受け取り、Tone.jsライブラリを使用して実際に音楽を再生する関数です。
-- **`sub`** (src/play.js): `play`関数から呼び出される補助的な関数です。特定のサブタスクや計算を実行するために使用されます。
-- **`catch`** (src/play.js): `play`関数またはその内部で発生したエラーを捕捉し、適切に処理するためのエラーハンドリング関数またはブロックです。
-- **`switch`, `if`** (src/play.js): `play`関数内で異なる音楽イベントタイプに応じた処理を分岐させたり、条件に基づいてロジックを実行したりするためのJavaScriptの制御フロー構造です。
+- **catch** (dev-setup/setup.js): エラーハンドリングのための一般的なJavaScriptの`catch`ブロックまたは関連する関数の一部である可能性があります。
+- **escapeHtml** (generated-docs/callgraph.js): HTML特殊文字をエスケープし、セキュリティを確保しながら文字列を安全にHTMLに表示するための関数です。
+- **getLayoutConfig** (generated-docs/callgraph.js): 関数呼び出しグラフのレイアウトに関する設定を取得する関数です。
+- **placeCentralNode** (generated-docs/callgraph.js): グラフ表示において、中心となるノードの配置を決定する関数です。
+- **showNodeInfo** (generated-docs/callgraph.js): 特定のノード（関数）に関する詳細情報を表示する関数です。
+- **showEdgeInfo** (generated-docs/callgraph.js): グラフのエッジ（呼び出し関係）に関する詳細情報を表示する関数です。
+- **hideInfoPanel** (generated-docs/callgraph.js): 情報パネルを非表示にする関数です。
+- **showInfoPanel** (generated-docs/callgraph.js): 情報パネルを表示する関数です。
+- **toggleInfoPanel** (generated-docs/callgraph.js): 情報パネルの表示・非表示を切り替える関数です。
+- **generateGitHubURL** (generated-docs/callgraph.js): 関連するGitHubリソースへのURLを生成する関数です。
+- **resetLayout** (generated-docs/callgraph.js): グラフのレイアウトを初期状態にリセットする関数です。
+- **watchNodeMovementAndFixOverlapsWrap** (generated-docs/callgraph.js): ノードの動きを監視し、オーバーラップを修正する処理をラップする関数です。
+- **watchNodeMovementAndFixOverlaps** (generated-docs/callgraph.js): グラフノードの動きを監視し、ノード同士の重なりを自動的に調整・修正する関数です。
+- **resolveNodeOverlaps** (generated-docs/callgraph.js): ノードの重なりを解消するための具体的なロジックを実装する関数です。
+- **switchLayout** (generated-docs/callgraph.js): グラフの表示レイアウト（例：ツリー、フォースディレクテッド）を切り替える関数です。
+- **resetNodeStates** (generated-docs/callgraph.js): グラフノードの状態（選択状態、ハイライトなど）をリセットする関数です。
+- **fitToContent** (generated-docs/callgraph.js): グラフ全体が画面に収まるようにズームレベルや位置を調整する関数です。
+- **toggleNodeLabels** (generated-docs/callgraph.js): グラフノードのラベル（関数名など）の表示・非表示を切り替える関数です。
+- **toggleCalleeLocationFilter** (generated-docs/callgraph.js): 呼び出し先の場所（ファイルパスなど）に基づいてフィルタリングのオン・オフを切り替える関数です。
+- **replace** (generated-docs/callgraph.js): 文字列置換などの一般的な処理を行う関数です。
+- **function** (generated-docs/callgraph.js): JavaScriptの一般的な`function`キーワードまたは無名関数を定義するコンテキスト。
+- **max** (generated-docs/callgraph.js): 数値の最大値を計算する関数、または関連する処理の一部です。
+- **on** (generated-docs/callgraph.js): イベントリスナーを設定するための一般的な関数名です。
+- **ready** (generated-docs/callgraph.js): ドキュメントがロードされた後など、特定の状態になったときに実行されるコールバックやイベントハンドラです。
+- **addListener** (generated-docs/callgraph.js): イベントリスナーを追加するための一般的な関数です。
+- **hex** (src/grammar.js): 16進数に関連する処理（パース、変換など）を行う関数です。
+- **unicodeEscape** (src/grammar.js): Unicodeエスケープシーケンスを処理するパーサー内のルールまたは関数です。
+- **literalEscape** (src/grammar.js): リテラル文字のエスケープシーケンスを処理するパーサー内のルールまたは関数です。
+- **classEscape** (src/grammar.js): 文字クラスのエスケープシーケンスを処理するパーサー内のルールまたは関数です。
+- **describeExpectation** (src/grammar.js): パーサーが期待する次の入力について説明を生成する関数です。
+- **describeExpected** (src/grammar.js): 期待される入力に関する説明を生成する関数です。
+- **describeFound** (src/grammar.js): 見つかった入力に関する説明を生成する関数です。
+- **peg$parse** (src/grammar.js): Peggyによって生成されたパーサーのメインエントリポイントとなる関数です。MML文字列を解析し、結果を返します。
+- **peg$f0** (src/grammar.js): Peggyによって生成された内部関数で、特定のパーシングルールに関連する処理を行います。
+- **text** (src/grammar.js): パーサーが現在処理しているテキスト部分を取得する関数です。
+- **offset** (src/grammar.js): パーサーが現在処理している入力文字列のオフセット（位置）を取得する関数です。
+- **range** (src/grammar.js): パースされた部分の開始・終了オフセットを示す範囲を返す関数です。
+- **location** (src/grammar.js): パースされた部分の行番号や列番号などの位置情報を返す関数です。
+- **expected** (src/grammar.js): パーシングエラー発生時に期待された入力情報を取得する関数です。
+- **error** (src/grammar.js): パーシングエラーを生成または報告する関数です。
+- **peg$getUnicode** (src/grammar.js): Unicode文字を取得するための内部ヘルパー関数です。
+- **peg$literalExpectation** (src/grammar.js): リテラル文字列を期待するパーサーの期待値オブジェクトを生成する関数です。
+- **peg$classExpectation** (src/grammar.js): 文字クラスを期待するパーサーの期待値オブジェクトを生成する関数です。
+- **peg$anyExpectation** (src/grammar.js): 任意の文字を期待するパーサーの期待値オブジェクトを生成する関数です。
+- **peg$endExpectation** (src/grammar.js): 入力文字列の終端を期待するパーサーの期待値オブジェクトを生成する関数です。
+- **peg$otherExpectation** (src/grammar.js): その他の種類の期待値を生成する関数です。
+- **peg$computePosDetails** (src/grammar.js): 入力文字列中の位置の詳細（行、列）を計算する内部ヘルパー関数です。
+- **peg$computeLocation** (src/grammar.js): パースされたノードの正確な開始・終了位置を計算する関数です。
+- **peg$fail** (src/grammar.js): パースの失敗をマークし、エラーを生成する内部関数です。
+- **peg$buildSimpleError** (src/grammar.js): シンプルなパーシングエラーオブジェクトを構築する関数です。
+- **peg$buildStructuredError** (src/grammar.js): 詳細な構造化されたパーシングエラーオブジェクトを構築する関数です。
+- **peg$parsestart** (src/grammar.js): MMLパーサーの`start`ルールを実行する関数です。MMLの全体を解析します。
+- **peg$parsenote** (src/grammar.js): MMLパーサーの`note`ルールを実行する関数です。個々の音符や休符などを解析します。
+- **peg$throw** (src/grammar.js): パーシングエラーをスローする内部ヘルパー関数です。
+- **constructor** (src/grammar.js, undefined): JavaScriptのクラスインスタンスを初期化するための特別なメソッドです。ここでは特定のクラスが不明なため、一般的なコンストラクタの役割を指します。
+- **format** (src/grammar.js): 情報を特定の形式に整形する関数です。
+- **buildMessage** (src/grammar.js): エラーメッセージや診断メッセージを構築する関数です。
+- **literal** (src/grammar.js): リテラル（固定文字列）のパーシングに関連する関数です。
+- **class** (src/grammar.js): 文字クラス（例: `[a-z]`）のパーシングに関連する関数です。
+- **any** (src/grammar.js): 任意の文字のパーシングに関連する関数です。
+- **end** (src/grammar.js): 入力ストリームの終端を検出するパーシングに関連する関数です。
+- **other** (src/grammar.js): その他の種類のパーシング要素に関連する関数です。
+- **for** (src/grammar.js): JavaScriptの一般的な`for`ループ構造またはそれに関連する処理の一部です。
+- **switch** (src/grammar.js): JavaScriptの一般的な`switch`文構造またはそれに関連する処理の一部です。
+- **while** (src/grammar.js): JavaScriptの一般的な`while`ループ構造またはそれに関連する処理の一部です。
+- **start** (src/grammar.pegjs): `grammar.pegjs`で定義されたMMLの最上位（開始）ルールです。
+- **note** (src/grammar.pegjs): `grammar.pegjs`で定義された、MMLの個々の音符や休符をパースするルールです。
+- **mml2json** (src/mml2json.js): MML文字列全体を解析し、Tone.jsのシーケンサー形式に準拠したJSONオブジェクトに変換するメイン関数です。
+    - 引数: `mmlString` (string) - 変換するMML文字列。
+    - 戻り値: `object` - Tone.jsシーケンサー形式のJSONデータ。
+- **compileMmlToCommands** (src/mml2json.js): MMLを中間的なコマンドリストにコンパイルする関数です。
+- **getMmlCommands** (src/mml2json.js): MML文字列から個々のMMLコマンドを抽出する関数です。
+- **calcAttackToReleaseTicks** (src/mml2json.js): ノートの攻撃からリリースまでのティック数を計算する関数です。
+- **repeat** (src/mml2json.js): MMLの繰り返し処理を実装する関数です。
+- **toInt** (src/mml2json.js): 値を整数に変換するヘルパー関数です。
+- **calcDuration** (src/mml2json.js): 音符のデュレーション（長さ）を計算する関数です。
+- **calcStartTick** (src/mml2json.js): イベントの開始ティックを計算する関数です。
+- **increaseStartTick** (src/mml2json.js): 開始ティックを増加させる関数です。
+- **calcLtick** (src/mml2json.js): MMLのLコマンド（音長設定）に関するティック値を計算する関数です。
+- **getNodeId** (src/mml2json.js): ノード（内部処理要素）に一意のIDを付与する関数です。
+- **sort** (src/mml2json.js): 配列やリストをソートするための一般的な関数です。
+- **function** (src/mml2json.js): JavaScriptの一般的な`function`キーワードまたは無名関数を定義するコンテキスト。
+- **if** (src/mml2json.js): JavaScriptの一般的な`if`文構造またはそれに関連する条件分岐処理の一部です。
+- **switch** (src/mml2json.js): JavaScriptの一般的な`switch`文構造またはそれに関連する条件分岐処理の一部です。
+- **for** (src/mml2json.js): JavaScriptの一般的な`for`ループ構造またはそれに関連する繰り返し処理の一部です。
+- **play** (src/play.js): 変換されたTone.js JSONデータを実際に再生するメイン関数です。
+    - 引数: `jsonData` (object) - Tone.jsシーケンサー形式のJSONデータ。
+    - 戻り値: `void`
+- **sub** (src/play.js): 音楽再生に関する補助的な処理を行う関数です。
+- **if** (src/play.js): JavaScriptの一般的な`if`文構造またはそれに関連する条件分岐処理の一部です。
 
 ## 関数呼び出し階層ツリー
 ```
@@ -246,4 +285,4 @@ Last updated: 2025-07-24
 ```
 
 ---
-Generated at: 2025-07-24 07:04:01 JST
+Generated at: 2025-07-25 07:03:55 JST
