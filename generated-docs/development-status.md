@@ -1,28 +1,23 @@
-Last updated: 2025-07-29
+Last updated: 2025-07-30
 
 ```markdown
 # Development Status
 
 ## 現在のIssues
-- 開発プロセスの効率化として、GitHub Actionsにおける「project概要生成」([Issue #18](issue-notes/18.md))および「関数コールグラフHTMLビジュアライズ生成」([Issue #16](issue-notes/16.md))の共通ワークフロー化がオープン状態です。
-- 開発環境の改善として、VSCode起動時のpnpm watch自動実行([Issue #9](issue-notes/9.md))と、`pnpm script watch`によるPEGファイルの監視、自動ビルド/テスト、ページ自動オープン機能の強化([Issue #8](issue-notes/8.md))が検討されています。
-- コア機能開発では、TDDを活用したMMLからTone.jsが演奏可能な形式への変換ロジック（特にMML `c` の変換([Issue #3](issue-notes/3.md)))の実装に向け、`mml2ast` ([Issue #6](issue-notes/6.md))および`ast2json` ([Issue #7](issue-notes/7.md))のTDD準備、さらに既存コードベースからのTDD用テストケース生成([Issue #5](issue-notes/5.md))が進められています。
+- GitHub Actionsのワークフロー共通化（[Issue #18](issue-notes/18.md), [Issue #16](issue-notes/16.md)）を進め、プロジェクト概要や関数コールグラフの自動生成プロセスを効率化することを目指しています。
+- 開発環境の改善として、`pnpm watch` コマンドの自動実行（[Issue #9](issue-notes/9.md)）と機能強化（[Issue #8](issue-notes/8.md)）が挙げられており、PEGファイルの監視と自動ビルド/テストを実現する計画です。
+- コア機能であるMMLからJSONへの変換（[Issue #3](issue-notes/3.md)）の実装に向け、`mml2ast`（[Issue #6](issue-notes/6.md)）と `ast2json`（[Issue #7](issue-notes/7.md)）のTDD準備、および既存コードからTDD用テストケースを生成するタスク（[Issue #5](issue-notes/5.md)）が進められています。
 
 ## 次の一手候補
-1. MMLからASTへの変換（mml2ast）のTDD準備を開始する
-   - 最初の小さな一歩: `src/parser/mml2ast.ts` に対応するテストファイル `src/parser/mml2ast.test.ts` を作成し、`describe` ブロックと、最も単純なMML入力（例: `c`）に対する期待されるAST構造をコメントで記述した`test`のスケルトンを追加する。
+1. GitHub Actions「project概要生成」の共通ワークフロー化を進める
+   - 最初の小さな一歩: [Issue #18](issue-notes/18.md) の詳細を確認し、現在の `project概要生成` ワークフローのスクリプト内容と依存関係を洗い出す。
 
-2. 開発環境のpnpm script watchを強化し、ページを自動で開くようにする
-   - 最初の小さな一歩: [Issue #8](issue-notes/8.md) の「1行コマンド実行したらpage open」を実現するため、`package.json`の`scripts`セクションにある`watch`コマンドに、ブラウザで開発ページを開くコマンド（例: `open http://localhost:XXXX` や `start http://localhost:XXXX`）を追加する。
-     ```json
-     // package.json (scripts section) 例:
-     "watch": "tsc -w & peggy -w src/parser/mml.peggy & browser-sync start --server --files \"**/*\""
-     ```
-     ※`browser-sync`などのツールを利用して自動リロードも考慮に入れる。
+2. pnpm watchスクリプトの機能強化に着手する
+   - 最初の小さな一歩: [Issue #8](issue-notes/8.md) の詳細を確認し、現在の `pnpm watch` スクリプトが提供している機能と、追加で実装すべき「1行コマンド実行でページオープン」「PEGファイルwatch」「更新時の自動ビルド/テスト」の実現方法を調査する。
 
-3. GitHub Actions「project概要生成」を共通ワークフロー化する計画を立てる
-   - 最初の小さな一歩: [Issue #18](issue-notes/18.md) を確認し、既存の`generate-project-summaries.yml`ワークフローの中から、共通化して再利用可能なステップ（例: 特定のスクリプト実行、ファイルのコミットなど）を特定し、`composite action` として実装可能かどうかの初期調査を開始する。
+3. mml2json関数のTDD用テストケース生成（Agent利用）の準備を行う
+   - 最初の小さな一歩: [Issue #5](issue-notes/5.md) の詳細を確認し、既存のコードベースからAgentにテストケースを生成させるための具体的なプロンプトや、エージェントに渡すコンテキスト（例: コードスニペット、期待される出力形式）を整理する。
 ```
 
 ---
-Generated at: 2025-07-29 07:04:03 JST
+Generated at: 2025-07-30 07:03:53 JST
