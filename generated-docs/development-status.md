@@ -1,23 +1,23 @@
-Last updated: 2025-08-05
+Last updated: 2025-08-06
 
 ```markdown
 # Development Status
 
 ## 現在のIssues
-- GitHub Actionsに関して、プロジェクト概要生成と関数コールグラフHTMLビジュアライズのワークフロー共通化が主要なタスクです。
-- 開発環境の改善として、`pnpm watch`コマンドのVSCode自動実行と、PEGファイル監視・自動ビルド・テスト機能の統合が挙げられます。
-- MMLパーサー（mml2ast, ast2json, mml2json）のTDDによる再実装と、そのためのテストケース生成、およびMMLからtonejs-json-sequencer形式への変換が進行中です。
+- 現在オープン中の課題は、GitHub Actionsの共通ワークフロー化と開発環境の改善が中心です。
+- 特に、`pnpm watch`スクリプトの機能強化とVSCode連携に関するタスクが優先度高く残っています。
+- また、MMLからTone.jsが解釈可能なJSONへの変換機能 (`mml2json`) をTDDベースで再実装するための準備と、具体的な機能実装が主要な開発タスクとして挙げられています。
 
 ## 次の一手候補
-1. GitHub Actionsの共通ワークフロー化を進める
-   - 最初の小さな一歩: [Issue #18](issue-notes/18.md) に基づき、`generate-project-summaries`ワークフローを共通化するためのファイル構成と設定を検討し始める。具体的には、`.github/workflows`ディレクトリに共通ワークフローの基盤となるファイルを作成する。
+1. MMLの基本要素(`c`)からTone.js形式へのTDD実装を開始する
+   - 最初の小さな一歩: `mml2json`のテストディレクトリに`c_note.test.ts`を作成し、MML `c` が`[{ time: 0, notes: [{ note: 'C4', duration: '4n' }] }]`のようなJSONに変換されることを期待するテストケースを記述してください。このテストが通るように最小限の`mml2json`関数を実装し、テストを成功させてください。[Issue #3](issue-notes/3.md)
 
-2. 開発環境の`pnpm watch`スクリプトを強化する
-   - 最初の小さな一歩: [Issue #8](issue-notes/8.md) に基づき、`pnpm watch`スクリプトに、コマンド実行時に自動でブラウザのページを開く機能（例: `open`コマンドの追加）の実装に着手する。
+2. 開発環境の`pnpm watch`スクリプトを機能強化する
+   - 最初の小さな一歩: `package.json`の`scripts.watch`に、`pegjs`ファイルの変更を監視し、変更があった場合に自動で`build`と`test`スクリプトを実行する機能を追加するための初期調査を行ってください。利用可能なNode.jsパッケージ（例: `chokidar`）を特定し、その使用方法の概要を記述してください。[Issue #8](issue-notes/8.md)
 
-3. MMLパーサーのTDD開発環境を整備する
-   - 最初の小さな一歩: [Issue #6](issue-notes/6.md) に基づき、`mml2ast`のTDD準備として、`src/mml2ast`ディレクトリ内にテストファイル（例: `mml2ast.test.ts`）を作成し、基本的なテストスイートの構造を定義する。
+3. GitHub Actionsの「project概要生成」を共通ワークフロー化する
+   - 最初の小さな一歩: `.github/actions/generate-project-summary`ディレクトリを作成し、`action.yml`ファイルを追加して、`project概要生成`ワークフローの共通化に向けたベースを定義してください。既存のワークフローから`uses`で呼び出せる形を目指します。[Issue #18](issue-notes/18.md)
 ```
 
 ---
-Generated at: 2025-08-05 07:03:46 JST
+Generated at: 2025-08-06 07:04:19 JST
