@@ -1,21 +1,26 @@
-Last updated: 2025-08-08
+Last updated: 2025-08-09
 
+```markdown
 # Development Status
 
 ## 現在のIssues
-- GitHub Actionsの共通ワークフロー化が主な課題として残っており、特にプロジェクト概要と関数コールグラフの生成ワークフローを対象としています。
-- 開発環境の改善として、`pnpm watch`の自動実行と機能拡張に関するIssueが存在しています。
-- 主要な機能であるMMLからJSONへの変換について、TDD（テスト駆動開発）の準備と具体的な実装を進める必要があります。
+- GitHub Actionsのワークフロー共通化を進めており、プロジェクト概要と関数コールグラフの自動生成を効率化する計画です。
+- 開発環境においては、`pnpm watch`スクリプトの自動実行と機能強化を図り、開発フローの利便性向上を目指しています。
+- 主要機能であるMMLからJSONへの変換ロジックをTDDで再実装するため、`mml2json`、`mml2ast`、`ast2json`のテストケース整備と段階的な実装準備を進めています。
 
 ## 次の一手候補
-1. GitHub Actionsの共通ワークフロー化に着手
-   - 最初の小さな一歩: [Issue #18](issue-notes/18.md)「GitHub Actions「project概要生成」を共通ワークフロー化する」に着手し、既存のワークフローファイルの内容を確認して、共通化のスコープを特定する。
+1. GitHub Actionsの共通ワークフロー化を推進する
+   - 最初の小さな一歩: `github-actions/project-summary-generator`を共通ワークフロー化するためのブランチを作成し、[Issue #18](issue-notes/18.md) に基づき共通ワークフローの導入に着手する。
+     * `git checkout -b feature/common-workflow-project-summary`
 
-2. 開発環境の`pnpm watch`自動化を実装する
-   - 最初の小さな一歩: [Issue #9](issue-notes/9.md)「pnpm watchを、VSCodeを起動したら自動で実行開始させる」に取り組み、VSCodeの`tasks.json`や拡張機能を用いて自動実行の設定方法を調査・試行する。
+2. 開発環境の自動化と効率化を完了させる
+   - 最初の小さな一歩: VSCodeのタスク設定に`pnpm watch`の自動実行を追加するブランチを作成し、[Issue #9](issue-notes/9.md) の内容を実装する。
+     * `git checkout -b feature/vscode-auto-watch`
 
-3. MML2AST変換のTDD準備を進める
-   - 最初の小さな一歩: [Issue #6](issue-notes/6.md)「mml2astのTDD準備をする」に着手し、mml2ast機能のテストケースを定義するための準備（テスト環境のセットアップや基本的なテストファイルの作成）を行う。
+3. MMLからJSONへの変換ロジックのTDDによる再実装準備を進める
+   - 最初の小さな一歩: `mml2json`関数のTDD用テストケースを既存コードから生成するブランチを作成し、[Issue #5](issue-notes/5.md) のタスクを実行する。
+     * `git checkout -b feature/generate-mml2json-tests`
+```
 
 ---
-Generated at: 2025-08-08 07:04:01 JST
+Generated at: 2025-08-09 07:04:13 JST
