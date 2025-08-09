@@ -1,26 +1,21 @@
-Last updated: 2025-08-09
+Last updated: 2025-08-10
 
-```markdown
 # Development Status
 
 ## 現在のIssues
-- GitHub Actionsのワークフロー共通化を進めており、プロジェクト概要と関数コールグラフの自動生成を効率化する計画です。
-- 開発環境においては、`pnpm watch`スクリプトの自動実行と機能強化を図り、開発フローの利便性向上を目指しています。
-- 主要機能であるMMLからJSONへの変換ロジックをTDDで再実装するため、`mml2json`、`mml2ast`、`ast2json`のテストケース整備と段階的な実装準備を進めています。
+- GitHub Actionsの共通ワークフロー化（プロジェクト概要、関数コールグラフビジュアライズ生成）によるCI/CDの整備が進められています。
+- 開発者の生産性向上を目指し、pnpm watchスクリプトの機能拡張とVSCodeでの自動実行が検討されています。
+- プロジェクトの中核機能であるMMLからAST、ASTからJSONへの変換ロジックをTDDで再実装するための準備が進められています。
 
 ## 次の一手候補
-1. GitHub Actionsの共通ワークフロー化を推進する
-   - 最初の小さな一歩: `github-actions/project-summary-generator`を共通ワークフロー化するためのブランチを作成し、[Issue #18](issue-notes/18.md) に基づき共通ワークフローの導入に着手する。
-     * `git checkout -b feature/common-workflow-project-summary`
+1. pnpm script watchを、「1行コマンドでページオープンとPEGファイル監視・自動ビルド・テスト」を可能にする ([Issue #8](issue-notes/8.md))
+   - 最初の小さな一歩: 現在の`package.json`ファイルを開き、`scripts.watch`コマンドの定義を確認し、既存の機能と拡張ポイントを把握する。
 
-2. 開発環境の自動化と効率化を完了させる
-   - 最初の小さな一歩: VSCodeのタスク設定に`pnpm watch`の自動実行を追加するブランチを作成し、[Issue #9](issue-notes/9.md) の内容を実装する。
-     * `git checkout -b feature/vscode-auto-watch`
+2. TDDによりmml2json関数を新たにPEGから実装しなおすためのテストケースを生成する ([Issue #5](issue-notes/5.md))
+   - 最初の小さな一歩: 既存の`mml2json`関数のソースコードを読み込み、シンプルなMML入力（例: `c`）に対してどのようなJSONが出力されるべきかを分析し、最初のテストケースの要件を定義する。
 
-3. MMLからJSONへの変換ロジックのTDDによる再実装準備を進める
-   - 最初の小さな一歩: `mml2json`関数のTDD用テストケースを既存コードから生成するブランチを作成し、[Issue #5](issue-notes/5.md) のタスクを実行する。
-     * `git checkout -b feature/generate-mml2json-tests`
-```
+3. GitHub Actions「project概要生成」を共通ワークフロー化する ([Issue #18](issue-notes/18.md))
+   - 最初の小さな一歩: プロジェクトリポジトリの`.github/workflows/`ディレクトリ内で、現在の「project概要生成」に使用されているワークフローファイル（例: `generate-docs.yml`など）を特定し、その内容を確認する。
 
 ---
-Generated at: 2025-08-09 07:04:13 JST
+Generated at: 2025-08-10 07:03:24 JST
