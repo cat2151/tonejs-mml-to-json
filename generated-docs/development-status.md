@@ -1,21 +1,21 @@
-Last updated: 2025-08-10
+Last updated: 2025-08-11
 
 # Development Status
 
 ## 現在のIssues
-- GitHub Actionsの共通ワークフロー化（プロジェクト概要、関数コールグラフビジュアライズ生成）によるCI/CDの整備が進められています。
-- 開発者の生産性向上を目指し、pnpm watchスクリプトの機能拡張とVSCodeでの自動実行が検討されています。
-- プロジェクトの中核機能であるMMLからAST、ASTからJSONへの変換ロジックをTDDで再実装するための準備が進められています。
+- プロジェクトのコア機能であるMMLからJSONへの変換（mml2json, mml2ast, ast2json）について、TDD（テスト駆動開発）アプローチによる実装とテスト準備が進行中です。
+- 開発者の生産性向上を目指し、`pnpm watch`スクリプトの自動化や、PEGファイルの変更監視・自動ビルド・テスト機能の改善が計画されています。
+- GitHub Actionsのワークフロー（プロジェクト概要生成、関数コールグラフHTMLビジュアライズ生成）を共通化し、CI/CD環境を整備するタスクが残っています。
 
 ## 次の一手候補
-1. pnpm script watchを、「1行コマンドでページオープンとPEGファイル監視・自動ビルド・テスト」を可能にする ([Issue #8](issue-notes/8.md))
-   - 最初の小さな一歩: 現在の`package.json`ファイルを開き、`scripts.watch`コマンドの定義を確認し、既存の機能と拡張ポイントを把握する。
+1. MML解析・変換（mml2ast/ast2json/mml2json）のTDD実装とテスト基盤の整備を進める
+   - 最初の小さな一歩: [Issue #6](issue-notes/6.md) に基づき、`mml2ast`のTDD環境を構築し、最初の簡単なテストケース（例: 空文字列の入力）を作成する。
 
-2. TDDによりmml2json関数を新たにPEGから実装しなおすためのテストケースを生成する ([Issue #5](issue-notes/5.md))
-   - 最初の小さな一歩: 既存の`mml2json`関数のソースコードを読み込み、シンプルなMML入力（例: `c`）に対してどのようなJSONが出力されるべきかを分析し、最初のテストケースの要件を定義する。
+2. 開発ワークフローの自動化と効率化 (`pnpm watch`スクリプトの改善)
+   - 最初の小さな一歩: [Issue #8](issue-notes/8.md) の実現に向け、PEGファイルの変更を監視し自動でビルド・テストを実行する基本的なwatchスクリプトを作成する。
 
-3. GitHub Actions「project概要生成」を共通ワークフロー化する ([Issue #18](issue-notes/18.md))
-   - 最初の小さな一歩: プロジェクトリポジトリの`.github/workflows/`ディレクトリ内で、現在の「project概要生成」に使用されているワークフローファイル（例: `generate-docs.yml`など）を特定し、その内容を確認する。
+3. GitHub Actionsの共通ワークフロー化によるCI/CD環境の整備
+   - 最初の小さな一歩: [Issue #18](issue-notes/18.md) に基づき、`project概要生成` GitHub Actionsを再利用可能な共通ワークフローとして定義する。
 
 ---
-Generated at: 2025-08-10 07:03:24 JST
+Generated at: 2025-08-11 07:03:47 JST
