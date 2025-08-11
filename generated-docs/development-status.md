@@ -1,21 +1,23 @@
-Last updated: 2025-08-11
+Last updated: 2025-08-12
 
+```markdown
 # Development Status
 
 ## 現在のIssues
-- プロジェクトのコア機能であるMMLからJSONへの変換（mml2json, mml2ast, ast2json）について、TDD（テスト駆動開発）アプローチによる実装とテスト準備が進行中です。
-- 開発者の生産性向上を目指し、`pnpm watch`スクリプトの自動化や、PEGファイルの変更監視・自動ビルド・テスト機能の改善が計画されています。
-- GitHub Actionsのワークフロー（プロジェクト概要生成、関数コールグラフHTMLビジュアライズ生成）を共通化し、CI/CD環境を整備するタスクが残っています。
+- 現在、GitHub Actionsの「project概要生成」([Issue #18](issue-notes/18.md))と「関数コールグラフhtmlビジュアライズ生成」([Issue #16](issue-notes/16.md))の共通ワークフロー化が課題としてオープンされています。
+- 開発環境においては、VSCode起動時の`pnpm watch`自動実行([Issue #9](issue-notes/9.md))と、PEGファイル監視による自動ビルド/テストを含む`pnpm script watch`の機能強化([Issue #8](issue-notes/8.md))が検討されています。
+- 主要機能であるMMLからTone.js形式への変換に関して、mml2ast([Issue #6](issue-notes/6.md))、ast2json([Issue #7](issue-notes/7.md))のTDD準備、mml2jsonのTDD用テストケース生成([Issue #5](issue-notes/5.md))、そしてMML 'c'の変換実装([Issue #3](issue-notes/3.md))が進行中です。
 
 ## 次の一手候補
-1. MML解析・変換（mml2ast/ast2json/mml2json）のTDD実装とテスト基盤の整備を進める
-   - 最初の小さな一歩: [Issue #6](issue-notes/6.md) に基づき、`mml2ast`のTDD環境を構築し、最初の簡単なテストケース（例: 空文字列の入力）を作成する。
+1. MMLパーサー/コンバーターのTDD準備を進める
+   - 最初の小さな一歩: [Issue #6](issue-notes/6.md) に着手し、`mml2ast` 関数のTDD環境を構築するため、`src/parser/mml2ast.test.ts` ファイルを作成し、基本的なテストスイートの骨格を定義します。
 
-2. 開発ワークフローの自動化と効率化 (`pnpm watch`スクリプトの改善)
-   - 最初の小さな一歩: [Issue #8](issue-notes/8.md) の実現に向け、PEGファイルの変更を監視し自動でビルド・テストを実行する基本的なwatchスクリプトを作成する。
+2. 開発効率向上のためpnpm watchの自動化と機能強化に着手する
+   - 最初の小さな一歩: [Issue #9](issue-notes/9.md) の実現に向けて、`.vscode/tasks.json` を編集し、VSCodeのワークスペースオープン時に `pnpm watch` コマンドが自動でバックグラウンド実行されるように設定を試みます。
 
-3. GitHub Actionsの共通ワークフロー化によるCI/CD環境の整備
-   - 最初の小さな一歩: [Issue #18](issue-notes/18.md) に基づき、`project概要生成` GitHub Actionsを再利用可能な共通ワークフローとして定義する。
+3. GitHub Actions共通ワークフロー化の具体的な検討を開始する
+   - 最初の小さな一歩: [Issue #18](issue-notes/18.md) に関連して、現在の `project-summary.yml` と `callgraph-enhanced.yml` の内容を比較検討し、共通化可能なステップや利用可能な既存アクションがないか調査を開始します。
+```
 
 ---
-Generated at: 2025-08-11 07:03:47 JST
+Generated at: 2025-08-12 07:03:28 JST
