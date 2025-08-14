@@ -1,23 +1,23 @@
-Last updated: 2025-08-14
+Last updated: 2025-08-15
 
 ```markdown
 # Development Status
 
 ## 現在のIssues
-- プロジェクトの中核機能であるMMLからJSONへの変換について、[Issue #3](issue-notes/3.md), [Issue #5](issue-notes/5.md), [Issue #6](issue-notes/6.md), [Issue #7](issue-notes/7.md) にてTDDによる実装と準備が進行中です。
-- 開発環境の改善として、[Issue #8](issue-notes/8.md) と [Issue #9](issue-notes/9.md) で`pnpm watch`スクリプトの機能強化とVSCodeでの自動実行が課題となっています。
-- GitHub Actionsの効率化として、[Issue #16](issue-notes/16.md) と [Issue #18](issue-notes/18.md) でプロジェクト概要や関数コールグラフの自動生成ワークフローの共通化が計画されています。
+- 現在のオープンなIssueは、主に開発ワークフローの自動化と主要なMML変換機能のTDDベースでの再構築に焦点を当てています。
+- 具体的には、GitHub Actionsの共通ワークフロー化 ([Issue #18], [Issue #16]) や、pnpm watchスクリプトの強化 ([Issue #9], [Issue #8]) による開発環境の改善が進行中です。
+- また、`mml2ast` ([Issue #6]), `ast2json` ([Issue #7]), `mml2json` ([Issue #5]) のTDD準備を進め、最終的なMMLからTone.js互換JSONへの変換機能 ([Issue #3]) の実装を目指しています。
 
 ## 次の一手候補
-1. TDD用テストケースの生成に着手する ([Issue #5](issue-notes/5.md))
-   - 最初の小さな一歩: `mml2json`関数のTDD用テストケースを生成するため、現在のコードベースから、MML入力と期待されるJSON出力の具体的なペアを5つ以上特定し、テスト設計を開始する。
+1. TDDによるMML変換機能の基盤構築
+   - 最初の小さな一歩: [Issue #5] に記載されている通り、`mml2json` 関数のTDD用テストケースを、現在のコードベースから自動生成するためのプロンプトを作成します。これは、以降のTDD実装の出発点となります。
 
-2. `pnpm watch`スクリプトの機能を拡張し開発効率を向上させる ([Issue #8](issue-notes/8.md))
-   - 最初の小さな一歩: `pnpm watch`スクリプトが実行時に自動でローカル開発サーバーを起動し、ブラウザで対応するページを開く機能を追加する。
+2. 開発ワークフローの自動化と効率化
+   - 最初の小さな一歩: [Issue #8] に従い、`pnpm script watch` を強化します。具体的には、1行コマンドでページを開き、PEGファイルを監視し、更新時に自動でビルドとテストを実行する機能を実装します。
 
-3. GitHub Actions「project概要生成」の共通ワークフロー化を進める ([Issue #18](issue-notes/18.md))
-   - 最初の小さな一歩: 既存の「project概要生成」ワークフローのYAMLファイル（例: `.github/workflows/project-summary.yml`）をレビューし、共通化できる設定やスクリプトブロックを特定する。
+3. GitHub Actionsの共通ワークフロー化によるCI/CD改善
+   - 最初の小さな一歩: [Issue #18] に記載されている「project概要生成」のGitHub Actionsを、再利用可能な共通ワークフローとして抽出し、 `.github/workflows/` ディレクトリ配下に配置する準備を始めます。
 ```
 
 ---
-Generated at: 2025-08-14 07:03:48 JST
+Generated at: 2025-08-15 07:03:35 JST
