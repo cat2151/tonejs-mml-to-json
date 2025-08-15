@@ -1,23 +1,21 @@
-Last updated: 2025-08-15
+Last updated: 2025-08-16
 
-```markdown
 # Development Status
 
 ## 現在のIssues
-- 現在のオープンなIssueは、主に開発ワークフローの自動化と主要なMML変換機能のTDDベースでの再構築に焦点を当てています。
-- 具体的には、GitHub Actionsの共通ワークフロー化 ([Issue #18], [Issue #16]) や、pnpm watchスクリプトの強化 ([Issue #9], [Issue #8]) による開発環境の改善が進行中です。
-- また、`mml2ast` ([Issue #6]), `ast2json` ([Issue #7]), `mml2json` ([Issue #5]) のTDD準備を進め、最終的なMMLからTone.js互換JSONへの変換機能 ([Issue #3]) の実装を目指しています。
+- GitHub Actionsの自動化として、プロジェクト概要生成と関数コールグラフHTMLビジュアライズ生成の共通ワークフロー化が課題です。
+- 開発環境の効率化として、`pnpm watch` コマンドの機能拡張とVSCode起動時の自動実行化に取り組む必要があります。
+- MMLからJSONへの変換機能の実装に向けて、`mml2ast` および `ast2json` のTDD準備と、既存コードベースからのTDD用テストケース生成が進行中です。
 
 ## 次の一手候補
-1. TDDによるMML変換機能の基盤構築
-   - 最初の小さな一歩: [Issue #5] に記載されている通り、`mml2json` 関数のTDD用テストケースを、現在のコードベースから自動生成するためのプロンプトを作成します。これは、以降のTDD実装の出発点となります。
+1. GitHub Actionsの共通ワークフロー化を進める
+   - 最初の小さな一歩: [Issue #18](issue-notes/18.md) に記載されている「project概要生成」ワークフローの現状を確認し、共通化の要件を定義するために、既存の `.github/workflows/generate-project-summaries.yml` ファイルの内容をレビューしてください。
 
-2. 開発ワークフローの自動化と効率化
-   - 最初の小さな一歩: [Issue #8] に従い、`pnpm script watch` を強化します。具体的には、1行コマンドでページを開き、PEGファイルを監視し、更新時に自動でビルドとテストを実行する機能を実装します。
+2. 開発環境の`pnpm watch`コマンドを改善する
+   - 最初の小さな一歩: [Issue #8](issue-notes/8.md) の目標である「1行コマンド実行でページオープン、PEGファイルウォッチャー、PEG更新時の自動ビルド＆テスト」を実現するため、まず `package.json` の `scripts` セクションにある `watch` コマンドの現在の定義を確認してください。
 
-3. GitHub Actionsの共通ワークフロー化によるCI/CD改善
-   - 最初の小さな一歩: [Issue #18] に記載されている「project概要生成」のGitHub Actionsを、再利用可能な共通ワークフローとして抽出し、 `.github/workflows/` ディレクトリ配下に配置する準備を始めます。
-```
+3. MMLからJSONへのTDD実装の準備を開始する
+   - 最初の小さな一歩: [Issue #5](issue-notes/5.md) にある「TDD用テストケースを、今のコードベースからagentに生成させる」ために、既存のMML処理コード（例: `mml2json` 関数）の入力例と期待される出力例を少なくとも3つ具体的にリストアップしてください。
 
 ---
-Generated at: 2025-08-15 07:03:35 JST
+Generated at: 2025-08-16 07:03:43 JST
