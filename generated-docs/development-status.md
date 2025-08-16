@@ -1,21 +1,21 @@
-Last updated: 2025-08-16
+Last updated: 2025-08-17
 
 # Development Status
 
 ## 現在のIssues
-- GitHub Actionsの自動化として、プロジェクト概要生成と関数コールグラフHTMLビジュアライズ生成の共通ワークフロー化が課題です。
-- 開発環境の効率化として、`pnpm watch` コマンドの機能拡張とVSCode起動時の自動実行化に取り組む必要があります。
-- MMLからJSONへの変換機能の実装に向けて、`mml2ast` および `ast2json` のTDD準備と、既存コードベースからのTDD用テストケース生成が進行中です。
+- GitHub Actionsにおける自動ドキュメント生成（プロジェクト概要、関数コールグラフ）の共通ワークフロー化が課題としてオープンされています。
+- 開発効率向上のため、`pnpm watch`スクリプトの機能強化とVSCode連携による自動実行の改善が進行中です。
+- コア機能であるMMLからJSONへの変換について、TDDによる再実装の準備（テストケース生成、mml2ast/ast2jsonのTDD環境構築）と、最初の変換ロジック（MML cの変換）の実装が控えています。
 
 ## 次の一手候補
-1. GitHub Actionsの共通ワークフロー化を進める
-   - 最初の小さな一歩: [Issue #18](issue-notes/18.md) に記載されている「project概要生成」ワークフローの現状を確認し、共通化の要件を定義するために、既存の `.github/workflows/generate-project-summaries.yml` ファイルの内容をレビューしてください。
+1. TDDによるMML変換機能の初期ステップに着手
+   - 最初の小さな一歩: [Issue #5](issue-notes/5.md) に従って、既存のmml2jsonコードからTDD用のテストケースを自動生成するスクリプトを記述・実行する。例えば、`src/mml2json.ts` の機能を網羅するテストデータを `tests/test_cases.ts` に生成するエージェントプロンプトを考案し実行する。
 
-2. 開発環境の`pnpm watch`コマンドを改善する
-   - 最初の小さな一歩: [Issue #8](issue-notes/8.md) の目標である「1行コマンド実行でページオープン、PEGファイルウォッチャー、PEG更新時の自動ビルド＆テスト」を実現するため、まず `package.json` の `scripts` セクションにある `watch` コマンドの現在の定義を確認してください。
+2. 開発環境の自動化と効率化を進める
+   - 最初の小さな一歩: [Issue #8](issue-notes/8.md) に基づき、`package.json` の `scripts.watch` コマンドを修正し、PEGファイルの変更を検知して自動でビルドとテストを実行する機能を組み込む。具体的には、`chokidar-cli`や`nodemon`などのツール導入を検討し、`pnpm build && pnpm test`を自動化する。
 
-3. MMLからJSONへのTDD実装の準備を開始する
-   - 最初の小さな一歩: [Issue #5](issue-notes/5.md) にある「TDD用テストケースを、今のコードベースからagentに生成させる」ために、既存のMML処理コード（例: `mml2json` 関数）の入力例と期待される出力例を少なくとも3つ具体的にリストアップしてください。
+3. GitHub Actionsの共通ワークフロー化を調査・計画
+   - 最初の小さな一歩: [Issue #18](issue-notes/18.md) に関連して、現在のGitHub Actionsワークフロー (`.github/workflows/`) をレビューし、プロジェクト概要生成と関数コールグラフ生成で共通化できる部分（例: 依存関係のインストール、環境設定など）を特定する。共通ワークフロー化のための具体的な手順を簡単なドキュメントとしてまとめる。
 
 ---
-Generated at: 2025-08-16 07:03:43 JST
+Generated at: 2025-08-17 07:03:29 JST
