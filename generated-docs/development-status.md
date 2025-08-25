@@ -1,26 +1,21 @@
-Last updated: 2025-08-25
+Last updated: 2025-08-26
 
-```markdown
 # Development Status
 
 ## 現在のIssues
-- GitHub Actionsの共通ワークフロー化 ([Issue #18](issue-notes/18.md), [Issue #16](issue-notes/16.md)) を通じた自動化と効率向上に取り組んでいます。
-- 開発ワークフローの改善として、`pnpm watch` の機能拡張とVSCode連携 ([Issue #9](issue-notes/9.md), [Issue #8](issue-notes/8.md)) を目指しています。
-- MMLパーサー（mml2ast, ast2json, mml2json）の中核機能について、TDDによる実装・再実装の準備 ([Issue #7](issue-notes/7.md), [Issue #6](issue-notes/6.md)) とテストケースの生成 ([Issue #5](issue-notes/5.md), [Issue #3](issue-notes/3.md)) が進行中です。
+- GitHub Actionsの共通ワークフロー化（[Issue #18](issue-notes/18.md), [Issue #16](issue-notes/16.md)）が主要なテーマです。
+- 開発環境の改善、特に`pnpm watch`の自動実行と機能拡張（[Issue #9](issue-notes/9.md), [Issue #8](issue-notes/8.md)）に関する課題があります。
+- MMLからAST/JSONへの変換機能をTDDで再実装するための準備と具体的な実装（[Issue #7](issue-notes/7.md), [Issue #6](issue-notes/6.md), [Issue #5](issue-notes/5.md), [Issue #3](issue-notes/3.md)）が残っています。
 
 ## 次の一手候補
-1. TDDによるMMLパーサーのテストケース生成に着手
-   - 最初の小さな一歩: [Issue #5](issue-notes/5.md) に記載されている通り、現在のコードベースから`agent`を使用してTDD用のテストケースを生成するための準備、または初回のテストケース生成スクリプトの作成に着手する。
-     *プロンプト例: `agent-tool create-test-cases --from-mml-code-base ./src/mml-parser`*
+1. GitHub Actions「project概要生成」の共通ワークフロー化
+   - 最初の小さな一歩: [Issue #18](issue-notes/18.md)の目標とする共通ワークフローの形式を調査し、現在の`project概要生成`のワークフローをレビューして、共通化に必要な情報（入力、出力、ステップ）を洗い出す。
 
-2. `pnpm watch` スクリプトの自動化機能拡張
-   - 最初の小さな一歩: [Issue #8](issue-notes/8.md) の内容に沿って、まず`PEGファイルをwatchして、PEG更新時に自動でbuildする`部分を実装する。
-     *プロンプト例: `package.json`の`scripts`セクションに`watch`コマンドを追加し、`peggy`などのツールを用いてファイルの変更を監視し、ビルドをトリガーするように設定する*
+2. 開発時の`pnpm watch`の自動実行化
+   - 最初の小さな一歩: [Issue #9](issue-notes/9.md)の解決に向け、VSCodeの`tasks.json`や`settings.json`を利用して、ワークスペース起動時に`pnpm watch`コマンドを自動で実行開始させるための設定方法を調査する。
 
-3. GitHub Actions「project概要生成」共通ワークフローの準備
-   - 最初の小さな一歩: [Issue #18](issue-notes/18.md) に基づき、GitHub Actionsの共通ワークフローを配置するディレクトリ (`.github/workflows/shared/`など) を作成し、`project-overview-generator.yml`の初期ファイルを作成する。
-     *プロンプト例: `mkdir -p .github/workflows/shared && touch .github/workflows/shared/generate-project-overview.yml`*
-```
+3. MMLからJSON変換TDD用テストケースの生成準備
+   - 最初の小さな一歩: [Issue #5](issue-notes/5.md)に着手するため、既存のMMLからJSONへの変換ロジックを特定し、シンプルなMML入力（例: `c4`, `o4cde`）に対して現在どのようなJSONが出力されるか、コードを読んで理解する。
 
 ---
-Generated at: 2025-08-25 07:03:40 JST
+Generated at: 2025-08-26 07:03:53 JST
