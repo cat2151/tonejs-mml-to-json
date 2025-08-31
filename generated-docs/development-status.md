@@ -1,21 +1,21 @@
-Last updated: 2025-08-31
+Last updated: 2025-09-01
 
 # Development Status
 
 ## 現在のIssues
-- 複数のGitHub Actions（プロジェクト概要生成、関数コールグラフ生成）の共通ワークフロー化（[Issue #18](issue-notes/18.md), [Issue #16](issue-notes/16.md)）が課題となっています。
-- 開発ワークフローの改善として、`pnpm watch` スクリプトの機能拡張と自動実行の仕組み（[Issue #9](issue-notes/9.md), [Issue #8](issue-notes/8.md)）が検討されています。
-- TDDによる主要機能（mml2ast, ast2json, mml2json）の再実装に向けた準備と、MML `c` の変換実装（[Issue #7](issue-notes/7.md), [Issue #6](issue-notes/6.md), [Issue #5](issue-notes/5.md), [Issue #3](issue-notes/3.md)）が進行中です。
+- GitHub Actionsの効率化と共通ワークフロー化（`project概要生成`と`関数コールグラフhtmlビジュアライズ生成`）が主要な課題としてオープンしています。
+- 開発ワークフローの改善（`pnpm watch`の自動実行と機能強化）が挙げられており、開発体験の向上が求められています。
+- MML変換機能（`mml2ast`、`ast2json`、`mml2json`）をTDDで実装し直すための準備と、具体的なテスト駆動開発による機能実現が進行中です。
 
 ## 次の一手候補
-1. mml2astのTDD準備を進める（[Issue #6](issue-notes/6.md)）
-   - 最初の小さな一歩: `src/mml2ast/` ディレクトリ内にテストファイル `index.test.ts` を作成し、基本的なテストスイートの雛形を定義する。
+1. GitHub Actionsの共通ワークフロー化を推進する
+   - 最初の小さな一歩: [Issue #18](issue-notes/18.md) に基づき、「project概要生成」GitHub Actionsの共通ワークフロー化に着手するため、まず既存のワークフロー（例: `.github/workflows/generate-project-summaries.yml`）を分析し、共通化の対象となる処理ブロックを特定する。
 
-2. MML `c` のTDD実装に着手する（[Issue #3](issue-notes/3.md)）
-   - 最初の小さな一歩: `mml2json` のテストディレクトリに、MML `c` を入力とし、期待される`tonejs-json-sequencer` 形式のJSONを出力とする最小限のテストケースを記述する。
+2. 開発環境の自動化と効率化を進める
+   - 最初の小さな一歩: [Issue #8](issue-notes/8.md) に基づき、pnpm script watchコマンドを「1行コマンド実行したらpage openし、PEGファイルをwatchして、PEG更新時に自動でbuildしてtest」というものにするための具体的な要件を洗い出し、既存のnpm-scriptsや利用可能なツール（例: `nodemon`, `concurrently`）の調査を開始する。
 
-3. 開発用watchスクリプトを改善する（[Issue #8](issue-notes/8.md)）
-   - 最初の小さな一歩: `package.json` の `scripts` に定義されている `watch` コマンドの現在の動作を確認し、[Issue #8](issue-notes/8.md) に記載されている要件のうち、現状で満たされているものと不足しているものを洗い出す。
+3. MML変換機能のTDD準備を進める
+   - 最初の小さな一歩: [Issue #6](issue-notes/6.md) に基づき、`mml2ast`のTDD準備として、テストフレームワークのセットアップ（もし未設定であれば）と、`c`のような最もシンプルなMML入力に対する最初のテストケースの作成に着手する。
 
 ---
-Generated at: 2025-08-31 07:03:23 JST
+Generated at: 2025-09-01 07:03:35 JST
