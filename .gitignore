@@ -12,3 +12,6 @@ codeql-db
 
 # secrets
 .secrets
+
+# LLM
+copilot-instructions.md
