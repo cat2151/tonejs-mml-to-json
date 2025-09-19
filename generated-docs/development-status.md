@@ -1,58 +1,50 @@
-Last updated: 2025-09-19
+Last updated: 2025-09-20
 
 # Development Status
 
 ## 現在のIssues
-- [Issue #18](../issue-notes/18.md) は、プロジェクト概要生成の共通ワークフロー化で発生した、`issue-notes` のパス参照エラーの解決を必要としています。
-- [Issue #16](../issue-notes/16.md) は、関数コールグラフHTMLビジュアライズ生成ワークフローの共通ワークフローへの移行を進める必要があります。
-- [Issue #9](../issue-notes/9.md) と [Issue #8](../issue-notes/8.md) は、開発効率化のため `pnpm watch` スクリプトの自動化と機能強化の検討が進行中です。
+- GitHub ActionsのコールグラフHTMLビジュアライズ生成の共通ワークフロー化 ([#16](../issue-notes/16.md)) に向けた継続的な取り組みがある。
+- 開発効率向上のため、`pnpm watch`のVSCode自動実行設定 ([#9](../issue-notes/9.md)) と、PEG更新時の自動ビルド・テスト・ページリロード機能 ([#8](../issue-notes/8.md)) の改善が進行中である。
+- MMLからJSONへの変換ロジック (`mml2ast`, `ast2json`, `mml2json`) のTDDによる再実装 ([#7](../issue-notes/7.md), [#6](../issue-notes/6.md), [#5](../issue-notes/5.md), [#3](../issue-notes/3.md)) が進行しており、特にテストケース生成が課題となっている。
 
 ## 次の一手候補
-1. [Issue #18](../issue-notes/18.md) プロジェクト概要生成ワークフローのissueノートパス参照エラーを修正する
-   - 最初の小さな一歩: `github-actions` リポジトリ内の `daily-project-summary.yml` および関連スクリプトを分析し、Issueノートのパス解決ロジックが現在のリポジトリのルート (`github.workspace`) を適切に参照するように修正します。
-   - Agent実行プロンプト:
+1. GitHub Actions「関数コールグラフhtmlビジュアライズ生成」を共通ワークフローとして呼び出す ([#16](../issue-notes/16.md))
+   - 最初の小さな一歩: `.github/workflows/callgraph_enhanced.yml` を、`github-actions` リポジトリにある共通ワークフロー (`call-callgraph.yml`) を呼び出す形に修正する。
+   - Agent実行プロンプ:
      ```
-     対象ファイル:
-     - .github/actions-tmp/.github/workflows/daily-project-summary.yml
-     - .github/actions-tmp/.github_automation/project_summary/scripts/ProjectSummaryCoordinator.cjs
-     - .github/actions-tmp/.github_automation/project_summary/scripts/development/IssueTracker.cjs
+     対象ファイル: .github/workflows/callgraph_enhanced.yml
 
-     実行内容: `daily-project-summary.yml`から呼び出されるNode.jsスクリプトにおいて、Issueノートファイルのパス解決が呼び出し元のリポジトリ（`github.workspace`）の`issue-notes`ディレクトリを正しく参照するように修正してください。特に`IssueTracker.cjs`でのパス解決ロジックを確認し、絶対パスまたは`github.workspace`を基準としたパス構築が適切に行われるように変更してください。
+     実行内容: `github-actions` リポジトリで既に共通ワークフローとして機能している `.github/actions-tmp/.github/workflows/call-callgraph.yml` の内容を参考に、`.github/workflows/callgraph_enhanced.yml` を共通ワークフローとして `github-actions` リポジトリから呼び出す形式に修正してください。`uses:` と `with:` パラメータを適切に設定し、既存の機能が正しく動作するようにしてください。
 
-     確認事項: 現在の実装で`GITHUB_REPOSITORY`や`github.workspace`などの環境変数がどのように利用されているか、またそれが`IssueTracker.cjs`にどのように伝播されているかを確認してください。修正が、`github-actions`リポジトリ自身で実行された場合と、他のリポジトリから呼び出された場合のどちらでも正しく動作することを確認してください。
+     確認事項: 修正前に、現在の `.github/workflows/callgraph_enhanced.yml` の機能と、`github-actions` リポジトリの `call-callgraph.yml` の入力・出力パラメータを確認してください。また、他のGitHub Actionsワークフローや`callgraph`関連スクリプトとの依存関係に影響がないことを確認してください。
 
-     期待する出力: 修正されたファイルの内容（YAMLおよびJavaScriptコード）をMarkdown形式で出力してください。また、修正前後の動作の違いと、`issue-notes`のパス解決がどのように改善されたかを説明する短いレポートを記述してください。
+     期待する出力: 修正された `.github/workflows/callgraph_enhanced.yml` ファイルの内容。
      ```
 
-2. [Issue #16](../issue-notes/16.md) 関数コールグラフHTMLビジュアライズ生成ワークフローを共通ワークフロー化する
-   - 最初の小さな一歩: `tonejs-mml-to-json` リポジトリの既存のコールグラフ関連ワークフロー (`.github/workflows/callgraph_enhanced.yml` など) を無効化または削除し、`github-actions` リポジトリの `call-callgraph.yml` をコピーして `tonejs-mml-to-json` の `.github/workflows/` ディレクトリに配置します。
-   - Agent実行プロンプト:
+2. `pnpm script watch`をPEG更新時に自動ビルド・テスト・ページリロードする形に改善する ([#8](../issue-notes/8.md))
+   - 最初の小さな一歩: `package.json` の `scripts` セクションを調査し、`src/grammar.pegjs` ファイルの変更を検知して自動で `pegjs` ビルドと `vitest` テストが実行されるよう `watch` スクリプトを修正する。
+   - Agent実行プロンプ:
      ```
-     対象ファイル:
-     - .github/workflows/callgraph_enhanced.yml (tonejs-mml-to-jsonリポジトリ内)
-     - .github/actions-tmp/.github/workflows/call-callgraph.yml (github-actionsリポジトリ内)
+     対象ファイル: package.json, src/grammar.pegjs, vitest.config.js
 
-     実行内容: `tonejs-mml-to-json` リポジトリ内の既存のコールグラフ生成ワークフロー `.github/workflows/callgraph_enhanced.yml` を無効化し、`github-actions` リポジトリの共通ワークフロー `.github/actions-tmp/.github/workflows/call-callgraph.yml` の内容をコピーして、`tonejs-mml-to-json` の新しいワークフローファイル（例：`.github/workflows/call-callgraph.yml`）として作成してください。コピーする際に、`uses: ./.github/workflows/callgraph.yml` のようなローカル参照ではなく、`cat2151/github-actions/.github/workflows/callgraph.yml@main` のようなリポジトリ参照に修正してください。
+     実行内容: `package.json` の `scripts` セクションにおいて、`pnpm watch` コマンドが `src/grammar.pegjs` の変更を監視し、変更があった場合に自動的に `pegjs` によるビルド (`src/grammar.pegjs` から `src/grammar.js` を生成) を実行し、その後 `vitest` のテストを自動実行するように修正してください。また、可能であればブラウザのホットリロードやライブリロード機能も組み込んでください。
 
-     確認事項: 共通ワークフロー `call-callgraph.yml` が呼び出す `callgraph.yml` が、呼び出し元リポジトリのコンテキストで正しく動作するために必要なシークレットや入力が適切に設定されているかを確認してください。また、既存の `.github/workflows/callgraph_enhanced.yml` が無効化されることを確認してください。
+     確認事項: 既存の `build` および `test` スクリプトの定義、`vitest.config.js` の設定、そして `pegjs` のビルドコマンドの正確性を確認してください。`package.json` に新たな依存関係を追加する必要がある場合は、その旨を明記してください。
 
-     期待する出力: 新しいワークフローファイル `.github/workflows/call-callgraph.yml` の内容と、無効化された `.github/workflows/callgraph_enhanced.yml` の修正（もしあれば）をMarkdownコードブロックで出力してください。
+     期待する出力: 修正された `package.json` の `scripts` セクションの内容、および必要に応じて `vitest.config.js` の変更案。
      ```
 
-3. [Issue #8](../issue-notes/8.md) pnpm script watchを、「1行コマンド実行したらpage openし、PEGファイルをwatchして、PEG更新時に自動でbuildしてtest」というものにする
-   - 最初の小さな一歩: `package.json` に `watch:peg` スクリプトを定義し、`pegjs` を用いて `src/grammar.pegjs` が変更されたときに `src/grammar.js` を自動的に再生成する機能を実装します。
-   - Agent実行プロンプト:
+3. `mml2json`のTDD用テストケースを現在のコードからAgentに生成させる ([#5](../issue-notes/5.md))
+   - 最初の小さな一歩: 既存のMMLからJSONへの変換ロジック (`src/main.js` や `src/mml2json.js`) が現在生成しているJSON出力を収集し、それらを期待値とする `vitest` 形式のテストケースを `test/mml2json.test.js` に生成する。
+   - Agent実行プロンプ:
      ```
-     対象ファイル:
-     - package.json
-     - src/grammar.pegjs
-     - src/grammar.js
+     対象ファイル: src/main.js, src/mml2json.js, test/parser.test.js
 
-     実行内容: `package.json`に新しい`watch:peg`スクリプトを追加してください。このスクリプトは、`src/grammar.pegjs`が変更されたときに`src/grammar.js`を自動的に再生成する機能を持つようにします。`pegjs`コマンドラインツールを使用するか、Node.jsスクリプトで`peggy`パッケージを利用することを検討してください。まずは`pegjs`（または`peggy`）の実行を確認するための最小限のスクリプトとしてください。
+     実行内容: `src/main.js` および `src/mml2json.js` の現在のMMLからJSONへの変換ロジックを分析し、いくつかの代表的なMML入力文字列（例: "c", "cde", "o4cde"）に対する現在のJSON出力結果を抽出してください。これらの入力と出力のペアを元に、`test/mml2json.test.js` という新しいテストファイルを `vitest` 形式で作成し、抽出したJSON出力が期待値となるテストケースを生成してください。特に、MML文字列を入力としてJSONオブジェクトを比較するテストケースを重視してください。
 
-     確認事項: `package.json`に`peggy`または`pegjs`が依存関係として追加されているか確認してください。スクリプトが正しく`src/grammar.pegjs`をコンパイルし、`src/grammar.js`を更新することを確認してください。
+     確認事項: 既存の `test/parser.test.js` のテスト形式と `vitest` の利用方法、および `src/main.js` または `src/mml2json.js` がMMLをJSONに変換する主要なロジックを含んでいることを確認してください。
 
-     期待する出力: 修正された`package.json`の`scripts`セクションをMarkdownコードブロックで出力してください。また、`src/grammar.pegjs`から`src/grammar.js`を生成するためのコマンド、またはNode.jsスクリプトの提案を記述してください。
+     期待する出力: `test/mml2json.test.js` という新しいファイルの内容。このファイルは `vitest` 形式で記述された `mml2json` のテストケースを含み、入力MML文字列と期待されるJSONオブジェクトのペアを含みます。
 
 ---
-Generated at: 2025-09-19 07:05:23 JST
+Generated at: 2025-09-20 07:05:36 JST
