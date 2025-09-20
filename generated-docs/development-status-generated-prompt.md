@@ -1,4 +1,4 @@
-Last updated: 2025-09-20
+Last updated: 2025-09-21
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -109,6 +109,7 @@ Last updated: 2025-09-20
 - .github/actions-tmp/.github/workflows/call-issue-note.yml
 - .github/actions-tmp/.github/workflows/call-translate-readme.yml
 - .github/actions-tmp/.github/workflows/callgraph.yml
+- .github/actions-tmp/.github/workflows/check-recent-human-commit.yml
 - .github/actions-tmp/.github/workflows/daily-project-summary.yml
 - .github/actions-tmp/.github/workflows/issue-note.yml
 - .github/actions-tmp/.github/workflows/translate-readme.yml
@@ -122,7 +123,6 @@ Last updated: 2025-09-20
 - .github/actions-tmp/.github_automation/callgraph/scripts/analyze-codeql.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/callgraph-utils.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/check-codeql-exists.cjs
-- .github/actions-tmp/.github_automation/callgraph/scripts/check-commits.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/check-node-version.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/common-utils.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/copy-commit-results.cjs
@@ -130,6 +130,7 @@ Last updated: 2025-09-20
 - .github/actions-tmp/.github_automation/callgraph/scripts/find-process-results.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/generate-html-graph.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/generateHTML.cjs
+- .github/actions-tmp/.github_automation/check_recent_human_commit/scripts/check-recent-human-commit.cjs
 - .github/actions-tmp/.github_automation/project_summary/docs/daily-summary-setup.md
 - .github/actions-tmp/.github_automation/project_summary/prompts/development-status-prompt.md
 - .github/actions-tmp/.github_automation/project_summary/prompts/project-overview-prompt.md
@@ -178,6 +179,8 @@ Last updated: 2025-09-20
 - .github/actions-tmp/issue-notes/24.md
 - .github/actions-tmp/issue-notes/25.md
 - .github/actions-tmp/issue-notes/26.md
+- .github/actions-tmp/issue-notes/27.md
+- .github/actions-tmp/issue-notes/28.md
 - .github/actions-tmp/issue-notes/3.md
 - .github/actions-tmp/issue-notes/4.md
 - .github/actions-tmp/issue-notes/7.md
@@ -735,6 +738,8 @@ planにおいては、修正対象のソースファイル名と関数名を、�
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+8f47717 Update callgraph-enhanced.html [auto]
+2e15204 Update project summaries (overview & development status)
 3c5c48d Update callgraph-enhanced.html [auto]
 e802be5 fix #18 test greenなのでcloseとする
 f99f288 Update project summaries (overview & development status)
@@ -743,8 +748,6 @@ d5ddf88 Update callgraph-enhanced.html [auto]
 6594cdf #18 状況を反映
 5be20d9 Update callgraph-enhanced.html [auto]
 5102de9 Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
-a2ac2e5 #18 test red 整理した
-7db1b9c Update callgraph-enhanced.html [auto]
 
 ### 変更されたファイル:
 generated-docs/callgraph-enhanced.html
@@ -755,4 +758,4 @@ issue-notes/18.md
 
 
 ---
-Generated at: 2025-09-20 07:05:15 JST
+Generated at: 2025-09-21 07:04:17 JST
