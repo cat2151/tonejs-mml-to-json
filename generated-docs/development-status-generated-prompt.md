@@ -1,4 +1,4 @@
-Last updated: 2025-09-21
+Last updated: 2025-09-23
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -738,6 +738,7 @@ planにおいては、修正対象のソースファイル名と関数名を、�
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+2856e00 Update project summaries (overview & development status) [auto]
 8f47717 Update callgraph-enhanced.html [auto]
 2e15204 Update project summaries (overview & development status)
 3c5c48d Update callgraph-enhanced.html [auto]
@@ -747,7 +748,6 @@ d5ddf88 Update callgraph-enhanced.html [auto]
 582c5ad Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
 6594cdf #18 状況を反映
 5be20d9 Update callgraph-enhanced.html [auto]
-5102de9 Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
 
 ### 変更されたファイル:
 generated-docs/callgraph-enhanced.html
@@ -758,4 +758,4 @@ issue-notes/18.md
 
 
 ---
-Generated at: 2025-09-21 07:04:17 JST
+Generated at: 2025-09-23 07:05:23 JST
