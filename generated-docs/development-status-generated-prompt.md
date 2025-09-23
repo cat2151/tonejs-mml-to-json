@@ -1,4 +1,4 @@
-Last updated: 2025-09-19
+Last updated: 2025-09-23
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -109,6 +109,7 @@ Last updated: 2025-09-19
 - .github/actions-tmp/.github/workflows/call-issue-note.yml
 - .github/actions-tmp/.github/workflows/call-translate-readme.yml
 - .github/actions-tmp/.github/workflows/callgraph.yml
+- .github/actions-tmp/.github/workflows/check-recent-human-commit.yml
 - .github/actions-tmp/.github/workflows/daily-project-summary.yml
 - .github/actions-tmp/.github/workflows/issue-note.yml
 - .github/actions-tmp/.github/workflows/translate-readme.yml
@@ -122,7 +123,6 @@ Last updated: 2025-09-19
 - .github/actions-tmp/.github_automation/callgraph/scripts/analyze-codeql.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/callgraph-utils.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/check-codeql-exists.cjs
-- .github/actions-tmp/.github_automation/callgraph/scripts/check-commits.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/check-node-version.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/common-utils.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/copy-commit-results.cjs
@@ -130,6 +130,7 @@ Last updated: 2025-09-19
 - .github/actions-tmp/.github_automation/callgraph/scripts/find-process-results.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/generate-html-graph.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/generateHTML.cjs
+- .github/actions-tmp/.github_automation/check_recent_human_commit/scripts/check-recent-human-commit.cjs
 - .github/actions-tmp/.github_automation/project_summary/docs/daily-summary-setup.md
 - .github/actions-tmp/.github_automation/project_summary/prompts/development-status-prompt.md
 - .github/actions-tmp/.github_automation/project_summary/prompts/project-overview-prompt.md
@@ -178,6 +179,8 @@ Last updated: 2025-09-19
 - .github/actions-tmp/issue-notes/24.md
 - .github/actions-tmp/issue-notes/25.md
 - .github/actions-tmp/issue-notes/26.md
+- .github/actions-tmp/issue-notes/27.md
+- .github/actions-tmp/issue-notes/28.md
 - .github/actions-tmp/issue-notes/3.md
 - .github/actions-tmp/issue-notes/4.md
 - .github/actions-tmp/issue-notes/7.md
@@ -245,49 +248,6 @@ Last updated: 2025-09-19
 - vitest.config.js
 
 ## 現在のオープンIssues
-## [Issue #18](../issue-notes/18.md): GitHub Actions「project概要生成」を共通ワークフロー化する
-[issue-notes/18.md](https://github.com/cat2151/tonejs-mml-to-json/blob/main/issue-notes/18.md)
-
-...
-ラベル: 
---- issue-notes/18.md の内容 ---
-
-```markdown
-# issue GitHub Actions「project概要生成」を共通ワークフロー化する #18
-[issues #18](https://github.com/cat2151/tonejs-mml-to-json/issues/18)
-
-# close条件
-- project概要生成を、github-actions リポジトリの共通ワークフローを呼び出すことで実現すること
-
-# 課題
-- どのリポジトリのどのymlファイルか？の可視化がされていない
-  - 対策案
-    - まずここに可視化する
-  - `github-actions/.github/workflows/call-daily-project-summary.yml`
-
-# どうする？
-- call版を持ってくる
-  - github-actions リポジトリの共通ワークフローを持ってくるということ
-- 持ってくるときに課題があればこのmdの課題コーナーに可視化すること
-  - 例、手順がわからない等
-
-# 持ってきた
-- どうする？
-  - 上記を整頓する
-  - 日次バッチでtestする
-
-# 結果
-- エラー
-  - `Issueノートが存在しません: /home/runner/work/tonejs-mml-to-json/tonejs-mml-to-json/.github/actions-tmp/issue-notes/6.md`
-  - 分析
-    - 共通workflow側のissue-notesを参照してしまっている。バグである
-  - 対策
-    - 共通workflow側を修正する。共通workflow側にissue作成する
-- issue作成して修正したつもり
-  - 次の日次バッチでtestする
-
-```
-
 ## [Issue #16](../issue-notes/16.md): GitHub Actions「関数コールグラフhtmlビジュアライズ生成」を共通ワークフロー化する
 [issue-notes/16.md](https://github.com/cat2151/tonejs-mml-to-json/blob/main/issue-notes/16.md)
 
@@ -443,162 +403,6 @@ Last updated: 2025-09-19
 ```
 
 ## ドキュメントで言及されているファイルの内容
-### .github/actions-tmp/.github/workflows/call-daily-project-summary.yml
-```yml
-name: Call Daily Project Summary
-
-on:
-  schedule:
-    # 日本時間 07:00 (UTC 22:00 前日)
-    - cron: '0 22 * * *'
-  workflow_dispatch:
-
-jobs:
-  call-daily-project-summary:
-    uses: cat2151/github-actions/.github/workflows/daily-project-summary.yml@main
-    # uses: ./.github/workflows/daily-project-summary.yml # ローカルでのテスト用
-    secrets:
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-
-```
-
-### .github/workflows/call-daily-project-summary.yml
-```yml
-name: Call Daily Project Summary
-
-on:
-  schedule:
-    # 日本時間 07:00 (UTC 22:00 前日)
-    - cron: '0 22 * * *'
-  workflow_dispatch:
-
-jobs:
-  call-daily-project-summary:
-    uses: cat2151/github-actions/.github/workflows/daily-project-summary.yml@main
-    # uses: ./.github/workflows/daily-project-summary.yml # ローカルでのテスト用
-    secrets:
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-
-```
-
-### .github/actions-tmp/.github/workflows/daily-project-summary.yml
-```yml
-name: Daily Project Summary
-on:
-  workflow_call:
-    secrets:
-      GEMINI_API_KEY:
-        required: true
-env:
-  TMP_DIR: .github/actions-tmp
-  SCRIPT_DIR: .github/actions-tmp/.github_automation/project_summary/scripts
-  PROMPT_DIR: .github/actions-tmp/.github_automation/project_summary/prompts
-  DOCS_DIR: generated-docs
-  OVERVIEW_PROMPT: project-overview-prompt.md
-  DEVELOPMENT_STATUS_BASE_PROMPT: development-status-prompt.md
-  OUT_OVERVIEW: project-overview.md
-  OUT_DEVELOPMENT_STATUS: development-status.md
-  OUT_DEVELOPMENT_STATUS_GENERATED_PROMPT: development-status-generated-prompt.md
-
-jobs:
-  generate-summary:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-      issues: read
-      pull-requests: read
-
-    steps:
-      - name: Checkout repository # サマリ対象を取得するため、呼び出し元リポジトリをcheckout
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0  # 履歴を取得するため
-
-      - name: Checkout shared github-actions repo # スクリプトを取得するため、共有のgithub-actionsリポジトリをcheckout
-        uses: actions/checkout@v4
-        with:
-          repository: cat2151/github-actions
-          path: ${{ env.TMP_DIR }}
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: |
-          mkdir -p ${{ env.TMP_DIR }}
-          cd ${{ env.TMP_DIR }}
-          npm init -y
-          npm install @google/generative-ai @octokit/rest
-
-      - name: remove generated files # こうしないと生成ミスを検知できない
-        run: |
-          rm -f ${{ env.DOCS_DIR }}/${{ env.OUT_OVERVIEW }}
-          rm -f ${{ env.DOCS_DIR }}/${{ env.OUT_DEVELOPMENT_STATUS }}
-          rm -f ${{ env.DOCS_DIR }}/${{ env.OUT_DEVELOPMENT_STATUS_GENERATED_PROMPT }}
-
-      - name: Generate project summary
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          NODE_PATH: ${{ env.TMP_DIR }}/node_modules
-        run: |
-          mkdir -p ${{ env.DOCS_DIR }}
-          node ${{ env.SCRIPT_DIR }}/generate-project-summary.cjs \
-            ${{ env.PROMPT_DIR }}/${{ env.OVERVIEW_PROMPT }} \
-            ${{ env.PROMPT_DIR }}/${{ env.DEVELOPMENT_STATUS_BASE_PROMPT }} \
-            ${{ env.DOCS_DIR }}/${{ env.OUT_OVERVIEW }} \
-            ${{ env.DOCS_DIR }}/${{ env.OUT_DEVELOPMENT_STATUS }} \
-            ${{ env.DOCS_DIR }}/${{ env.OUT_DEVELOPMENT_STATUS_GENERATED_PROMPT }} \
-            ${{ github.workspace }}
-
-      - name: Verify generated files # 生成後のtimestampやfilesizeのチェック用
-        run: |
-          ls -la ${{ env.DOCS_DIR }}/${{ env.OUT_OVERVIEW }}
-          ls -la ${{ env.DOCS_DIR }}/${{ env.OUT_DEVELOPMENT_STATUS }}
-          ls -la ${{ env.DOCS_DIR }}/${{ env.OUT_DEVELOPMENT_STATUS_GENERATED_PROMPT }}
-
-      - name: Check for generated summaries
-        id: check_summaries
-        run: |
-          if [ -f "${{ env.DOCS_DIR }}/${{ env.OUT_OVERVIEW }}" ] && [ -f "${{ env.DOCS_DIR }}/${{ env.OUT_DEVELOPMENT_STATUS }}" ] && [ -f "${{ env.DOCS_DIR }}/${{ env.OUT_DEVELOPMENT_STATUS_GENERATED_PROMPT }}" ]; then
-            echo "summaries_generated=true" >> $GITHUB_OUTPUT
-          else
-            echo "summaries_generated=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Commit and push summaries
-        if: steps.check_summaries.outputs.summaries_generated == 'true'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add ${{ env.DOCS_DIR }}/${{ env.OUT_OVERVIEW }}
-          git add ${{ env.DOCS_DIR }}/${{ env.OUT_DEVELOPMENT_STATUS }}
-          git add ${{ env.DOCS_DIR }}/${{ env.OUT_DEVELOPMENT_STATUS_GENERATED_PROMPT }}
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "Update project summaries (overview & development status)"
-            git push
-          fi
-
-      - name: Summary generation result
-        run: |
-          if [ "${{ steps.check_summaries.outputs.summaries_generated }}" == "true" ]; then
-            echo "✅ Project summaries updated successfully"
-            echo "📊 Generated: ${{ env.OUT_OVERVIEW }} & ${{ env.OUT_DEVELOPMENT_STATUS }} & ${{ env.OUT_DEVELOPMENT_STATUS_GENERATED_PROMPT }}"
-          else
-            echo "ℹ️ No summaries generated (likely no user commits in the last 24 hours)"
-          fi
-
-```
-
 ### .github/actions-tmp/issue-notes/16.md
 ```md
 # issue issue-note / project-summary / translate / callgraph をtonejs-mml-to-jsonから呼び出す #16
@@ -644,71 +448,6 @@ jobs:
 [issues #16](https://github.com/cat2151/tonejs-mml-to-json/issues/16)
 
 
-
-```
-
-### .github/actions-tmp/issue-notes/18.md
-```md
-# issue DevelopmentStatusGenerator.cjs 内に、Geminiに与えるpromptがハードコーディングされてしまっている #18
-[issues #18](https://github.com/cat2151/github-actions/issues/18)
-
-# 何が困るの？
-- project把握しづらい。どこにpromptが書いてあるのか、把握しづらい。
-- prompts/ にほかのpromptがあるため、方針がブレていると、読みづらい。
-- 備忘、いくらテンプレートリテラルとプレースホルダーで密結合しているからとはいえ、ハードコーディングはNG。
-    - それらはreplaceを使う等で楽に切り出しできるので。
-
-# 問題のcjsの場所は？
-- ファイルパス : .github_automation/project_summary/scripts/development/DevelopmentStatusGenerator.cjs
-- 関数 : generateDevelopmentStatus
-
-# 結果
-- Geminiに生成させたpromptを、agentに投げて、リファクタリングさせてみた
-- ハルシネーションした。使い物にならなかった
-- 人力でやる
-
-# 結果
-- test green
-
-# closeとする
-
-
-```
-
-### issue-notes/18.md
-```md
-# issue GitHub Actions「project概要生成」を共通ワークフロー化する #18
-[issues #18](https://github.com/cat2151/tonejs-mml-to-json/issues/18)
-
-# close条件
-- project概要生成を、github-actions リポジトリの共通ワークフローを呼び出すことで実現すること
-
-# 課題
-- どのリポジトリのどのymlファイルか？の可視化がされていない
-  - 対策案
-    - まずここに可視化する
-  - `github-actions/.github/workflows/call-daily-project-summary.yml`
-
-# どうする？
-- call版を持ってくる
-  - github-actions リポジトリの共通ワークフローを持ってくるということ
-- 持ってくるときに課題があればこのmdの課題コーナーに可視化すること
-  - 例、手順がわからない等
-
-# 持ってきた
-- どうする？
-  - 上記を整頓する
-  - 日次バッチでtestする
-
-# 結果
-- エラー
-  - `Issueノートが存在しません: /home/runner/work/tonejs-mml-to-json/tonejs-mml-to-json/.github/actions-tmp/issue-notes/6.md`
-  - 分析
-    - 共通workflow側のissue-notesを参照してしまっている。バグである
-  - 対策
-    - 共通workflow側を修正する。共通workflow側にissue作成する
-- issue作成して修正したつもり
-  - 次の日次バッチでtestする
 
 ```
 
@@ -999,30 +738,24 @@ planにおいては、修正対象のソースファイル名と関数名を、�
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+2856e00 Update project summaries (overview & development status) [auto]
+8f47717 Update callgraph-enhanced.html [auto]
+2e15204 Update project summaries (overview & development status)
+3c5c48d Update callgraph-enhanced.html [auto]
+e802be5 fix #18 test greenなのでcloseとする
+f99f288 Update project summaries (overview & development status)
 d5ddf88 Update callgraph-enhanced.html [auto]
 582c5ad Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
 6594cdf #18 状況を反映
 5be20d9 Update callgraph-enhanced.html [auto]
-5102de9 Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
-a2ac2e5 #18 test red 整理した
-7db1b9c Update callgraph-enhanced.html [auto]
-c4242fb Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
-2065436 #18 github-actions リポジトリから、call-daily-project-summary.yml を持ってきた
-3f65a04 Update project summaries (overview & development status)
 
 ### 変更されたファイル:
-.github/docs/daily-summary-setup.md
-.github/prompts/development-status-prompt.md
-.github/prompts/project-overview-prompt.md
-.github/scripts/generate-project-summary.cjs
-.github/scripts/test-summary.cjs
-.github/workflows/call-daily-project-summary.yml
-.github/workflows/daily-project-summary.yml
 generated-docs/callgraph-enhanced.html
+generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
 generated-docs/project-overview.md
 issue-notes/18.md
 
 
 ---
-Generated at: 2025-09-19 07:04:47 JST
+Generated at: 2025-09-23 07:05:23 JST
