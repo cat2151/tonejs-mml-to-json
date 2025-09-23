@@ -1,4 +1,4 @@
-name: Issue Note Generator
+name: Call Issue Note Generator
 
 on:
   issues:
