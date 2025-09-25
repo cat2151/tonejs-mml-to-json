@@ -1,50 +1,70 @@
-Last updated: 2025-09-25
+Last updated: 2025-09-26
 
 # Development Status
 
 ## 現在のIssues
-- 現在のMMLパーサー (`mml2json`) のTDD移行のため、既存コードベースからJSON出力テストケースを生成する準備を進めています ([Issue #5](../issue-notes/5.md))。
-- 開発効率向上のため、`PEG`ファイル更新時に自動ビルド・テスト・ページオープンを行う`pnpm watch`スクリプトの整備が課題です ([Issue #8](../issue-notes/8.md))。
-- GitHub Actionsの共通ワークフロー化が進んでおり、特に`translate`と`callgraph`ワークフローを外部リポジトリから呼び出す形に移行する必要があります ([Issue #16](../issue-notes/16.md))。
+- [Issue #16](../issue-notes/16.md)は、issue-note, project-summary, translate, callgraphの共通ワークフロー化に取り組んでおり、translateとcallgraphの導入が進行中。
+- [Issue #9](../issue-notes/9.md)と[Issue #8](../issue-notes/8.md)は、pnpm watchの自動開始と機能強化により開発体験の向上を目指している。
+- [Issue #7](../issue-notes/7.md)、[Issue #6](../issue-notes/6.md)、[Issue #5](../issue-notes/5.md)は、mml2jsonのTDD実装に向け、mml2astおよびast2jsonのTDD準備を進めている。
 
 ## 次の一手候補
-1. [Issue #5](../issue-notes/5.md): mml2json関数を新たにPEGからTDDで実装しなおすため、TDD用テストケースを、今のコードベースからagentに生成させる
-   - 最初の小さな一歩: 現在の `src/mml2json.js` のMML文字列からJSONオブジェクトへの変換ロジックを分析し、既存のテストファイル (`test/parser.test.js`) に追記するためのTDDテストケース（入力MMLと期待されるJSON出力）を1つ生成する。
-   - Agent実行プロンプ:
-     ```
-     対象ファイル: `src/mml2json.js`, `test/parser.test.js`
-
-     実行内容: `src/mml2json.js` の `mml2json` 関数について、以下の点を分析し、`test/parser.test.js` に追記できる形式のTDDテストケース（入力MML文字列と、そのMMLが変換される期待JSONオブジェクト）を1つ生成してください。現在の`test/parser.test.js`の`parser`テストスイートに倣って、`describe`ブロック内に`test`を記述し、`expect(mml2json(inputMML)).toEqual(expectedJSON);`の形式で出力してください。
-
-     確認事項: `src/mml2json.js`が、`mml2json`関数をエクスポートしていることを確認してください。また、生成されるJSONオブジェクトはTone.js Sequencerが解釈可能な形式であることを考慮してください。現在の `test/parser.test.js` の既存テストケースの形式と競合しないことを確認してください。
-
-     期待する出力: markdown形式で、`test/parser.test.js`に直接追加可能な`describe`ブロックと`test`関数を含むJavaScriptコードブロック。
-     ```
-
-2. [Issue #8](../issue-notes/8.md): pnpm script watchを、「1行コマンド実行したらpage openし、PEGファイルをwatchして、PEG更新時に自動でbuildしてtest」というものにする
-   - 最初の小さな一歩: `package.json`の`scripts`セクションに、`src/grammar.pegjs`ファイルの変更を監視し、変更があった場合に`npm run build`と`npm run test`を実行するwatchスクリプトを追加する。
+1. [Issue #16](../issue-notes/16.md) 関数コールグラフhtmlビジュアライズ生成の共通ワークフロー化を進める
+   - 最初の小さな一歩: `github-actions` リポジトリの `call-callgraph.yml` を `tonejs-mml-to-json` リポジトリの `.github/workflows/` にコピーする。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `package.json`, `src/grammar.pegjs`, `src/grammar.js`, `test/parser.test.js`
+     対象ファイル:
+     - .github/workflows/call-callgraph.yml (新規作成または更新対象)
+     - .github/actions-tmp/.github/workflows/call-callgraph.yml (参照元)
+     - .github/workflows/callgraph_enhanced.yml (既存のcallgraph workflow、必要であれば削除またはリネーム)
 
-     実行内容: `package.json`の`scripts`セクションに、`peg`ファイルの変更を監視し、自動でビルドとテストを実行する`watch`スクリプトを追加してください。具体的には、`src/grammar.pegjs`ファイルの変更を検知したら、`npm run build`（PEGファイルを`src/grammar.js`にコンパイル）と`npm run test`（`test/parser.test.js`を実行）を連続して実行するスクリプトを記述してください。既存の`build`および`test`スクリプトのコマンドを利用することを想定します。` concurrently ` や ` onchange ` などのツール利用を検討し、提案してください。
+     実行内容:
+     `tonejs-mml-to-json` リポジトリに、`github-actions` リポジトリ (`.github/actions-tmp/.github/workflows/call-callgraph.yml` の内容) から「関数コールグラフhtmlビジュアライズ生成」の共通ワークフロー呼び出しファイル `call-callgraph.yml` をコピーし、`.github/workflows/` ディレクトリに配置してください。その後、既存の `callgraph_enhanced.yml` がこの新しいワークフローとどのように整合するかを分析し、必要であれば `callgraph_enhanced.yml` を削除または無効化する提案をしてください。
 
-     確認事項: 既存の`build`および`test`スクリプトが正しく機能することを確認してください。`src/grammar.pegjs`を監視対象とし、`src/grammar.js`がビルド成果物として生成されることを確認してください。
+     確認事項:
+     コピーする `call-callgraph.yml` が `workflow_call` で `github-actions` リポジトリの共通ワークフローを正しく参照しているか確認してください。また、既存の `callgraph_enhanced.yml` が持つ機能が新しい `call-callgraph.yml` で完全にカバーされるか、または不要になるかを分析してください。
 
-     期待する出力: `package.json` の `scripts` セクションに追加/変更される内容を記述したmarkdown形式のJSONコードブロック。
+     期待する出力:
+     `.github/workflows/call-callgraph.yml` の新規内容をMarkdownコードブロックで出力し、さらに、`callgraph_enhanced.yml` を削除または無効化するための推奨事項をMarkdown形式で記述してください。
      ```
 
-3. [Issue #16](../issue-notes/16.md): GitHub Actions「関数コールグラフhtmlビジュアライズ生成」を共通ワークフロー化する (translateワークフローの共通化)
-   - 最初の小さな一歩: `translate`ワークフローについて、既存の`.github/workflows/translate-readme.yml`が`github-actions`リポジトリの共通ワークフロー`call-translate-readme.yml`を正しく呼び出すように修正する。
+2. [Issue #8](../issue-notes/8.md) pnpm script watchを、「1行コマンド実行したらpage openし、PEGファイルをwatchして、PEG更新時に自動でbuildしてtest」というものにする
+   - 最初の小さな一歩: 現在の `package.json` の `scripts` を確認し、`watch` コマンドがどのような設定になっているかを調査する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `.github/workflows/translate-readme.yml`, `.github/actions-tmp/.github/workflows/call-translate-readme.yml`
+     対象ファイル:
+     - package.json
+     - src/grammar.pegjs
+     - src/grammar.js
+     - test/parser.test.js
+     - vitest.config.js
 
-     実行内容: `.github/workflows/translate-readme.yml` を編集し、`cat2151/github-actions`リポジトリで定義されている共通ワークフロー `.github/workflows/call-translate-readme.yml` を呼び出すように変更してください。既存の `translate-readme.yml` の内容は削除し、共通ワークフロー (`uses: cat2151/github-actions/.github/workflows/call-translate-readme.yml@main`) を呼び出す形式に書き換えてください。その際、必要な `inputs` および `secrets` は適切に `with` で渡すようにしてください。
+     実行内容:
+     現在の `package.json` ファイル内の `watch` スクリプトの定義を分析し、[Issue #8](../issue-notes/8.md) で提案されている「PEGファイルをwatchし、PEG更新時に自動でbuildしてtest」という機能を実現するために、`package.json` の `scripts` セクションをどのように変更すべきか、具体的な `watch` コマンドの提案をMarkdown形式で記述してください。現在の `build` や `test` スクリプトとの連携も考慮に入れてください。
 
-     確認事項: 呼び出し元の `translate-readme.yml` が存在するパスと、共通ワークフローのパスが正しいことを確認してください。共通ワークフローに渡すべき `inputs` や `secrets` が不足していないか、また過剰でないかを確認してください。`main`ブランチへの参照が適切であることを確認してください。
+     確認事項:
+     既存の `package.json` の `scripts` に `build`, `test`, `watch` 関連のコマンドが存在するか、また `vite` や `vitest` の設定ファイル (`vitest.config.js`) がどのようにテストをトリガーしているかを確認してください。PEG.jsのビルドプロセス（`src/grammar.pegjs` から `src/grammar.js` への変換）が現在のスクリプトでどのように行われているかを確認してください。
 
-     期待する出力: 変更後の `.github/workflows/translate-readme.yml` の内容を記述したmarkdown形式のYAMLコードブロック。
+     期待する出力:
+     `package.json` の `scripts` セクションの修正案（`watch` コマンドの追加または変更）をMarkdown形式で出力してください。併せて、提案する `watch` コマンドがどのように機能するか、簡単な説明も加えてください。
+     ```
+
+3. [Issue #6](../issue-notes/6.md) mml2astのTDD準備をする
+   - 最初の小さな一歩: `src/mml2json.js` の現状を分析し、`mml` を `ast` に変換する中間ステップを導入するために、既存のパース結果がどのように利用できるかを調査する。
+   - Agent実行プロンプト:
+     ```
+     対象ファイル:
+     - src/grammar.pegjs
+     - src/mml2json.js
+     - test/parser.test.js (または新規テストファイル)
+
+     実行内容:
+     [Issue #6](../issue-notes/6.md) に基づき、`mml2ast` 関数のTDD準備として、`src/grammar.pegjs` でパースされたMMLから抽象構文木 (AST) を生成する `mml2ast` 関数の初期実装に向けたテストファイル (`test/mml2ast.test.js` など) の作成を検討してください。具体的には、ASTのシンプルな構造（例: `{ type: 'note', value: 'c', duration: 4 }`）を想定し、一つの簡単なMML入力 (`'c'`) に対する期待されるAST出力を定義したテストケースのひな形をMarkdown形式で出力してください。
+
+     確認事項:
+     既存の `src/grammar.pegjs` の出力構造と `src/mml2json.js` でその結果がどのように処理されているかを確認し、`mml2ast` がその間に割り込む場合のAST設計の初期案と整合性が取れるか確認してください。
+
+     期待する出力:
+     `test/mml2ast.test.js` のひな形として、`mml2ast` 関数の最初のテストケース（簡単なMML文字列に対する期待されるAST構造）を定義したJavaScriptコードをMarkdown形式で出力してください。また、`src/mml2json.js` に `mml2ast` を組み込む場合の簡単なコード変更の方向性についても言及してください。
 
 ---
-Generated at: 2025-09-25 07:05:45 JST
+Generated at: 2025-09-26 07:05:12 JST

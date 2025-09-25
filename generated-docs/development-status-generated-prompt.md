@@ -1,4 +1,4 @@
-Last updated: 2025-09-25
+Last updated: 2025-09-26
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -205,8 +205,8 @@ Last updated: 2025-09-25
 - .github/scripts/enhanced-convert-to-html.cjs
 - .github/workflows/call-daily-project-summary.yml
 - .github/workflows/call-issue-note.yml
+- .github/workflows/call-translate-readme.yml
 - .github/workflows/callgraph_enhanced.yml
-- .github/workflows/translate-readme.yml
 - .gitignore
 - LICENSE
 - README.ja.md
@@ -451,6 +451,10 @@ Last updated: 2025-09-25
 # どうする？
 - translate
     - github-actions リポジトリにある、call-translate-readme.yml をcpして使うようにする、まず単純cpして動くかを確認する
+        - 状況
+            - 単純cpした
+            - 次は
+                - 動くかを確認する
 - callgraph
     - github-actions リポジトリにある、call-callgraph.yml をcpして使うようにする、まず単純cpして動くかを確認する
 
@@ -752,6 +756,9 @@ planにおいては、修正対象のソースファイル名と関数名を、�
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+a2200b6 Update callgraph-enhanced.html [auto]
+31da944 github-actions リポジトリ側の共通workflow呼び出しymlファイルをcpして使うようにした
+5d1f472 Update project summaries (overview & development status) [auto]
 3b6813a Update callgraph-enhanced.html [auto]
 610503a Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
 3367e52 fix #17 issue-noteの共通ワークフロー呼び出しを、github-actionsリポジトリのものに差し替えた
@@ -759,12 +766,10 @@ fd119dd Update project summaries (overview & development status) [auto]
 2856e00 Update project summaries (overview & development status) [auto]
 8f47717 Update callgraph-enhanced.html [auto]
 2e15204 Update project summaries (overview & development status)
-3c5c48d Update callgraph-enhanced.html [auto]
-e802be5 fix #18 test greenなのでcloseとする
-f99f288 Update project summaries (overview & development status)
 
 ### 変更されたファイル:
 .github/workflows/call-issue-note.yml
+.github/workflows/call-translate-readme.yml
 generated-docs/callgraph-enhanced.html
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
@@ -773,4 +778,4 @@ issue-notes/18.md
 
 
 ---
-Generated at: 2025-09-25 07:05:20 JST
+Generated at: 2025-09-26 07:04:33 JST
