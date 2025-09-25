@@ -1,4 +1,4 @@
-name: Auto Translate README
+name: Call Auto Translate README
 
 on:
   push:
