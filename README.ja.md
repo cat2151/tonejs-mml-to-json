@@ -55,5 +55,7 @@
 ## TDD方針
 - test対象は、mml2ast、ast2ast、ast2json、のそれぞれである
   - mml2abc / chord2mml のTDDを参照のこと
+- このprojectではvitestによるTDDをしていた気がする
+  - あとでtest手順を整理するつもり
 
 ※README.md は README.ja.md を元にGeminiの翻訳でGitHub Actionsで自動生成しています
