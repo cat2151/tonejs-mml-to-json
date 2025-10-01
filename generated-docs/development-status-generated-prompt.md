@@ -1,4 +1,4 @@
-Last updated: 2025-09-27
+Last updated: 2025-10-02
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -189,24 +189,10 @@ Last updated: 2025-09-27
 - .github/actions-tmp/package-lock.json
 - .github/actions-tmp/package.json
 - .github/actions-tmp/src/main.js
-- .github/codeql-queries/callgraph.ql
-- .github/codeql-queries/codeql-pack.lock.yml
-- .github/codeql-queries/qlpack.yml
-- .github/docs/callgraph.md
-- .github/scripts/callgraph-utils.cjs
-- .github/scripts/callgraph_enhanced/analyze-codeql.cjs
-- .github/scripts/callgraph_enhanced/check-codeql-exists.cjs
-- .github/scripts/callgraph_enhanced/check-commits.cjs
-- .github/scripts/callgraph_enhanced/check-node-version.cjs
-- .github/scripts/callgraph_enhanced/copy-commit-results.cjs
-- .github/scripts/callgraph_enhanced/find-process-results.cjs
-- .github/scripts/callgraph_enhanced/generate-html-graph.cjs
-- .github/scripts/callgraph_enhanced/generateHTML.cjs
-- .github/scripts/enhanced-convert-to-html.cjs
+- .github/workflows/call-callgraph.yml
 - .github/workflows/call-daily-project-summary.yml
 - .github/workflows/call-issue-note.yml
 - .github/workflows/call-translate-readme.yml
-- .github/workflows/callgraph_enhanced.yml
 - .gitignore
 - LICENSE
 - README.ja.md
@@ -259,6 +245,14 @@ Last updated: 2025-09-27
 # issue GitHub Actions「関数コールグラフhtmlビジュアライズ生成」を共通ワークフロー化する #16
 [issues #16](https://github.com/cat2151/tonejs-mml-to-json/issues/16)
 
+# 状況
+- github-actionsリポジトリの共通ワークフローを呼び出すようにした
+- testをする。日次バッチが流れるまで待ち、結果logを確認する
+  - test case
+    - 24時間以内にuser commitがあった場合、
+      - call graphが生成されたことがlogで確認できること
+        - ※生成内容が変化ないためcommitされない可能性がある。
+          - それもlogで確認できればOK
 
 
 ```
@@ -470,6 +464,14 @@ Last updated: 2025-09-27
 # issue GitHub Actions「関数コールグラフhtmlビジュアライズ生成」を共通ワークフロー化する #16
 [issues #16](https://github.com/cat2151/tonejs-mml-to-json/issues/16)
 
+# 状況
+- github-actionsリポジトリの共通ワークフローを呼び出すようにした
+- testをする。日次バッチが流れるまで待ち、結果logを確認する
+  - test case
+    - 24時間以内にuser commitがあった場合、
+      - call graphが生成されたことがlogで確認できること
+        - ※生成内容が変化ないためcommitされない可能性がある。
+          - それもlogで確認できればOK
 
 
 ```
@@ -761,25 +763,43 @@ planにおいては、修正対象のソースファイル名と関数名を、�
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+43ef038 Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
+10bf0de #16 mdメンテ
+cbe5f3e Auto-translate README.ja.md to README.md [auto]
+810b315 vitestについて追記
+f504356 #16 mdメンテ
+7e6a969 Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
+c9a6e66 #16 github-actionsリポジトリの共通workflowを呼ぶようにしたつもり
+c94b032 Update project summaries (overview & development status) [auto]
 9ff2c33 Update project summaries (overview & development status) [auto]
 a2200b6 Update callgraph-enhanced.html [auto]
-31da944 github-actions リポジトリ側の共通workflow呼び出しymlファイルをcpして使うようにした
-5d1f472 Update project summaries (overview & development status) [auto]
-3b6813a Update callgraph-enhanced.html [auto]
-610503a Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
-3367e52 fix #17 issue-noteの共通ワークフロー呼び出しを、github-actionsリポジトリのものに差し替えた
-fd119dd Update project summaries (overview & development status) [auto]
-2856e00 Update project summaries (overview & development status) [auto]
-8f47717 Update callgraph-enhanced.html [auto]
 
 ### 変更されたファイル:
-.github/workflows/call-issue-note.yml
+.github/codeql-queries/callgraph.ql
+.github/codeql-queries/codeql-pack.lock.yml
+.github/codeql-queries/qlpack.yml
+.github/docs/callgraph.md
+.github/scripts/callgraph-utils.cjs
+.github/scripts/callgraph_enhanced/analyze-codeql.cjs
+.github/scripts/callgraph_enhanced/check-codeql-exists.cjs
+.github/scripts/callgraph_enhanced/check-commits.cjs
+.github/scripts/callgraph_enhanced/check-node-version.cjs
+.github/scripts/callgraph_enhanced/copy-commit-results.cjs
+.github/scripts/callgraph_enhanced/find-process-results.cjs
+.github/scripts/callgraph_enhanced/generate-html-graph.cjs
+.github/scripts/callgraph_enhanced/generateHTML.cjs
+.github/scripts/enhanced-convert-to-html.cjs
+.github/workflows/call-callgraph.yml
 .github/workflows/call-translate-readme.yml
+.github/workflows/callgraph_enhanced.yml
+README.ja.md
+README.md
 generated-docs/callgraph-enhanced.html
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
 generated-docs/project-overview.md
+issue-notes/16.md
 
 
 ---
-Generated at: 2025-09-27 07:05:07 JST
+Generated at: 2025-10-02 07:05:03 JST
