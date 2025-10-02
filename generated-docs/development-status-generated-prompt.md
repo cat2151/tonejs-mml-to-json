@@ -1,4 +1,4 @@
-Last updated: 2025-10-02
+Last updated: 2025-10-03
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -254,6 +254,12 @@ Last updated: 2025-10-02
         - ※生成内容が変化ないためcommitされない可能性がある。
           - それもlogで確認できればOK
 
+# 結果
+- jobがエラー終了していた
+- どうする？
+  - logを可視化する
+    - https://github.com/cat2151/tonejs-mml-to-json/actions/runs/18174089969/job/51735711014
+  - agentに投げる
 
 ```
 
@@ -473,6 +479,12 @@ Last updated: 2025-10-02
         - ※生成内容が変化ないためcommitされない可能性がある。
           - それもlogで確認できればOK
 
+# 結果
+- jobがエラー終了していた
+- どうする？
+  - logを可視化する
+    - https://github.com/cat2151/tonejs-mml-to-json/actions/runs/18174089969/job/51735711014
+  - agentに投げる
 
 ```
 
@@ -763,6 +775,8 @@ planにおいては、修正対象のソースファイル名と関数名を、�
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+24340cf #16 jobが落ちていたので状況を整理
+672e49a Update project summaries (overview & development status) [auto]
 43ef038 Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
 10bf0de #16 mdメンテ
 cbe5f3e Auto-translate README.ja.md to README.md [auto]
@@ -771,27 +785,8 @@ f504356 #16 mdメンテ
 7e6a969 Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
 c9a6e66 #16 github-actionsリポジトリの共通workflowを呼ぶようにしたつもり
 c94b032 Update project summaries (overview & development status) [auto]
-9ff2c33 Update project summaries (overview & development status) [auto]
-a2200b6 Update callgraph-enhanced.html [auto]
 
 ### 変更されたファイル:
-.github/codeql-queries/callgraph.ql
-.github/codeql-queries/codeql-pack.lock.yml
-.github/codeql-queries/qlpack.yml
-.github/docs/callgraph.md
-.github/scripts/callgraph-utils.cjs
-.github/scripts/callgraph_enhanced/analyze-codeql.cjs
-.github/scripts/callgraph_enhanced/check-codeql-exists.cjs
-.github/scripts/callgraph_enhanced/check-commits.cjs
-.github/scripts/callgraph_enhanced/check-node-version.cjs
-.github/scripts/callgraph_enhanced/copy-commit-results.cjs
-.github/scripts/callgraph_enhanced/find-process-results.cjs
-.github/scripts/callgraph_enhanced/generate-html-graph.cjs
-.github/scripts/callgraph_enhanced/generateHTML.cjs
-.github/scripts/enhanced-convert-to-html.cjs
-.github/workflows/call-callgraph.yml
-.github/workflows/call-translate-readme.yml
-.github/workflows/callgraph_enhanced.yml
 README.ja.md
 README.md
 generated-docs/callgraph-enhanced.html
@@ -802,4 +797,4 @@ issue-notes/16.md
 
 
 ---
-Generated at: 2025-10-02 07:05:03 JST
+Generated at: 2025-10-03 07:05:16 JST
