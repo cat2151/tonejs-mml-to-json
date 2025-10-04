@@ -1,50 +1,53 @@
-Last updated: 2025-10-03
+Last updated: 2025-10-05
 
 # Development Status
 
 ## 現在のIssues
-- [Issue #16](../issue-notes/16.md) は、共通ワークフロー化したGitHub Actions「関数コールグラフ生成」がエラー終了しており、ログ分析とAgentによる原因調査が必要です。
-- MMLからJSONへの変換機能 (`mml2json`, `mml2ast`, `ast2json`) のTDD準備 ([Issue #5](../issue-notes/5.md), [#6](../issue-notes/6.md), [#7](../issue-notes/7.md)) が進行中で、Agentを活用したテストケース生成を検討しています。
-- 開発体験向上のため、`pnpm watch` コマンドの自動化と機能拡張 ([Issue #8](../issue-notes/8.md), [#9](../issue-notes/9.md)) を計画しています。
+- [Issue #16](../issue-notes/16.md) でGitHub Actions「コールグラフHTML生成」の共通ワークフロー化がエラー終了しており、ログ可視化と原因特定が必要な状況です。
+- 開発環境の効率化として、[Issue #9](../issue-notes/9.md) でVSCode起動時の`pnpm watch`自動実行、[Issue #8](../issue-notes/8.md) で`pnpm watch`の機能強化が検討されています。
+- MMLパーサーのTDD準備として、[Issue #5](../issue-notes/5.md) で`mml2json`のテストケース生成、[Issue #6](../issue-notes/6.md) で`mml2ast`のTDD準備が進められています。
 
 ## 次の一手候補
-1. [Issue #16](../issue-notes/16.md): GitHub Actions「関数コールグラフhtmlビジュアライズ生成」のエラー調査と修正
-   - 最初の小さな一歩: GitHub Actionsの実行ログ（特にエラー箇所）を詳細に分析し、エラーメッセージとスタックトレースから具体的な原因候補を特定します。
+1. [Issue #16](../issue-notes/16.md): GitHub Actions「関数コールグラフhtmlビジュアライズ生成」のエラー原因特定
+   - 最初の小さな一歩: `tonejs-mml-to-json`リポジトリで発生している最新のコールグラフ生成ワークフロー実行ログ（https://github.com/cat2151/tonejs-mml-to-json/actions/runs/18174089969/job/51735711014 など）を確認し、エラーメッセージとスタックトレースを詳細に把握する。
    - Agent実行プロンプ:
      ```
-     対象ファイル: `.github/workflows/call-callgraph.yml`、`issue-notes/16.md`、およびGitHub Actionsの実行ログ（https://github.com/cat2151/tonejs-mml-to-json/actions/runs/18174089969/job/51735711014）
+     対象ファイル: `.github/workflows/call-callgraph.yml` および関連するログファイル（URLで提供）
 
-     実行内容: 提供されたGitHub Actionsの実行ログとワークフロー定義ファイル `.github/workflows/call-callgraph.yml` を分析し、`callgraph.yml` がエラー終了した根本原因を特定してください。特に、呼び出し元ワークフローでの設定不足や、呼び出されたアクション内でのスクリプト実行エラー（例: `.github/actions-tmp/.github_automation/callgraph/scripts/analyze-codeql.cjs` などのスクリプト内部のエラー）に焦点を当てて調査してください。
+     実行内容: 提供されたGitHub Actionsの実行ログURLからエラー情報を抽出し、`.github/workflows/call-callgraph.yml`の定義と照らし合わせて、エラーの原因を分析してください。特に、`github-actions`リポジトリ側では動作しているが、`tonejs-mml-to-json`でエラーになっている点に注目してください。
 
-     確認事項: `call-callgraph.yml` が `github-actions` リポジトリの共通ワークフローを正しく呼び出せているか、必要な入力パラメータやシークレットが適切に渡されているかを確認してください。また、エラーメッセージが共通ワークフロー内のどのステップやスクリプトに関連しているかを明確にしてください。
+     確認事項: `tonejs-mml-to-json`と`github-actions`リポジトリ間でのworkflow_callのパラメータの渡し方、シークレットの設定、および`checkout`アクションの有無と設定を比較し、相違点がないかを確認してください。
 
-     期待する出力: Markdown形式で、エラーの根本原因を特定し、具体的な修正案（例: ワークフローYAMLの変更点、関連スクリプトの修正点）を記述してください。
+     期待する出力: Markdown形式で、エラーの具体的な原因と、その解決のための具体的な修正案（ファイルパスと修正内容）を提示してください。
      ```
 
-2. [Issue #5](../issue-notes/5.md): `mml2json` 関数TDD用テストケースのAgentによる生成
-   - 最初の小さな一歩: 現在の `src/mml2json.js` に存在する `mml2json` 関数について、具体的なMML文字列の入力とそれに対応するJSONオブジェクトの出力を一例（例: "c" というMML入力）として手動で抽出します。
-   - Agent実行プロンプト:
+2. [Issue #9](../issue-notes/9.md): VSCode起動時の `pnpm watch` 自動実行設定の調査
+   - 最初の小さな一歩: 既存のmml2abcやchord2mmlプロジェクト（もしアクセス可能であれば）の`.vscode`ディレクトリ内にある`tasks.json`や`settings.json`ファイルを調査し、VSCode起動時に特定のコマンドを自動実行する設定例があるかを確認する。
+   - Agent実行プロンプ:
      ```
-     対象ファイル: `src/main.js`, `src/mml2json.js`, `src/grammar.js`, `src/grammar.pegjs`, `test/parser.test.js`
+     対象ファイル:
+       - `dev-setup/README.md`
+       - `package.json`
+       - プロジェクト内の既存の`.vscode/`ディレクトリ内のファイル（例: `.vscode/tasks.json`, `.vscode/settings.json`）。もしmml2abcやchord2mmlのプロジェクトファイルパスが分かれば、それらも対象に含める。
 
-     実行内容: `src/mml2json.js` に含まれる既存の `mml2json` 関数について、MML入力文字列とそれに対応する出力JSONオブジェクトを抽出し、Vitest形式のテストケースを生成してください。特に、MML文字列 "c" がどのようなJSONオブジェクトに変換されるか、具体的な例を基にテストケースを作成してください。
+     実行内容: `pnpm watch`をVSCode起動時に自動実行するための設定方法について、一般的なVSCodeの設定慣行とこのプロジェクトの既存ファイル構造を考慮し、調査してください。特に、`package.json`の`scripts`セクションとVSCodeの`tasks.json`の関連性に焦点を当てて分析してください。
 
-     確認事項: `mml2json.js` が依存する `src/grammar.js` (PEG.jsによって生成されるパーサー) の出力構造を考慮すること。既存の `test/parser.test.js` のテスト形式と整合性があること。生成されるテストケースは、TDDの初期段階としてテストレッドになることを想定します。
+     確認事項: ハルシネーションを避けるため、既存のVSCode設定ファイルがない場合は、一般的なVSCodeのタスク自動実行のベストプラクティスを基に提案してください。
 
-     期待する出力: `test/mml2json.test.js` という新規ファイルに、最低1つの「MML入力文字列とその期待されるJSON出力オブジェクト」を含むVitest形式のテストケースをMarkdown形式で記述してください。
+     期待する出力: Markdown形式で、VSCode起動時に`pnpm watch`を自動実行するための具体的な設定手順と、`tasks.json`に記述すべき内容の例を生成してください。
      ```
 
-3. [Issue #9](../issue-notes/9.md): pnpm watchをVSCode起動時に自動実行させる設定の調査と提案
-   - 最初の小さな一歩: 既存のmml2abc/chord2mmlプロジェクト内で、VSCodeの自動実行設定（`tasks.json`や`settings.json`など）が存在しないか確認し、その設定方法を調査します。
-   - Agent実行プロンプト:
+3. [Issue #5](../issue-notes/5.md): `mml2json`のTDD用テストケースを既存コードから生成
+   - 最初の小さな一歩: `src/mml2json.js`の現在の実装がどのようなMML文字列をJSONに変換しているか、いくつかの具体的なMML入力とそれに対応する現在のJSON出力のペアを特定または作成する。
+   - Agent実行プロンプ:
      ```
-     対象ファイル: `.vscode/tasks.json` (もしあれば), `.vscode/settings.json`, `package.json`, `dev-setup/README.md`
+     対象ファイル: `src/mml2json.js` および `test/parser.test.js`
 
-     実行内容: VSCodeでプロジェクトを開いた際に `pnpm watch` コマンドが自動で実行されるようにするための設定方法を調査し、具体的な `.vscode/tasks.json` の内容を提案してください。また、既存の `mml2abc` または `chord2mml` プロジェクトに同様の自動実行設定が存在しないか調査し、その結果も考慮に入れてください。
+     実行内容: `src/mml2json.js`の現在の実装を分析し、MML文字列を入力として受け取り、JSONオブジェクトを出力する形式のテストケースを複数生成してください。生成するテストケースは、`test/parser.test.js`のようなVitestのテスト形式に準拠し、`expect(result).toEqual(expectedJson)`の形式で、具体的なMML文字列と、それに対応する期待されるJSONオブジェクトを含めてください。
 
-     確認事項: `package.json` に `watch` スクリプトが定義されていること。VSCodeの自動実行設定がプロジェクトローカルに保存され、Gitで管理できる形式であること。提案された設定が、既存のVSCode設定と競合しないか、または簡単に統合できることを確認してください。
+     確認事項: テストケースは、現在の`mml2json`の挙動を正確に反映するものであること。また、`str to object`形式のテストケースを優先し、既存の`str to str`形式のテストケースとは異なる内容とすること。ハルシネーションにより、`mml2json`関数を勝手に変更するような内容は避けてください。
 
-     期待する出力: `pnpm watch` をVSCode起動時に自動実行するための `.vscode/tasks.json` の設定例をMarkdown形式で記述してください。既存プロジェクトの調査結果も簡潔に含めてください。
+     期待する出力: Markdown形式で、生成された`mml2json`用のTDDテストケース（Vitest形式のJavaScriptコードブロック）を提示してください。最低3つの異なるMML入力とJSON出力ペアを含むこと。
 
 ---
-Generated at: 2025-10-03 07:05:39 JST
+Generated at: 2025-10-05 07:04:45 JST

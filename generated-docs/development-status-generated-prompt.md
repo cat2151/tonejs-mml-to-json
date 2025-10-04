@@ -1,4 +1,4 @@
-Last updated: 2025-10-03
+Last updated: 2025-10-05
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -260,6 +260,9 @@ Last updated: 2025-10-03
   - logを可視化する
     - https://github.com/cat2151/tonejs-mml-to-json/actions/runs/18174089969/job/51735711014
   - agentに投げる
+- github-actionsリポジトリ側で、logの動作を確認した、OK
+- どうする？
+  - tonejs-mml-to-json側で日次バッチを流し、エラーをlogで可視化する
 
 ```
 
@@ -463,6 +466,12 @@ Last updated: 2025-10-03
 - callgraph
     - github-actions リポジトリにある、call-callgraph.yml をcpして使うようにする、まず単純cpして動くかを確認する
 
+# 結果
+- translate
+    - tonejs-mml-to-jsonリポジトリにて、test red
+    - logをみても情報不足なため、まずloggerを修正する
+
+
 ```
 
 ### issue-notes/16.md
@@ -485,6 +494,9 @@ Last updated: 2025-10-03
   - logを可視化する
     - https://github.com/cat2151/tonejs-mml-to-json/actions/runs/18174089969/job/51735711014
   - agentに投げる
+- github-actionsリポジトリ側で、logの動作を確認した、OK
+- どうする？
+  - tonejs-mml-to-json側で日次バッチを流し、エラーをlogで可視化する
 
 ```
 
@@ -775,6 +787,8 @@ planにおいては、修正対象のソースファイル名と関数名を、�
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+5c97a54 #16 mdメンテ
+adbab3f Update project summaries (overview & development status) [auto]
 24340cf #16 jobが落ちていたので状況を整理
 672e49a Update project summaries (overview & development status) [auto]
 43ef038 Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
@@ -782,14 +796,10 @@ planにおいては、修正対象のソースファイル名と関数名を、�
 cbe5f3e Auto-translate README.ja.md to README.md [auto]
 810b315 vitestについて追記
 f504356 #16 mdメンテ
-7e6a969 Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
-c9a6e66 #16 github-actionsリポジトリの共通workflowを呼ぶようにしたつもり
-c94b032 Update project summaries (overview & development status) [auto]
 
 ### 変更されたファイル:
 README.ja.md
 README.md
-generated-docs/callgraph-enhanced.html
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
 generated-docs/project-overview.md
@@ -797,4 +807,4 @@ issue-notes/16.md
 
 
 ---
-Generated at: 2025-10-03 07:05:16 JST
+Generated at: 2025-10-05 07:04:28 JST
