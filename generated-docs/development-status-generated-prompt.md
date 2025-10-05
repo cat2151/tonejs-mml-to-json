@@ -1,4 +1,4 @@
-Last updated: 2025-10-05
+Last updated: 2025-10-06
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -264,6 +264,16 @@ Last updated: 2025-10-05
 - どうする？
   - tonejs-mml-to-json側で日次バッチを流し、エラーをlogで可視化する
 
+# 結果
+- 判明した。対象source指定がmain.jsだけ、つまりgithub-actions共通ワークフロー側のデフォルトのままだった
+- どうする？
+  - まず対象sourceのlistをここに可視化する
+    - main.js, mml2json.js, のみである
+  - 次に、`.github_automation/callgraph/config/my.json` に、それを書く。
+    - 書式は、共通ワークフロー側のexample.jsonを参考にする
+  - 恒久対策の候補は：
+    - documentsの整備。共通ワークフロー側に、なんらかのdocumentsを残す。
+
 ```
 
 ## [Issue #9](../issue-notes/9.md): pnpm watchを、VSCodeを起動したら自動で実行開始させる
@@ -406,6 +416,14 @@ Last updated: 2025-10-05
 ```
 
 ## ドキュメントで言及されているファイルの内容
+### .github/actions-tmp/.github_automation/callgraph/config/example.json
+```json
+[
+"src/main.js"
+]
+
+```
+
 ### .github/actions-tmp/issue-notes/16.md
 ```md
 # issue issue-note / project-summary / translate / callgraph をtonejs-mml-to-jsonから呼び出す #16
@@ -497,6 +515,16 @@ Last updated: 2025-10-05
 - github-actionsリポジトリ側で、logの動作を確認した、OK
 - どうする？
   - tonejs-mml-to-json側で日次バッチを流し、エラーをlogで可視化する
+
+# 結果
+- 判明した。対象source指定がmain.jsだけ、つまりgithub-actions共通ワークフロー側のデフォルトのままだった
+- どうする？
+  - まず対象sourceのlistをここに可視化する
+    - main.js, mml2json.js, のみである
+  - 次に、`.github_automation/callgraph/config/my.json` に、それを書く。
+    - 書式は、共通ワークフロー側のexample.jsonを参考にする
+  - 恒久対策の候補は：
+    - documentsの整備。共通ワークフロー側に、なんらかのdocumentsを残す。
 
 ```
 
@@ -753,6 +781,44 @@ planにおいては、修正対象のソースファイル名と関数名を、�
 
 ```
 
+### .github/actions-tmp/src/main.js
+```js
+// 仮の解析対象 main.js
+function greet(name) {
+    console.log('Hello, ' + name + '!');
+}
+
+function main() {
+    greet('World');
+}
+
+main();
+
+```
+
+### src/main.js
+```js
+var errorPoint, outputArea, textarea1, textarea2, nodes = [];
+
+window.addEventListener("load", ()=>{
+  outputArea = document.getElementById('output');
+  textarea1 = document.querySelector('#textarea1');
+  textarea1.addEventListener('input', play);
+  textarea2 = document.querySelector('#textarea2');
+  textarea2.addEventListener('input', play);
+
+  const button = document.querySelector('button');
+  button.onclick = async ()=>{
+    await Tone.start();
+    play();
+  };
+
+  // playボタンを押さなくてもtextarea2にコンパイル結果を出力する用
+  play();
+});
+
+```
+
 ### issue-notes/5.md
 ```md
 # issue mml2json関数を新たにPEGからTDDで実装しなおすため、TDD用テストケースを、今のコードベースからagentに生成させる #5
@@ -785,8 +851,171 @@ planにおいては、修正対象のソースファイル名と関数名を、�
 
 ```
 
+### src/mml2json.js
+```js
+function mml2json(mml) {
+  const measTick = 192 * 4;
+  let startTick = 0;
+  let lCommand = 8; // default l8
+  let octave = 4;
+/*TODO
+implement:
+  o : note number?
+  FMSynth (toneParams are ひとまず default)
+*/
+  let commands = compileMmlToCommands(mml);
+  return commands;
+
+  function compileMmlToCommands(mml) {
+    let commands = [];
+    commands.push({
+      "eventType": "createNode",
+      "nodeId": getNodeId(),
+      "nodeType": "Synth"
+      });
+    commands.push({
+      "eventType": "connect",
+      "nodeId": getNodeId(),
+      "connectTo": "toDestination"
+      });
+    for (let i = 0, imax = getMmlCommands().length; i < imax; i++) {
+      let m, checked = {}, def = getMmlCommands()[i];
+      while ((m = def.re.exec(mml)) !== null) {
+        if (!checked[m.index]) {
+          checked[m.index] = true;
+          {
+            let cmd = def.func(m);
+            cmd.index = m.index;  // for sort
+            cmd.origin = m[0];    // for debug
+            commands.push(cmd);
+            // console.log(startTick + " " + JSON.stringify(cmd, null, 2));
+          }
+          {
+            let mask = repeat(m[0].length, " ");
+            mml = mml.substr(0, m.index) + mask + mml.substr(m.index + mask.length);
+          }
+        }
+      }
+    }
+    commands.sort(function(a, b) {
+      return a.index - b.index;
+    });
+    return commands;
+  };
+  function getMmlCommands() {
+    return [
+      {
+          re: /@(\d*)/g,
+          func: function(m) {
+              return {
+                "eventType": "createNode",
+                "nodeId": getNodeId(),
+                "nodeType": "Synth"
+                // TODO toneParams etc.
+                };
+          }
+/*
+問題
+@で2つのobjectは作れない:
+  createNode
+  connectTo
+案
+  ほかの実装をもっと進めてノウハウ得てからにする
+  effect実装してからにする(Vibrato)
+  postProcessにて、connectToをcreateNode直後にinsertする
+*/
+      },
+      {
+        re: /([cdefgabrlo\<\>])([-+]*)(\d*)(\.*)/g,
+        func: function(m) {
+          const ticks = calcAttackToReleaseTicks(m[3], m[4]);
+          if (m[1] == "r") {  // rを含めたのは応急。rだけ個別にするとr群だけ先に時間計算がされるので。今後もう少しほかの実装もしてpostProcess等のノウハウが蓄積したら再度検討する。
+            result = {};
+            increaseStartTick(ticks);
+          } else if (m[1] == "l") { // lのコメントと同様
+            result = {};
+            lCommand = toInt(m[3]);
+          } else if (m[1] == "o") { // lのコメントと同様
+            result = {};
+            octave = toInt(m[3]);
+          } else if (m[1] == "<") { // lのコメントと同様
+            result = {};
+            octave++;
+          } else if (m[1] == ">") { // lのコメントと同様
+            result = {};
+            octave--;
+          } else {
+            let pm = "";
+            if (m[2][0] == "+") {
+              pm = repeat(m[2].length, "#");  // TODO ## -> note number +2 (Tone.js ## 非対応)
+            } else if (m[2][0] == "-") {
+              pm = repeat(m[2].length, "b");
+            }
+            result = {
+              "eventType": "triggerAttackRelease",
+              "nodeId": getNodeId(),
+              "args": [m[1] + pm + octave, calcDuration(ticks), calcStartTick()]
+              };
+            increaseStartTick(ticks);
+          }
+          return result;
+        }
+      }
+    ];
+  }
+  function calcAttackToReleaseTicks(divide, points) {
+    let result;
+    if (divide) {
+      result = measTick / divide;
+    } else {
+      result = calcLtick();
+    }
+    if (points) {
+      switch (points.length) {
+      case 1: result *= 1.5;  break;
+      case 2: result *= 1.75; break;
+      default: // TODO calc なお rare
+        break;
+      }
+    }
+    console.log(divide + points);
+    return result;
+  }
+  function repeat(n, ch) {
+      var str = "";
+      for (var i = 0; i < n; i++) {
+          str += ch;
+      }
+      return str;
+  }
+  function toInt(x) {
+      return x | 0;
+  }
+  function calcDuration(ticks) {
+    const t = ticks;
+    if (ticks >= 20) ticks -= 10; // TODO q
+    return ticks + "i";
+  }
+  function calcStartTick() {
+    return "+" + startTick + "i";
+  }
+  function increaseStartTick(ticks) {
+    startTick += ticks;
+  }
+  function calcLtick() {
+    return measTick / lCommand;
+  }
+  function getNodeId() {
+     return 0;  // TODO effect実装してから
+  }
+}
+
+```
+
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+8f48b41 #16 mdメンテ
+e51b706 Update project summaries (overview & development status) [auto]
 5c97a54 #16 mdメンテ
 adbab3f Update project summaries (overview & development status) [auto]
 24340cf #16 jobが落ちていたので状況を整理
@@ -795,10 +1024,8 @@ adbab3f Update project summaries (overview & development status) [auto]
 10bf0de #16 mdメンテ
 cbe5f3e Auto-translate README.ja.md to README.md [auto]
 810b315 vitestについて追記
-f504356 #16 mdメンテ
 
 ### 変更されたファイル:
-README.ja.md
 README.md
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
@@ -807,4 +1034,4 @@ issue-notes/16.md
 
 
 ---
-Generated at: 2025-10-05 07:04:28 JST
+Generated at: 2025-10-06 07:04:43 JST
