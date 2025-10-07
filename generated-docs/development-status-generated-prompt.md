@@ -1,4 +1,4 @@
-Last updated: 2025-10-06
+Last updated: 2025-10-07
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -193,6 +193,7 @@ Last updated: 2025-10-06
 - .github/workflows/call-daily-project-summary.yml
 - .github/workflows/call-issue-note.yml
 - .github/workflows/call-translate-readme.yml
+- .github_automation/callgraph/config/my.json
 - .gitignore
 - LICENSE
 - README.ja.md
@@ -200,6 +201,7 @@ Last updated: 2025-10-06
 - dev-setup/README.md
 - dev-setup/setup.js
 - generated-docs/callgraph-enhanced.html
+- generated-docs/callgraph.html
 - generated-docs/callgraph.js
 - generated-docs/style.css
 - index.html
@@ -267,12 +269,17 @@ Last updated: 2025-10-06
 # 結果
 - 判明した。対象source指定がmain.jsだけ、つまりgithub-actions共通ワークフロー側のデフォルトのままだった
 - どうする？
-  - まず対象sourceのlistをここに可視化する
+  - [x] まず対象sourceのlistをここに可視化する
     - main.js, mml2json.js, のみである
-  - 次に、`.github_automation/callgraph/config/my.json` に、それを書く。
-    - 書式は、共通ワークフロー側のexample.jsonを参考にする
-  - 恒久対策の候補は：
-    - documentsの整備。共通ワークフロー側に、なんらかのdocumentsを残す。
+    - 試しにplay.jsも入れておく
+  - [x] 次に、`.github_automation/callgraph/config/my.json` に、それを書く。
+    - [x] 書式は、共通ワークフロー側のexample.jsonを参考にする
+  - [x] そして、workflow ymlにそれを書く
+  - 備忘
+    - 恒久対策の候補は：
+      - documentsの整備。共通ワークフロー側に、なんらかのdocumentsを残す。
+- どうする？
+  - 日次バッチでtestする
 
 ```
 
@@ -519,12 +526,17 @@ Last updated: 2025-10-06
 # 結果
 - 判明した。対象source指定がmain.jsだけ、つまりgithub-actions共通ワークフロー側のデフォルトのままだった
 - どうする？
-  - まず対象sourceのlistをここに可視化する
+  - [x] まず対象sourceのlistをここに可視化する
     - main.js, mml2json.js, のみである
-  - 次に、`.github_automation/callgraph/config/my.json` に、それを書く。
-    - 書式は、共通ワークフロー側のexample.jsonを参考にする
-  - 恒久対策の候補は：
-    - documentsの整備。共通ワークフロー側に、なんらかのdocumentsを残す。
+    - 試しにplay.jsも入れておく
+  - [x] 次に、`.github_automation/callgraph/config/my.json` に、それを書く。
+    - [x] 書式は、共通ワークフロー側のexample.jsonを参考にする
+  - [x] そして、workflow ymlにそれを書く
+  - 備忘
+    - 恒久対策の候補は：
+      - documentsの整備。共通ワークフロー側に、なんらかのdocumentsを残す。
+- どうする？
+  - 日次バッチでtestする
 
 ```
 
@@ -819,6 +831,16 @@ window.addEventListener("load", ()=>{
 
 ```
 
+### .github_automation/callgraph/config/my.json
+```json
+[
+"src/main.js",
+"src/mml2json.js",
+"src/play.js"
+]
+
+```
+
 ### issue-notes/5.md
 ```md
 # issue mml2json関数を新たにPEGからTDDで実装しなおすため、TDD用テストケースを、今のコードベースからagentに生成させる #5
@@ -1012,8 +1034,71 @@ implement:
 
 ```
 
+### src/play.js
+```js
+function play() {
+  try {
+    // mml
+    const mml  = textarea1.value;
+    errorPoint = "mml2json";
+    // mml -> Tone.js playable JSON
+    let json = mml2json(mml);
+    errorPoint = "after mml2json";
+    textarea2.value = JSON.stringify(json, null, 2);
+    // Tone.js playable JSON -> Tone.js
+    json = textarea2.value;
+    errorPoint = "JSON.parse";
+    const j = JSON.parse(json);
+    // dispose
+    nodes.forEach (element => element.dispose());
+    // play
+    j.forEach (element => sub(element));
+  } catch (error) {
+    console.log(errorPoint + " error : [" + error + "]");
+  }
+}
+
+function sub(element) {
+  errorPoint = "sub";
+  console.log(element);
+  switch (element.eventType) {
+  case "createNode":
+    switch (element.nodeType) {
+    case "Synth":
+      nodes[element.nodeId] = new Tone.Synth();
+      break;
+    case "FMSynth":
+      nodes[element.nodeId] = new Tone.FMSynth(element.args);
+      break;
+    case "Vibrato":
+      nodes[element.nodeId] = new Tone.Vibrato(...element.args);
+      break;
+    }
+    break;
+  case "connect":
+    if (element.connectTo == "toDestination") {
+      nodes[element.nodeId].toDestination();
+    } else {
+      nodes[element.nodeId].connect(nodes[element.connectTo]);
+    }
+    break;
+  case "triggerAttackRelease":
+    errorPoint = "triggerAttackRelease";
+    nodes[element.nodeId].triggerAttackRelease(...element.args);
+    break;
+  case "depth.rampTo":
+    nodes[element.nodeId].depth.rampTo(...element.args);
+    break;
+  }
+}
+
+```
+
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+a233f59 Update callgraph.html [auto]
+2f416fd #16 my.json を書き、workflowで指定するようにした
+8cc05f8 Update project summaries (overview & development status) [auto]
 8f48b41 #16 mdメンテ
 e51b706 Update project summaries (overview & development status) [auto]
 5c97a54 #16 mdメンテ
@@ -1021,12 +1106,11 @@ adbab3f Update project summaries (overview & development status) [auto]
 24340cf #16 jobが落ちていたので状況を整理
 672e49a Update project summaries (overview & development status) [auto]
 43ef038 Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
-10bf0de #16 mdメンテ
-cbe5f3e Auto-translate README.ja.md to README.md [auto]
-810b315 vitestについて追記
 
 ### 変更されたファイル:
-README.md
+.github/workflows/call-callgraph.yml
+.github_automation/callgraph/config/my.json
+generated-docs/callgraph.html
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
 generated-docs/project-overview.md
@@ -1034,4 +1118,4 @@ issue-notes/16.md
 
 
 ---
-Generated at: 2025-10-06 07:04:43 JST
+Generated at: 2025-10-07 07:05:04 JST
