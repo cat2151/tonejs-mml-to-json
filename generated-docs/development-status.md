@@ -1,50 +1,50 @@
-Last updated: 2025-10-07
+Last updated: 2025-10-08
 
 # Development Status
 
 ## 現在のIssues
-- GitHub Actionsの関数コールグラフ生成ワークフローの共通化（[Issue #16](../issue-notes/16.md)）は、対象ソース指定の修正と設定ファイル (`my.json`) の更新を完了し、日次バッチでのテスト結果確認が次のステップ。
-- 開発環境の改善として、VSCode起動時の `pnpm watch` 自動実行（[Issue #9](../issue-notes/9.md)）と、PEGファイル更新時に自動ビルド・テスト・ブラウザリロードを行う `watch` スクリプトの実現（[Issue #8](../issue-notes/8.md)）が計画されており、既存プロジェクトの調査から着手する。
-- TDDを用いた `mml2json` の再実装（[Issue #3](../issue-notes/3.md)）に向け、`mml2ast`（[Issue #6](../issue-notes/6.md)）と `ast2json`（[Issue #7](../issue-notes/7.md)）の準備、および `mml2json` のTDDテストケース生成（[Issue #5](../issue-notes/5.md)）が段階的に進められる予定。
+- [Issue #9](../issue-notes/9.md): VSCodeでプロジェクトを開いた際に`pnpm watch`を自動実行する設定を導入し、開発環境の手間を削減する。
+- [Issue #8](../issue-notes/8.md): `pnpm script watch`を改善し、PEGファイル更新時に自動ビルド、自動テスト、およびブラウザのホットリロードを統合する効率的なTDDサイクルを構築する。
+- [Issue #7](../issue-notes/7.md): `mml2ast`のTDDが前提として進んでいる中で、`ast2json`変換のためのTDD準備に着手し、`mml2json`のテストケースを活用してテストを記述する。
 
 ## 次の一手候補
-1. GitHub Actions「関数コールグラフhtmlビジュアライズ生成」のテスト結果を確認する [Issue #16](../issue-notes/16.md)
-   - 最初の小さな一歩: 最新の日次バッチの実行ログを確認し、`generated-docs/callgraph.html`が意図通りに更新され、指定されたソースファイルが正しく反映されているかを検証する。
+1. [Issue #5](../issue-notes/5.md): mml2json関数を新たにPEGからTDDで実装しなおすため、TDD用テストケースを、今のコードベースからagentに生成させる
+   - 最初の小さな一歩: 現在の`src/main.js`と`src/mml2json.js`の実行結果から、MML入力とJSON出力のペアを抽出し、Vitest形式の`str to object`テストケースの骨子を作成する。
    - Agent実行プロンプ:
      ```
-     対象ファイル: `.github/workflows/call-callgraph.yml`, `.github_automation/callgraph/config/my.json`, `generated-docs/callgraph.html`, およびGitHub Actionsの実行ログ
+     対象ファイル: `src/mml2json.js`, `src/main.js`, `test/parser.test.js`
 
-     実行内容: 最新の日次バッチ実行ログ（`call-callgraph.yml`）を確認し、`generated-docs/callgraph.html` が更新されたか、そしてその内容が `.github_automation/callgraph/config/my.json` に指定されたソースファイル（`src/main.js`, `src/mml2json.js`, `src/play.js`）を正しく反映しているかを確認してください。
+     実行内容: `src/main.js`の現在の実行結果（MML入力とそれに対応するJSON出力）を分析し、新しい`mml2json`関数のためのTDDテストケースを、`str to object`形式で生成してください。具体的には、`test/parser.test.js`の既存のテスト構造を参考に、`mml2json`の`it`ブロックと`expect`文を含むテストファイルを`test/mml2json.test.js`として作成してください。テストケースは最低3つ生成し、それぞれMML文字列と期待されるJSONオブジェクトを含めてください。
 
-     確認事項: ワークフローがエラーなく完了しているか、生成日時が最新であるか、コールグラフHTML内に指定されたファイルからの関数呼び出し構造が描画されているか。
+     確認事項: 既存の`test/parser.test.js`のテスト形式と、`package.json`の`scripts`セクションに定義されているテストコマンド（`vitest`）の構成を確認してください。生成されるJSON構造は、`tonejs-json-sequencer`が受け入れ可能な形式であることを考慮してください。
 
-     期待する出力: `callgraph.html` の更新状況と、コールグラフの内容が適切であるかを評価する簡潔なレポート（Markdown形式）。もし問題があれば、その具体的な内容と、考えられる原因について記述してください。
+     期待する出力: `test/mml2json.test.js`という新しいファイルと、その内容をMarkdownコードブロックで示してください。ファイルの内容は、Vitestで実行可能な`str to object`形式のテストケースを複数含んでいるものとします。
      ```
 
-2. VSCode起動時の `pnpm watch` 自動実行設定を既存プロジェクトで調査する [Issue #9](../issue-notes/9.md)
-   - 最初の小さな一歩: 既存の `mml2abc` および `chord2mml` プロジェクトのリポジトリで、VSCode起動時に `pnpm watch` コマンドが自動実行される設定があるかを調査する。
+2. [Issue #6](../issue-notes/6.md): mml2astのTDD準備をする
+   - 最初の小さな一歩: MMLの各要素がASTノードにどのように変換されるかの仮のAST仕様を検討し、簡単なMML入力（例: `"c8"`）に対する期待されるAST出力のJSON構造を定義する。
    - Agent実行プロンプ:
      ```
-     対象ファイル: `mml2abc` および `chord2mml` リポジトリの `.vscode/tasks.json`, `.vscode/settings.json`, `package.json`
+     対象ファイル: `src/grammar.pegjs`, `src/mml2json.js`, `issue-notes/6.md`
 
-     実行内容: 既存の `mml2abc` および `chord2mml` プロジェクトにおいて、VSCodeの起動時に `pnpm watch` コマンドが自動実行される設定があるかを調査してください。具体的には、`.vscode` ディレクトリ内の設定ファイルや `package.json` のスクリプト定義を確認してください。
+     実行内容: `src/grammar.pegjs`の構文解析ルールと`issue-notes/6.md`に記載されている「mml2ast」への分割意図を分析し、MML文字列`"c8"`がパースされた際の仮のAST構造をJSON形式で定義してください。その後、この仮AST構造をテストするためのTDDテストケースを`test/mml2ast.test.js`として生成してください。テストは`"c8"`入力に対して定義したASTを返すことを期待する形式にしてください。
 
-     確認事項: `tasks.json` の `group` プロパティが `isDefault: true` か `isBackground: true` で `runOn: 'folderOpen'` のような設定があるか、あるいは `settings.json` で `terminal.integrated.shellArgs` や `terminal.integrated.profiles.windows` などに自動起動スクリプトが指定されていないか。
+     確認事項: `PEG.js`の出力がどのような中間形式になるかを考慮し、その中間形式からASTを生成する`mml2ast`の責務範囲を明確にしてください。既存のテストファイル(`test/parser.test.js`など)の構成を参考にしてください。
 
-     期待する出力: 調査結果をMarkdown形式で出力してください。自動実行設定が見つかった場合は、その設定方法（ファイルパス、具体的なJSON設定）と、`tonejs-mml-to-json` プロジェクトに適用するための簡単な手順を記述してください。見つからなかった場合はその旨を報告してください。
+     期待する出力: `test/mml2ast.test.js`という新しいファイルの内容と、`"c8"`のMMLが変換される期待ASTのJSON構造をMarkdownコードブロックで示してください。
      ```
 
-3. PEGファイル更新時の自動ビルド・テスト・ブラウザリロードを実現する `watch` スクリプトを既存プロジェクトで調査する [Issue #8](../issue-notes/8.md)
-   - 最初の小さな一歩: 既存の `mml2abc` および `chord2mml` プロジェクトのリポジトリで、PEGファイル更新時に自動ビルド・テスト・ブラウザリロードが実行される `watch` スクリプトの実装例があるかを調査する。
+3. [Issue #8](../issue-notes/8.md): pnpm script watchを、「1行コマンド実行したらpage openし、PEGファイルをwatchして、PEG更新時に自動でbuildしてtest」というものにする
+   - 最初の小さな一歩: `package.json`の`scripts`セクションに、PEGコンパイル、テスト実行、および開発サーバー起動を`concurrently`や`nodemon`を用いて統合する`watch`スクリプトの骨子を作成する。
    - Agent実行プロンプ:
      ```
-     対象ファイル: `mml2abc` および `chord2mml` リポジトリの `package.json`, `vitest.config.js`, および開発関連のスクリプトファイル
+     対象ファイル: `package.json`, `src/grammar.pegjs`, `test/parser.test.js`, `index.html`
 
-     実行内容: 既存の `mml2abc` および `chord2mml` プロジェクトにおいて、`pnpm script watch` が「PEGファイル更新時に自動ビルド・テスト・ブラウザリロード」を実現している実装例があるかを調査してください。具体的には `package.json` の `scripts` セクションと、関連するスクリプトファイルの内容を確認してください。
+     実行内容: `package.json`の`scripts`セクションを分析し、`src/grammar.pegjs`の変更を監視して自動で`src/grammar.js`を再生成し、その後`vitest`によるテストを自動実行し、さらにブラウザで`index.html`を自動的に開いてライブリロードを可能にする`pnpm watch`スクリプトを提案してください。`concurrently`や`nodemon`などのツール利用を検討してください。
 
-     確認事項: `watch` スクリプトが `pegjs` または類似のパーサージェネレーターのビルドプロセスと `vitest` のテスト実行を連携させているか、また `browser-sync` や `live-server` のようなホットリロードツールが利用されているか。
+     確認事項: 既存の`package.json`のスクリプト（例: `build:peg`, `test`）との競合がないことを確認してください。`index.html`のライブリロードには開発サーバー（例: `http-server`や`vite`の開発サーバー機能）が必要になる可能性があります。
 
-     期待する出力: 調査結果をMarkdown形式で出力してください。そのような `watch` スクリプトが見つかった場合は、そのスクリプト定義と、関連する設定（例: `vitest.config.js` の `watch` 設定、ビルドコマンド）を記述してください。`tonejs-mml-to-json` プロジェクトに適用するためのアイデアや、もし見つからなかった場合の代替案（例: `npm-run-all` を使った複数の `watch` コマンドの並行実行）についても言及してください。
+     期待する出力: `package.json`の`scripts`セクションに新たに追加または修正される`watch`スクリプトの提案をMarkdownコードブロックで示してください。また、そのスクリプトがどのように動作するかの説明も加えてください。
 
 ---
-Generated at: 2025-10-07 07:05:26 JST
+Generated at: 2025-10-08 07:05:43 JST
