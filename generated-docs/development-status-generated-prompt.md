@@ -1,4 +1,4 @@
-Last updated: 2025-10-08
+Last updated: 2025-11-10
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -144,7 +144,6 @@ Last updated: 2025-10-08
 - .github/actions-tmp/.github_automation/project_summary/scripts/overview/ProjectDataCollector.cjs
 - .github/actions-tmp/.github_automation/project_summary/scripts/overview/ProjectDataFormatter.cjs
 - .github/actions-tmp/.github_automation/project_summary/scripts/overview/ProjectOverviewGenerator.cjs
-- .github/actions-tmp/.github_automation/project_summary/scripts/overview/TechStackAnalyzer.cjs
 - .github/actions-tmp/.github_automation/project_summary/scripts/shared/BaseGenerator.cjs
 - .github/actions-tmp/.github_automation/project_summary/scripts/shared/FileSystemUtils.cjs
 - .github/actions-tmp/.github_automation/project_summary/scripts/shared/ProjectFileUtils.cjs
@@ -155,6 +154,7 @@ Last updated: 2025-10-08
 - .github/actions-tmp/LICENSE
 - .github/actions-tmp/README.ja.md
 - .github/actions-tmp/README.md
+- .github/actions-tmp/_config.yml
 - .github/actions-tmp/generated-docs/callgraph.html
 - .github/actions-tmp/generated-docs/callgraph.js
 - .github/actions-tmp/generated-docs/development-status-generated-prompt.md
@@ -181,6 +181,7 @@ Last updated: 2025-10-08
 - .github/actions-tmp/issue-notes/26.md
 - .github/actions-tmp/issue-notes/27.md
 - .github/actions-tmp/issue-notes/28.md
+- .github/actions-tmp/issue-notes/29.md
 - .github/actions-tmp/issue-notes/3.md
 - .github/actions-tmp/issue-notes/4.md
 - .github/actions-tmp/issue-notes/7.md
@@ -198,11 +199,13 @@ Last updated: 2025-10-08
 - LICENSE
 - README.ja.md
 - README.md
+- _config.yml
 - dev-setup/README.md
 - dev-setup/setup.js
 - generated-docs/callgraph-enhanced.html
 - generated-docs/callgraph.html
 - generated-docs/callgraph.js
+- generated-docs/project-overview-generated-prompt.md
 - generated-docs/style.css
 - index.html
 - issue-notes/1.md
@@ -663,20 +666,13 @@ planにおいては、修正対象のソースファイル名と関数名を、�
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-207e245 Update callgraph.html [auto]
-7638631 Merge branch 'main' of github.com:cat2151/tonejs-mml-to-json into main
-4f1b31f fix #16 test greenなのでcloseとする
-03c3312 Update project summaries (overview & development status) [auto]
-a233f59 Update callgraph.html [auto]
-2f416fd #16 my.json を書き、workflowで指定するようにした
-8cc05f8 Update project summaries (overview & development status) [auto]
-8f48b41 #16 mdメンテ
-e51b706 Update project summaries (overview & development status) [auto]
-5c97a54 #16 mdメンテ
+2c2b0d9 Update callgraph.html [auto]
+57f1903 github-actionsリポジトリの共通ワークフローを導入
+39b3a15 jekyll settings
 
 ### 変更されたファイル:
-.github/workflows/call-callgraph.yml
-.github_automation/callgraph/config/my.json
+.github/workflows/call-daily-project-summary.yml
+_config.yml
 generated-docs/callgraph.html
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
@@ -685,4 +681,4 @@ issue-notes/16.md
 
 
 ---
-Generated at: 2025-10-08 07:05:18 JST
+Generated at: 2025-11-10 07:04:59 JST
