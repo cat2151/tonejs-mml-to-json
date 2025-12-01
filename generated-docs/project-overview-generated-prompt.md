@@ -1,4 +1,4 @@
-Last updated: 2025-11-10
+Last updated: 2025-12-02
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -156,6 +156,7 @@ Last updated: 2025-11-10
   🌐 callgraph.html
   📜 callgraph.js
   🎨 style.css
+🌐 googled947dc864c270e07.html
 🌐 index.html
 📁 issue-notes/
   📖 1.md
@@ -208,6 +209,10 @@ Last updated: 2025-11-10
   - インポート: なし
 
 **generated-docs/style.css** (276行, 5034バイト)
+  - 関数: なし
+  - インポート: なし
+
+**googled947dc864c270e07.html** (1行, 53バイト)
   - 関数: なし
   - インポート: なし
 
@@ -334,6 +339,7 @@ generated-docs/callgraph-enhanced.html
 generated-docs/callgraph.html
 generated-docs/callgraph.js
 generated-docs/style.css
+googled947dc864c270e07.html
 index.html
 issue-notes/1.md
 issue-notes/10.md
@@ -366,4 +372,4 @@ package.json
 
 
 ---
-Generated at: 2025-11-10 07:04:58 JST
+Generated at: 2025-12-02 07:04:33 JST

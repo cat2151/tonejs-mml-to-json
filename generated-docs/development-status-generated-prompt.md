@@ -1,4 +1,4 @@
-Last updated: 2025-11-10
+Last updated: 2025-12-02
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -159,8 +159,10 @@ Last updated: 2025-11-10
 - .github/actions-tmp/generated-docs/callgraph.js
 - .github/actions-tmp/generated-docs/development-status-generated-prompt.md
 - .github/actions-tmp/generated-docs/development-status.md
+- .github/actions-tmp/generated-docs/project-overview-generated-prompt.md
 - .github/actions-tmp/generated-docs/project-overview.md
 - .github/actions-tmp/generated-docs/style.css
+- .github/actions-tmp/googled947dc864c270e07.html
 - .github/actions-tmp/issue-notes/10.md
 - .github/actions-tmp/issue-notes/11.md
 - .github/actions-tmp/issue-notes/12.md
@@ -183,6 +185,7 @@ Last updated: 2025-11-10
 - .github/actions-tmp/issue-notes/28.md
 - .github/actions-tmp/issue-notes/29.md
 - .github/actions-tmp/issue-notes/3.md
+- .github/actions-tmp/issue-notes/30.md
 - .github/actions-tmp/issue-notes/4.md
 - .github/actions-tmp/issue-notes/7.md
 - .github/actions-tmp/issue-notes/8.md
@@ -207,6 +210,7 @@ Last updated: 2025-11-10
 - generated-docs/callgraph.js
 - generated-docs/project-overview-generated-prompt.md
 - generated-docs/style.css
+- googled947dc864c270e07.html
 - index.html
 - issue-notes/1.md
 - issue-notes/10.md
@@ -666,9 +670,9 @@ planにおいては、修正対象のソースファイル名と関数名を、�
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-2c2b0d9 Update callgraph.html [auto]
-57f1903 github-actionsリポジトリの共通ワークフローを導入
-39b3a15 jekyll settings
+0f14b47 Update callgraph.html [auto]
+34388b4 Google検索にindexさせる用
+a344bb8 Google検索にindexさせる用
 
 ### 変更されたファイル:
 .github/workflows/call-daily-project-summary.yml
@@ -676,9 +680,10 @@ _config.yml
 generated-docs/callgraph.html
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
+generated-docs/project-overview-generated-prompt.md
 generated-docs/project-overview.md
-issue-notes/16.md
+googled947dc864c270e07.html
 
 
 ---
-Generated at: 2025-11-10 07:04:59 JST
+Generated at: 2025-12-02 07:04:34 JST
