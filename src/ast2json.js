@@ -5,10 +5,11 @@
 
 export function ast2json(ast) {
   const commands = [];
+  // Ticks per measure: 192 ticks per quarter note * 4 quarter notes = 768 ticks per 4/4 measure
   const measTick = 192 * 4;
   let startTick = 0;
-  let lCommand = 8; // default l8
-  let octave = 4;
+  let lCommand = 8; // default l8 (eighth note)
+  let octave = 4; // default octave 4
   let nodeId = 0;
 
   // Add initial setup commands
@@ -128,7 +129,10 @@ export function ast2json(ast) {
 
   function calcDuration(ticks) {
     let duration = ticks;
-    if (duration >= 20) duration -= 10; // TODO q
+    // Apply gate time adjustment: subtract 10 ticks from durations >= 20 
+    // to create a slight gap between notes (equivalent to 'q' quantize command).
+    // This prevents notes from bleeding together and makes the music sound more natural.
+    if (duration >= 20) duration -= 10;
     return duration + "i";
   }
 
