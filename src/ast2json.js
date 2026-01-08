@@ -8,7 +8,7 @@ export function ast2json(ast) {
   // Ticks per measure: 192 ticks per quarter note * 4 quarter notes = 768 ticks per 4/4 measure
   const measTick = 192 * 4;
   let startTick = 0;
-  let lCommand = 8; // default l8 (eighth note)
+  let defaultLength = 8; // default note length (eighth note)
   let octave = 4; // default octave 4
   let nodeId = 0;
 
@@ -40,7 +40,7 @@ export function ast2json(ast) {
 
       case 'length':
         if (token.value !== null) {
-          lCommand = token.value;
+          defaultLength = token.value;
         }
         break;
 
@@ -59,11 +59,22 @@ export function ast2json(ast) {
         break;
 
       case 'instrument':
+        nodeId++; // Increment to create a new node ID
         commands.push({
           eventType: "createNode",
           nodeId: getNodeId(),
           nodeType: "Synth"
         });
+        commands.push({
+          eventType: "connect",
+          nodeId: getNodeId(),
+          connectTo: "toDestination"
+        });
+        break;
+
+      default:
+        // Log warning for unknown token types to catch potential bugs
+        console.warn('ast2json: Unknown token type encountered:', token.type, token);
         break;
     }
   }
@@ -103,7 +114,7 @@ export function ast2json(ast) {
     if (duration) {
       result = measTick / duration;
     } else {
-      result = measTick / lCommand;
+      result = measTick / defaultLength;
     }
 
     // Apply dots

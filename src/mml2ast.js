@@ -3,6 +3,59 @@
  * Parses MML string into an Abstract Syntax Tree
  */
 
+/**
+ * Helper function to parse consecutive digits from a string
+ * @param {string} mml - The MML string
+ * @param {number} startIndex - Starting index for parsing
+ * @returns {object} Object with parsed value and length consumed
+ */
+function parseDigits(mml, startIndex) {
+  let index = startIndex;
+  let digitStr = '';
+  
+  while (index < mml.length && /\d/.test(mml[index])) {
+    digitStr += mml[index];
+    index++;
+  }
+  
+  return {
+    value: digitStr ? parseInt(digitStr, 10) : null,
+    length: index - startIndex
+  };
+}
+
+/**
+ * Validates that a duration value is a valid musical duration
+ * @param {number} duration - The duration value to validate
+ * @returns {boolean} True if valid, false otherwise
+ */
+function isValidDuration(duration) {
+  if (duration === null) return true;
+  // Valid durations are powers of 2: 1, 2, 4, 8, 16, 32, 64, etc.
+  return duration > 0 && (duration & (duration - 1)) === 0;
+}
+
+/**
+ * Validates that an octave value is in a reasonable range
+ * @param {number} octave - The octave value to validate
+ * @returns {boolean} True if valid, false otherwise
+ */
+function isValidOctave(octave) {
+  if (octave === null) return true;
+  // Typical MIDI range is 0-10, but we'll allow 0-8 as reasonable
+  return octave >= 0 && octave <= 8;
+}
+
+/**
+ * Validates that an instrument value is non-negative
+ * @param {number} instrument - The instrument value to validate
+ * @returns {boolean} True if valid, false otherwise
+ */
+function isValidInstrument(instrument) {
+  if (instrument === null) return true;
+  return instrument >= 0;
+}
+
 export function mml2ast(mml) {
   const tokens = [];
   let index = 0;
@@ -50,6 +103,8 @@ export function mml2ast(mml) {
     }
 
     // Octave up: <
+    // Note: This project uses non-standard MML convention where < increases octave
+    // This follows the existing mml2json.js implementation in this codebase
     if (char === '<') {
       tokens.push({ type: 'octaveUp', length: 1 });
       index++;
@@ -57,6 +112,8 @@ export function mml2ast(mml) {
     }
 
     // Octave down: >
+    // Note: This project uses non-standard MML convention where > decreases octave
+    // This follows the existing mml2json.js implementation in this codebase
     if (char === '>') {
       tokens.push({ type: 'octaveDown', length: 1 });
       index++;
@@ -92,13 +149,13 @@ function parseNote(mml, startIndex) {
   }
 
   // Parse duration (number)
-  let durationStr = '';
-  while (index < mml.length && /\d/.test(mml[index])) {
-    durationStr += mml[index];
-    index++;
-  }
-  if (durationStr) {
-    duration = parseInt(durationStr, 10);
+  const digitResult = parseDigits(mml, index);
+  duration = digitResult.value;
+  index += digitResult.length;
+  
+  // Validate duration
+  if (!isValidDuration(duration)) {
+    console.warn(`mml2ast: Invalid duration '${duration}' at position ${startIndex}. Duration should be a power of 2 (1, 2, 4, 8, 16, 32, etc.)`);
   }
 
   // Parse dots
@@ -123,13 +180,13 @@ function parseRest(mml, startIndex) {
   let dots = 0;
 
   // Parse duration (number)
-  let durationStr = '';
-  while (index < mml.length && /\d/.test(mml[index])) {
-    durationStr += mml[index];
-    index++;
-  }
-  if (durationStr) {
-    duration = parseInt(durationStr, 10);
+  const digitResult = parseDigits(mml, index);
+  duration = digitResult.value;
+  index += digitResult.length;
+  
+  // Validate duration
+  if (!isValidDuration(duration)) {
+    console.warn(`mml2ast: Invalid duration '${duration}' for rest at position ${startIndex}. Duration should be a power of 2 (1, 2, 4, 8, 16, 32, etc.)`);
   }
 
   // Parse dots
@@ -148,15 +205,16 @@ function parseRest(mml, startIndex) {
 
 function parseLength(mml, startIndex) {
   let index = startIndex + 1; // Skip 'l'
-  let durationStr = '';
 
   // Parse duration (number)
-  while (index < mml.length && /\d/.test(mml[index])) {
-    durationStr += mml[index];
-    index++;
+  const digitResult = parseDigits(mml, index);
+  const value = digitResult.value;
+  index += digitResult.length;
+  
+  // Validate duration
+  if (!isValidDuration(value)) {
+    console.warn(`mml2ast: Invalid length '${value}' at position ${startIndex}. Length should be a power of 2 (1, 2, 4, 8, 16, 32, etc.)`);
   }
-
-  const value = durationStr ? parseInt(durationStr, 10) : null;
 
   return {
     type: 'length',
@@ -167,15 +225,16 @@ function parseLength(mml, startIndex) {
 
 function parseOctave(mml, startIndex) {
   let index = startIndex + 1; // Skip 'o'
-  let octaveStr = '';
 
   // Parse octave number
-  while (index < mml.length && /\d/.test(mml[index])) {
-    octaveStr += mml[index];
-    index++;
+  const digitResult = parseDigits(mml, index);
+  const value = digitResult.value;
+  index += digitResult.length;
+  
+  // Validate octave
+  if (!isValidOctave(value)) {
+    console.warn(`mml2ast: Invalid octave '${value}' at position ${startIndex}. Octave should be between 0 and 8.`);
   }
-
-  const value = octaveStr ? parseInt(octaveStr, 10) : null;
 
   return {
     type: 'octave',
@@ -186,15 +245,16 @@ function parseOctave(mml, startIndex) {
 
 function parseInstrument(mml, startIndex) {
   let index = startIndex + 1; // Skip '@'
-  let instrumentStr = '';
 
   // Parse instrument number
-  while (index < mml.length && /\d/.test(mml[index])) {
-    instrumentStr += mml[index];
-    index++;
+  const digitResult = parseDigits(mml, index);
+  const value = digitResult.value;
+  index += digitResult.length;
+  
+  // Validate instrument
+  if (!isValidInstrument(value)) {
+    console.warn(`mml2ast: Invalid instrument '${value}' at position ${startIndex}. Instrument should be a non-negative number.`);
   }
-
-  const value = instrumentStr ? parseInt(instrumentStr, 10) : null;
 
   return {
     type: 'instrument',

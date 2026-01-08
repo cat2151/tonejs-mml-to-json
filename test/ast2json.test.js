@@ -244,11 +244,16 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(4); // initial setup + instrument node + note
+      expect(result).toHaveLength(5); // initial setup + instrument node + connect + note
       expect(result[2]).toEqual({
         eventType: "createNode",
-        nodeId: 0,
+        nodeId: 1,
         nodeType: "Synth"
+      });
+      expect(result[3]).toEqual({
+        eventType: "connect",
+        nodeId: 1,
+        connectTo: "toDestination"
       });
     });
   });

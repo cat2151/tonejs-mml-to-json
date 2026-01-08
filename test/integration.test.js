@@ -89,14 +89,16 @@ describe('Integration: mml2ast + ast2json', () => {
     });
 
     it('should convert MML with octave changes "o5 c < d > e" through full pipeline', () => {
+      // Note: This project uses non-standard MML convention where < increases octave and > decreases octave
+      // This follows the existing mml2json.js implementation in this codebase
       const mml = 'o5 c < d > e';
       const ast = mml2ast(mml);
       const json = ast2json(ast);
       
       expect(json).toHaveLength(5); // setup + 3 notes
       expect(json[2].args[0]).toBe("c5");
-      expect(json[3].args[0]).toBe("d6"); // < increases octave
-      expect(json[4].args[0]).toBe("e5"); // > decreases octave
+      expect(json[3].args[0]).toBe("d6"); // < increases octave (project convention)
+      expect(json[4].args[0]).toBe("e5"); // > decreases octave (project convention)
     });
 
     it('should convert dotted notes "c4. d8." through full pipeline', () => {
@@ -110,6 +112,7 @@ describe('Integration: mml2ast + ast2json', () => {
     });
 
     it('should convert complex MML sequence', () => {
+      // Note: This project uses non-standard MML convention where > decreases octave
       const mml = 'o4 l8 c d e r f g a b > c';
       const ast = mml2ast(mml);
       const json = ast2json(ast);
@@ -124,7 +127,7 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(json[6].args[0]).toBe("g4");
       expect(json[7].args[0]).toBe("a4");
       expect(json[8].args[0]).toBe("b4");
-      expect(json[9].args[0]).toBe("c3"); // > decreases octave
+      expect(json[9].args[0]).toBe("c3"); // > decreases octave (project convention)
       
       // Verify all are eighth notes
       for (let i = 2; i < 10; i++) {
@@ -202,7 +205,7 @@ describe('Integration: mml2ast + ast2json', () => {
       const ast = mml2ast(mml);
       const json = ast2json(ast);
       
-      expect(json).toHaveLength(3); // setup + instrument change
+      expect(json).toHaveLength(4); // setup + instrument change (createNode + connect)
     });
   });
 
