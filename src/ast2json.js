@@ -59,7 +59,8 @@ export function ast2json(ast) {
         break;
 
       case 'instrument':
-        nodeId++; // Increment to create a new node ID
+        nodeId++; // Increment to allocate a new node ID
+        // Both createNode and connect use the same nodeId (the new one)
         commands.push({
           eventType: "createNode",
           nodeId: getNodeId(),
