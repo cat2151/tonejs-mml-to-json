@@ -1,8 +1,14 @@
 /**
- * AST to JSON converter
- * Converts AST to Tone.js compatible JSON format
+ * AST to JSON converter using Rust WASM
+ * 
+ * This module uses the Rust WASM implementation, consolidating the duplicate
+ * TypeScript implementation (issue #26).
+ * 
+ * The previous pure TypeScript implementation has been moved to ast2json-typescript-impl.ts
+ * for reference, but is no longer used.
  */
 
+import { ast2json_wasm } from '../pkg/tonejs_mml_to_json.js';
 import type { ASTToken } from './mml2ast';
 
 // Type definitions for Tone.js command objects
@@ -10,7 +16,7 @@ export interface CreateNodeCommand {
   eventType: 'createNode';
   nodeId: number;
   nodeType: string;
-  args?: any[]; // Optional args for some node types like FMSynth
+  args?: any[];
 }
 
 export interface ConnectCommand {
@@ -33,160 +39,25 @@ export interface DepthRampToCommand {
 
 export type ToneCommand = CreateNodeCommand | ConnectCommand | TriggerAttackReleaseCommand | DepthRampToCommand;
 
+/**
+ * Converts AST to Tone.js compatible JSON format using Rust WASM
+ * 
+ * Note: WASM must be initialized before calling this function.
+ * In tests, this is handled by test/setup.js
+ * In browser, this is handled by mml2json-wasm.ts
+ * 
+ * @param ast - Array of AST tokens to convert
+ * @returns Array of Tone.js commands
+ */
 export function ast2json(ast: ASTToken[]): ToneCommand[] {
-  const commands: ToneCommand[] = [];
-  // Ticks per measure: 192 ticks per quarter note * 4 quarter notes = 768 ticks per 4/4 measure
-  const measTick = 192 * 4;
-  let startTick = 0;
-  let defaultLength = 8; // default note length (eighth note)
-  let octave = 4; // default octave 4
-  let nodeId = 0;
-
-  // Add initial setup commands
-  commands.push({
-    eventType: "createNode",
-    nodeId: getNodeId(),
-    nodeType: "Synth"
-  });
-  commands.push({
-    eventType: "connect",
-    nodeId: getNodeId(),
-    connectTo: "toDestination"
-  });
-
-  // Process each AST token
-  for (const token of ast) {
-    switch (token.type) {
-      case 'note':
-        const noteCommand = processNote(token);
-        if (noteCommand) {
-          commands.push(noteCommand);
-        }
-        break;
-
-      case 'rest':
-        processRest(token);
-        break;
-
-      case 'length':
-        if (token.value !== null) {
-          defaultLength = token.value;
-        }
-        break;
-
-      case 'octave':
-        if (token.value !== null) {
-          octave = token.value;
-        }
-        break;
-
-      case 'octaveUp':
-        octave++;
-        break;
-
-      case 'octaveDown':
-        octave--;
-        break;
-
-      case 'instrument':
-        nodeId++; // Increment to allocate a new node ID
-        // Both createNode and connect use the same nodeId (the new one)
-        commands.push({
-          eventType: "createNode",
-          nodeId: getNodeId(),
-          nodeType: "Synth"
-        });
-        commands.push({
-          eventType: "connect",
-          nodeId: getNodeId(),
-          connectTo: "toDestination"
-        });
-        break;
-
-      default:
-        // Log warning for unknown token types to catch potential bugs
-        console.warn('ast2json: Unknown token type encountered:', (token as any).type, token);
-        break;
-    }
+  const astJson = JSON.stringify(ast);
+  const resultJson = ast2json_wasm(astJson);
+  const result = JSON.parse(resultJson);
+  
+  // Check for error response
+  if (result.error) {
+    throw new Error(`AST to JSON conversion error: ${result.error}`);
   }
-
-  return commands;
-
-  function processNote(token: ASTToken & { type: 'note' }): TriggerAttackReleaseCommand | null {
-    const ticks = calcTicks(token.duration, token.dots);
-    
-    // Convert accidental to sharp/flat notation
-    let accidental = '';
-    if (token.accidental) {
-      if (token.accidental[0] === '+') {
-        accidental = '#'.repeat(token.accidental.length);
-      } else if (token.accidental[0] === '-') {
-        accidental = 'b'.repeat(token.accidental.length);
-      }
-    }
-
-    const command: TriggerAttackReleaseCommand = {
-      eventType: "triggerAttackRelease",
-      nodeId: getNodeId(),
-      args: [token.note + accidental + octave, calcDuration(ticks), calcStartTick()]
-    };
-
-    increaseStartTick(ticks);
-    return command;
-  }
-
-  function processRest(token: ASTToken & { type: 'rest' }): void {
-    const ticks = calcTicks(token.duration, token.dots);
-    increaseStartTick(ticks);
-  }
-
-  function calcTicks(duration: number | null, dots: number): number {
-    let result: number;
-    if (duration) {
-      result = measTick / duration;
-    } else {
-      result = measTick / defaultLength;
-    }
-
-    // Apply dots
-    if (dots > 0) {
-      switch (dots) {
-        case 1: result *= 1.5; break;
-        case 2: result *= 1.75; break;
-        default:
-          // For more dots, calculate appropriately
-          let multiplier = 1;
-          let dotValue = 0.5;
-          for (let i = 0; i < dots; i++) {
-            multiplier += dotValue;
-            dotValue /= 2;
-          }
-          result *= multiplier;
-          break;
-      }
-    }
-
-    return result;
-  }
-
-  function calcDuration(ticks: number): string {
-    let duration = ticks;
-    // Apply gate time adjustment: subtract 10 ticks from durations >= 20 
-    // to create a slight gap between notes (equivalent to 'q' quantize command).
-    // This prevents notes from bleeding together and makes the music sound more natural.
-    if (duration >= 20) duration -= 10;
-    return duration + "i";
-  }
-
-  function calcStartTick(): string {
-    return "+" + startTick + "i";
-  }
-
-  function increaseStartTick(ticks: number): void {
-    startTick += ticks;
-  }
-
-  function getNodeId(): number {
-    return nodeId;
-  }
+  
+  return result as ToneCommand[];
 }

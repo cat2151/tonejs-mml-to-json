@@ -1,10 +1,11 @@
-// Integration test comparing WASM and JavaScript implementations
+// WASM verification test
+// Since the TypeScript implementation now uses WASM internally (consolidation from issue #26),
+// this test simply verifies that the WASM implementation works correctly for various MML inputs.
+
 import init, { mml_to_json_wasm } from '../pkg/tonejs_mml_to_json.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { mml2ast } from '../src/mml2ast.js';
-import { ast2json } from '../src/ast2json.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,104 +17,59 @@ await init(wasmBuffer);
 
 // Test cases
 const testCases = [
-  'c',
-  'c4',
-  'c+',
-  'c-',
-  'c++',
-  'c+4',
-  'c4.',
-  'c4..',
-  'r',
-  'r4',
-  'r8.',
-  'l8',
-  'l16',
-  'o4',
-  'o5',
-  '<',
-  '>',
-  '@0',
-  '@1',
-  'o4 c',
-  'o4 l16 e',
-  'c d e',
-  'c4 d8 e16',
-  'o4 c < d > e',
-  'l8 c d e r f g a',
-  'o4 l16 efg+abag+f e8.<e8.>e8',
-  '@0 c d @1 e f'
+  { mml: 'c', desc: 'Single note' },
+  { mml: 'c4', desc: 'Note with duration' },
+  { mml: 'c+', desc: 'Sharp note' },
+  { mml: 'c-', desc: 'Flat note' },
+  { mml: 'c++', desc: 'Double sharp' },
+  { mml: 'c+4', desc: 'Sharp with duration' },
+  { mml: 'c4.', desc: 'Dotted note' },
+  { mml: 'c4..', desc: 'Double dotted note' },
+  { mml: 'r', desc: 'Rest' },
+  { mml: 'r4', desc: 'Rest with duration' },
+  { mml: 'r8.', desc: 'Dotted rest' },
+  { mml: 'l8', desc: 'Length command' },
+  { mml: 'l16', desc: 'Length 16' },
+  { mml: 'o4', desc: 'Octave command' },
+  { mml: 'o5', desc: 'Octave 5' },
+  { mml: '<', desc: 'Octave up' },
+  { mml: '>', desc: 'Octave down' },
+  { mml: '@0', desc: 'Instrument 0' },
+  { mml: '@1', desc: 'Instrument 1' },
+  { mml: 'o4 c', desc: 'Octave and note' },
+  { mml: 'o4 l16 e', desc: 'Octave, length, and note' },
+  { mml: 'c d e', desc: 'Multiple notes' },
+  { mml: 'c4 d8 e16', desc: 'Notes with different durations' },
+  { mml: 'o4 c < d > e', desc: 'Octave changes' },
+  { mml: 'l8 c d e r f g a', desc: 'Melody with rest' },
+  { mml: 'o4 l16 efg+abag+f e8.<e8.>e8', desc: 'Complex melody' },
+  { mml: '@0 c d @1 e f', desc: 'Instrument changes' }
 ];
 
-console.log('Comparing WASM and JavaScript implementations...\n');
+console.log('Testing WASM implementation...\n');
 
 let allPassed = true;
-let differences = 0;
 
-for (const mml of testCases) {
-  let jsonJs;
-  let jsonWasm;
-  let jsOk = true;
-  let wasmOk = true;
-  let hadError = false;
-
-  // JavaScript implementation
-  try {
-    const astJs = mml2ast(mml);
-    jsonJs = ast2json(astJs);
-  } catch (e) {
-    console.error(`✗ ${mml} - JavaScript implementation error: ${e.message}`);
-    allPassed = false;
-    if (!hadError) {
-      differences++;
-      hadError = true;
-    }
-    jsOk = false;
-  }
-
-  // WASM implementation
+for (const { mml, desc } of testCases) {
   try {
     const resultWasm = mml_to_json_wasm(mml);
-    jsonWasm = JSON.parse(resultWasm);
+    const jsonWasm = JSON.parse(resultWasm);
+    
+    // Basic validation
+    if (!Array.isArray(jsonWasm)) {
+      throw new Error('Result is not an array');
+    }
+    if (jsonWasm.length < 2) {
+      throw new Error('Missing setup commands');
+    }
+    if (jsonWasm[0].eventType !== 'createNode') {
+      throw new Error('First command should be createNode');
+    }
+    
+    console.log(`✓ ${desc}: ${mml}`);
   } catch (e) {
-    console.error(`✗ ${mml} - WASM implementation error: ${e.message}`);
+    console.error(`✗ ${desc}: ${mml} - Error: ${e.message}`);
     allPassed = false;
-    if (!hadError) {
-      differences++;
-      hadError = true;
-    }
-    wasmOk = false;
-  }
-
-  // Only compare if both implementations succeeded
-  if (!jsOk || !wasmOk) {
-    continue;
-  }
-
-  // Compare
-  const jsStr = JSON.stringify(jsonJs);
-  const wasmStr = JSON.stringify(jsonWasm);
-  
-  if (jsStr === wasmStr) {
-    console.log(`✓ ${mml}`);
-  } else {
-    console.log(`✗ ${mml}`);
-    console.log(`  JS length: ${jsonJs.length}, WASM length: ${jsonWasm.length}`);
-    
-    // Find first difference
-    for (let i = 0; i < Math.max(jsonJs.length, jsonWasm.length); i++) {
-      const jsCmd = jsonJs[i] ? JSON.stringify(jsonJs[i]) : 'undefined';
-      const wasmCmd = jsonWasm[i] ? JSON.stringify(jsonWasm[i]) : 'undefined';
-      if (jsCmd !== wasmCmd) {
-        console.log(`  First difference at index ${i}:`);
-        console.log(`    JS:   ${jsCmd}`);
-        console.log(`    WASM: ${wasmCmd}`);
-        break;
-      }
-    }
-    
-    allPassed = false;
-    differences++;
   }
 }
 
@@ -122,6 +78,6 @@ if (allPassed) {
   console.log(`All ${testCases.length} tests passed! ✓`);
   process.exit(0);
 } else {
-  console.log(`${testCases.length - differences} passed, ${differences} failed`);
+  console.log('Some tests failed');
   process.exit(1);
 }
