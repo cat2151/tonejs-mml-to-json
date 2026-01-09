@@ -1,10 +1,10 @@
 // WASM-based mml2json implementation
-import init, { mml_to_json_wasm } from '../pkg/tonejs_mml_to_json.js';
+import init, { mml_to_json_wasm } from '../pkg/tonejs_mml_to_json';
 
 let wasmInitialized = false;
 
 // Initialize WASM module
-async function initWasm() {
+async function initWasm(): Promise<void> {
   if (!wasmInitialized) {
     await init();
     wasmInitialized = true;
@@ -12,10 +12,17 @@ async function initWasm() {
 }
 
 // Wrapper function compatible with the old mml2json interface
+declare global {
+  interface Window {
+    mml2json?: (mml: string) => any;
+    wasmReadyPromise?: Promise<void>;
+  }
+}
+
 if (window.mml2json) {
   console.warn('window.mml2json already exists and will be overwritten by WASM implementation');
 }
-window.mml2json = function(mml) {
+window.mml2json = function(mml: string): any {
   if (!wasmInitialized) {
     throw new Error('WASM module not initialized. Call initWasm() first.');
   }
