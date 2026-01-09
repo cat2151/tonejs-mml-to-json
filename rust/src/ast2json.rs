@@ -1,6 +1,10 @@
 use crate::ast::*;
 use serde::{Deserialize, Serialize};
 
+// Duration multiplier constants
+const SINGLE_DOT_MULTIPLIER: f64 = 1.5;
+const DOUBLE_DOT_MULTIPLIER: f64 = 1.75;
+
 /// JSON command types for Tone.js
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -136,8 +140,8 @@ fn calc_ticks(duration: Option<u32>, dots: u32, default_length: u32, meas_tick: 
     // Apply dots
     if dots > 0 {
         match dots {
-            1 => result = (result as f64 * 1.5) as u32,
-            2 => result = (result as f64 * 1.75) as u32,
+            1 => result = (result as f64 * SINGLE_DOT_MULTIPLIER) as u32,
+            2 => result = (result as f64 * DOUBLE_DOT_MULTIPLIER) as u32,
             _ => {
                 // For more dots, calculate appropriately
                 let mut multiplier = 1.0;

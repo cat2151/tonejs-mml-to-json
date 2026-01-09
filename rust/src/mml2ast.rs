@@ -1,5 +1,10 @@
 use crate::ast::*;
 
+// Error message constants
+const INVALID_DURATION_MSG: &str = "Duration should be a power of 2 (1, 2, 4, 8, 16, 32, etc.)";
+const INVALID_OCTAVE_MSG: &str = "Octave should be between 0 and 8.";
+const INVALID_INSTRUMENT_MSG: &str = "Instrument should be a non-negative number.";
+
 /// Parse MML string into AST tokens
 pub fn mml2ast(mml: &str) -> Result<Vec<AstToken>, String> {
     let mut tokens = Vec::new();
@@ -113,7 +118,7 @@ fn parse_note(chars: &[char], start_index: usize) -> Result<(NoteToken, usize), 
     // Validate duration
     if let Some(d) = duration {
         if !is_valid_duration(d) {
-            eprintln!("mml2ast: Invalid duration '{}' at position {}. Duration should be a power of 2 (1, 2, 4, 8, 16, 32, etc.)", d, start_index);
+            eprintln!("mml2ast: Invalid duration '{}' at position {}. {}", d, start_index, INVALID_DURATION_MSG);
         }
     }
 
@@ -146,7 +151,7 @@ fn parse_rest(chars: &[char], start_index: usize) -> Result<(RestToken, usize), 
     // Validate duration
     if let Some(d) = duration {
         if !is_valid_duration(d) {
-            eprintln!("mml2ast: Invalid duration '{}' for rest at position {}. Duration should be a power of 2 (1, 2, 4, 8, 16, 32, etc.)", d, start_index);
+            eprintln!("mml2ast: Invalid duration '{}' for rest at position {}. {}", d, start_index, INVALID_DURATION_MSG);
         }
     }
 
@@ -176,7 +181,7 @@ fn parse_length(chars: &[char], start_index: usize) -> Result<(LengthToken, usiz
     // Validate duration
     if let Some(v) = value {
         if !is_valid_duration(v) {
-            eprintln!("mml2ast: Invalid length '{}' at position {}. Length should be a power of 2 (1, 2, 4, 8, 16, 32, etc.)", v, start_index);
+            eprintln!("mml2ast: Invalid length '{}' at position {}. {}", v, start_index, INVALID_DURATION_MSG);
         }
     }
 
@@ -199,7 +204,7 @@ fn parse_octave(chars: &[char], start_index: usize) -> Result<(OctaveToken, usiz
     // Validate octave
     if let Some(v) = value {
         if !is_valid_octave(v) {
-            eprintln!("mml2ast: Invalid octave '{}' at position {}. Octave should be between 0 and 8.", v, start_index);
+            eprintln!("mml2ast: Invalid octave '{}' at position {}. {}", v, start_index, INVALID_OCTAVE_MSG);
         }
     }
 
@@ -222,7 +227,7 @@ fn parse_instrument(chars: &[char], start_index: usize) -> Result<(InstrumentTok
     // Validate instrument
     if let Some(v) = value {
         if !is_valid_instrument(v) {
-            eprintln!("mml2ast: Invalid instrument '{}' at position {}. Instrument should be a non-negative number.", v, start_index);
+            eprintln!("mml2ast: Invalid instrument '{}' at position {}. {}", v, start_index, INVALID_INSTRUMENT_MSG);
         }
     }
 

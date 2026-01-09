@@ -12,6 +12,9 @@ async function initWasm() {
 }
 
 // Wrapper function compatible with the old mml2json interface
+if (window.mml2json) {
+  console.warn('window.mml2json already exists and will be overwritten by WASM implementation');
+}
 window.mml2json = function(mml) {
   if (!wasmInitialized) {
     throw new Error('WASM module not initialized. Call initWasm() first.');

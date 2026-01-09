@@ -51,42 +51,67 @@ let allPassed = true;
 let differences = 0;
 
 for (const mml of testCases) {
+  let jsonJs;
+  let jsonWasm;
+  let jsOk = true;
+  let wasmOk = true;
+  let hadError = false;
+
+  // JavaScript implementation
   try {
-    // JavaScript implementation
     const astJs = mml2ast(mml);
-    const jsonJs = ast2json(astJs);
-    
-    // WASM implementation
-    const resultWasm = mml_to_json_wasm(mml);
-    const jsonWasm = JSON.parse(resultWasm);
-    
-    // Compare
-    const jsStr = JSON.stringify(jsonJs);
-    const wasmStr = JSON.stringify(jsonWasm);
-    
-    if (jsStr === wasmStr) {
-      console.log(`✓ ${mml}`);
-    } else {
-      console.log(`✗ ${mml}`);
-      console.log(`  JS length: ${jsonJs.length}, WASM length: ${jsonWasm.length}`);
-      
-      // Find first difference
-      for (let i = 0; i < Math.max(jsonJs.length, jsonWasm.length); i++) {
-        const jsCmd = jsonJs[i] ? JSON.stringify(jsonJs[i]) : 'undefined';
-        const wasmCmd = jsonWasm[i] ? JSON.stringify(jsonWasm[i]) : 'undefined';
-        if (jsCmd !== wasmCmd) {
-          console.log(`  First difference at index ${i}:`);
-          console.log(`    JS:   ${jsCmd}`);
-          console.log(`    WASM: ${wasmCmd}`);
-          break;
-        }
-      }
-      
-      allPassed = false;
-      differences++;
-    }
+    jsonJs = ast2json(astJs);
   } catch (e) {
-    console.error(`✗ ${mml} - Error: ${e.message}`);
+    console.error(`✗ ${mml} - JavaScript implementation error: ${e.message}`);
+    allPassed = false;
+    if (!hadError) {
+      differences++;
+      hadError = true;
+    }
+    jsOk = false;
+  }
+
+  // WASM implementation
+  try {
+    const resultWasm = mml_to_json_wasm(mml);
+    jsonWasm = JSON.parse(resultWasm);
+  } catch (e) {
+    console.error(`✗ ${mml} - WASM implementation error: ${e.message}`);
+    allPassed = false;
+    if (!hadError) {
+      differences++;
+      hadError = true;
+    }
+    wasmOk = false;
+  }
+
+  // Only compare if both implementations succeeded
+  if (!jsOk || !wasmOk) {
+    continue;
+  }
+
+  // Compare
+  const jsStr = JSON.stringify(jsonJs);
+  const wasmStr = JSON.stringify(jsonWasm);
+  
+  if (jsStr === wasmStr) {
+    console.log(`✓ ${mml}`);
+  } else {
+    console.log(`✗ ${mml}`);
+    console.log(`  JS length: ${jsonJs.length}, WASM length: ${jsonWasm.length}`);
+    
+    // Find first difference
+    for (let i = 0; i < Math.max(jsonJs.length, jsonWasm.length); i++) {
+      const jsCmd = jsonJs[i] ? JSON.stringify(jsonJs[i]) : 'undefined';
+      const wasmCmd = jsonWasm[i] ? JSON.stringify(jsonWasm[i]) : 'undefined';
+      if (jsCmd !== wasmCmd) {
+        console.log(`  First difference at index ${i}:`);
+        console.log(`    JS:   ${jsCmd}`);
+        console.log(`    WASM: ${wasmCmd}`);
+        break;
+      }
+    }
+    
     allPassed = false;
     differences++;
   }

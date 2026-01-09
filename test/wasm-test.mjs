@@ -23,6 +23,9 @@ const testCases = [
   { mml: 'o4 l16 efg+abag+f e8.<e8.>e8', desc: 'Demo MML' }
 ];
 
+// Expected number of setup commands (createNode and connect)
+const EXPECTED_SETUP_COMMANDS = 2;
+
 let allPassed = true;
 
 for (const testCase of testCases) {
@@ -38,7 +41,7 @@ for (const testCase of testCases) {
     if (!Array.isArray(json)) {
       throw new Error('Result is not an array');
     }
-    if (json.length < 2) {
+    if (json.length < EXPECTED_SETUP_COMMANDS) {
       throw new Error('Missing setup commands');
     }
     if (json[0].eventType !== 'createNode') {

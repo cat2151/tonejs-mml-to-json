@@ -1,4 +1,5 @@
 use wasm_bindgen::prelude::*;
+use serde::Serialize;
 
 pub mod ast;
 pub mod mml2ast;
@@ -7,6 +8,12 @@ pub mod ast2json;
 pub use ast::{AstToken, NoteToken, RestToken, LengthToken, OctaveToken, InstrumentToken};
 pub use mml2ast::mml2ast;
 pub use ast2json::ast2json;
+
+/// Error response structure for WASM
+#[derive(Serialize)]
+struct ErrorResponse {
+    error: String,
+}
 
 /// Convert MML string to JSON string (main API)
 pub fn mml_to_json(mml: &str) -> Result<String, String> {
@@ -20,7 +27,12 @@ pub fn mml_to_json(mml: &str) -> Result<String, String> {
 pub fn mml_to_json_wasm(mml: &str) -> String {
     match mml_to_json(mml) {
         Ok(json) => json,
-        Err(e) => format!(r#"{{"error":"{}"}}"#, e.replace('"', "\\\"")),
+        Err(e) => {
+            // Use serde_json to properly serialize the error object
+            let error_response = ErrorResponse { error: e };
+            serde_json::to_string(&error_response)
+                .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
+        }
     }
 }
 
