@@ -1,4 +1,4 @@
-Last updated: 2025-12-02
+Last updated: 2026-01-10
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -101,6 +101,18 @@ Last updated: 2025-12-02
   - 詳細は [tonejs-json-sequencer](https://github.com/cat2151/tonejs-json-sequencer) もご参照ください
 
 # 検討中メモ
+## Rust実装について
+- **Rust + WASM 実装を追加しました**
+  - Rustライブラリクレートとして利用可能
+  - WASMコンパイルでブラウザでも動作
+  - JavaScript実装と100%互換
+  - 詳細は [rust/README.md](rust/README.md) を参照
+
+## アーキテクチャ
+- **mml2ast**: MML文字列をASTに変換するパーサー
+- **ast**: AST（抽象構文木）のデータ構造
+- **ast2json**: ASTをTone.js互換JSONに変換
+
 ## 入出力定義
 - ※例示してイメージを可視化する
 - 入力例
@@ -132,7 +144,9 @@ Last updated: 2025-12-02
     "dotenv": "^17.2.0"
   },
   "devDependencies": {
+    "@types/node": "^25.0.3",
     "peggy": "^5.0.5",
+    "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   }
 }
@@ -144,9 +158,12 @@ Last updated: 2025-12-02
     📁 config/
       📊 my.json
 📄 .gitignore
+📖 IMPLEMENTATION_SUMMARY.md
 📄 LICENSE
+📖 QUICKSTART.md
 📖 README.ja.md
 📖 README.md
+📖 TYPESCRIPT_MIGRATION.md
 📄 _config.yml
 📁 dev-setup/
   📖 README.md
@@ -171,24 +188,54 @@ Last updated: 2025-12-02
   📖 18.md
   📖 2.md
   📖 20.md
+  📖 21.md
+  📖 23.md
+  📖 24.md
+  📖 26.md
+  📖 27.md
+  📖 28.md
   📖 3.md
+  📖 31.md
   📖 4.md
   📖 5.md
   📖 6.md
   📖 7.md
   📖 8.md
   📖 9.md
+📊 package-lock.json
 📊 package.json
 📄 pnpm-lock.yaml
+📁 rust/
+  📄 Cargo.toml
+  📖 IMPLEMENTATION.md
+  📖 README.md
+  📁 examples/
+    📄 basic_usage.rs
+  📁 src/
+    📄 ast.rs
+    📄 ast2json.rs
+    📄 lib.rs
+    📄 mml2ast.rs
 📁 src/
+  📘 ast2json.ts
   📜 grammar.js
   📝 grammar.pegjs
   🌐 index.html
-  📜 main.js
+  📘 main.ts
+  📘 mml2ast.ts
+  📘 mml2json-wasm.ts
   📜 mml2json.js
-  📜 play.js
+  📘 play.ts
 📁 test/
+  📜 ast2json.test.js
+  📄 demo-test.mjs
+  📜 integration.test.js
+  📜 mml2ast.test.js
   📜 parser.test.js
+  📄 wasm-init-test.mjs
+  📄 wasm-integration-test.mjs
+  📄 wasm-test.mjs
+📊 tsconfig.json
 📜 vitest.config.js
 
 ## ファイル詳細分析
@@ -200,7 +247,7 @@ Last updated: 2025-12-02
   - 関数: なし
   - インポート: なし
 
-**generated-docs/callgraph.html** (778行, 23298バイト)
+**generated-docs/callgraph.html** (639行, 19598バイト)
   - 関数: なし
   - インポート: なし
 
@@ -220,6 +267,10 @@ Last updated: 2025-12-02
   - 関数: なし
   - インポート: なし
 
+**src/ast2json.ts** (193行, 4933バイト)
+  - 関数: ast2json, processNote, processRest, calcTicks, calcDuration, calcStartTick, increaseStartTick, getNodeId, for, switch, if
+  - インポート: ./mml2ast
+
 **src/grammar.js** (414行, 10439バイト)
   - 関数: hex, unicodeEscape, literalEscape, classEscape, describeExpectation, describeExpected, describeFound, peg$parse, peg$f0, text, offset, range, location, expected, error, peg$getUnicode, peg$literalExpectation, peg$classExpectation, peg$anyExpectation, peg$endExpectation, peg$otherExpectation, peg$computePosDetails, peg$computeLocation, peg$fail, peg$buildSimpleError, peg$buildStructuredError, peg$parsestart, peg$parsenote, peg$throw, constructor, format, if, buildMessage, literal, class, any, end, other, for, switch, while
   - インポート: なし
@@ -228,21 +279,41 @@ Last updated: 2025-12-02
   - 関数: start, note
   - インポート: なし
 
-**src/index.html** (15行, 454バイト)
+**src/index.html** (15行, 525バイト)
   - 関数: なし
   - インポート: なし
 
-**src/main.js** (19行, 545バイト)
-  - 関数: なし
+**src/main.ts** (56行, 1689バイト)
+  - 関数: if
+  - インポート: ./play
+
+**src/mml2ast.ts** (315行, 7300バイト)
+  - 関数: parseDigits, isValidDuration, isValidOctave, isValidInstrument, mml2ast, parseNote, parseRest, parseLength, parseOctave, parseInstrument, while, if
   - インポート: なし
+
+**src/mml2json-wasm.ts** (49行, 1479バイト)
+  - 関数: initWasm, if
+  - インポート: ../pkg/tonejs_mml_to_json
 
 **src/mml2json.js** (157行, 4296バイト)
   - 関数: mml2json, compileMmlToCommands, getMmlCommands, calcAttackToReleaseTicks, repeat, toInt, calcDuration, calcStartTick, increaseStartTick, calcLtick, getNodeId, if, sort, function, switch, for
   - インポート: なし
 
-**src/play.js** (56行, 1535バイト)
-  - 関数: play, sub, catch, switch, if
-  - インポート: なし
+**src/play.ts** (112行, 3067バイト)
+  - 関数: play, sub, if, catch, switch
+  - インポート: ./ast2json
+
+**test/ast2json.test.js** (326行, 11657バイト)
+  - 関数: なし
+  - インポート: vitest, ../src/ast2json
+
+**test/integration.test.js** (252行, 8805バイト)
+  - 関数: for, if
+  - インポート: vitest, ../src/mml2ast, ../src/ast2json
+
+**test/mml2ast.test.js** (278行, 8859バイト)
+  - 関数: なし
+  - インポート: vitest, ../src/mml2ast
 
 **test/parser.test.js** (11行, 275バイト)
   - 関数: なし
@@ -253,11 +324,9 @@ Last updated: 2025-12-02
   - インポート: vitest/config
 
 ## 関数呼び出し階層
-- catch (dev-setup/setup.js)
-  - error ()
-  - on ()
-    - escapeHtml (generated-docs/callgraph.js)
-      - getLayoutConfig ()
+- switch (generated-docs/callgraph.js)
+  - escapeHtml (generated-docs/callgraph.js)
+    - getLayoutConfig ()
       - placeCentralNode ()
       - showNodeInfo ()
       - showEdgeInfo ()
@@ -277,24 +346,42 @@ Last updated: 2025-12-02
       - replace ()
       - function ()
       - max ()
+      - on ()
       - ready ()
       - addListener ()
+  - ast2json (src/ast2json.ts)
+    - processNote ()
+      - processRest ()
+      - calcTicks ()
+      - calcDuration ()
+      - calcStartTick ()
+      - increaseStartTick ()
+      - getNodeId ()
+      - repeat ()
   - mml2json (src/mml2json.js)
     - compileMmlToCommands ()
       - getMmlCommands ()
       - calcAttackToReleaseTicks ()
-      - repeat ()
       - toInt ()
-      - calcDuration ()
-      - calcStartTick ()
-      - increaseStartTick ()
       - calcLtick ()
-      - getNodeId ()
       - sort ()
-  - play (src/play.js)
+  - error ()
+  - play ()
     - sub ()
-- switch (generated-docs/callgraph.js)
 - if (generated-docs/callgraph.js)
+  - catch (dev-setup/setup.js)
+  - start (src/grammar.pegjs)
+  - parseDigits (src/mml2ast.ts)
+    - isValidDuration ()
+      - isValidOctave ()
+      - isValidInstrument ()
+      - mml2ast ()
+      - parseNote ()
+      - parseRest ()
+      - parseLength ()
+      - parseOctave ()
+      - parseInstrument ()
+  - initWasm (src/mml2json-wasm.ts)
 - for (generated-docs/callgraph.js)
 - hex (src/grammar.js)
   - unicodeEscape ()
@@ -325,14 +412,17 @@ Last updated: 2025-12-02
   - peg$parsenote ()
   - peg$throw ()
   - constructor (undefined)
-- start (src/grammar.pegjs)
 - note (src/grammar.pegjs)
+- while (src/mml2ast.ts)
 
 
 ## プロジェクト構造（ファイル一覧）
 .github_automation/callgraph/config/my.json
+IMPLEMENTATION_SUMMARY.md
+QUICKSTART.md
 README.ja.md
 README.md
+TYPESCRIPT_MIGRATION.md
 dev-setup/README.md
 dev-setup/setup.js
 generated-docs/callgraph-enhanced.html
@@ -353,14 +443,11 @@ issue-notes/17.md
 issue-notes/18.md
 issue-notes/2.md
 issue-notes/20.md
-issue-notes/3.md
-issue-notes/4.md
-issue-notes/5.md
-issue-notes/6.md
-issue-notes/7.md
-issue-notes/8.md
-issue-notes/9.md
-package.json
+issue-notes/21.md
+issue-notes/23.md
+issue-notes/24.md
+issue-notes/26.md
+package-lock.json
 
 上記の情報を基に、プロンプトで指定された形式でプロジェクト概要を生成してください。
 特に以下の点を重視してください：
@@ -372,4 +459,4 @@ package.json
 
 
 ---
-Generated at: 2025-12-02 07:04:33 JST
+Generated at: 2026-01-10 07:05:24 JST
