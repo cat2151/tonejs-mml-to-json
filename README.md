@@ -39,11 +39,14 @@
 
 # Future Considerations
 ## Regarding Rust Implementation
-- **Added Rust + WASM implementation.**
+- **Rust + WASM implementation is now the primary implementation.**
+  - As of issue #26, the TypeScript and Rust implementations have been consolidated.
+  - All code (including tests) now uses the Rust WASM implementation.
   - Available as a Rust library crate.
   - Works in browsers via WASM compilation.
-  - 100% compatible with JavaScript implementation.
+  - TypeScript wrappers provide API compatibility.
   - See [rust/README.md](rust/README.md) for details.
+  - See [CONSOLIDATION.md](CONSOLIDATION.md) for consolidation details.
 
 ## Architecture
 - **mml2ast**: A parser that converts MML strings into an AST.

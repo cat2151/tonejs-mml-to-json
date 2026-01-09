@@ -44,7 +44,8 @@ export type ToneCommand = CreateNodeCommand | ConnectCommand | TriggerAttackRele
  * 
  * Note: WASM must be initialized before calling this function.
  * In tests, this is handled by test/setup.js
- * In browser, this is handled by mml2json-wasm.ts
+ * In browser, WASM initialization should be done before calling this function
+ * (e.g., by importing and awaiting the init function from pkg/tonejs_mml_to_json.js)
  * 
  * @param ast - Array of AST tokens to convert
  * @returns Array of Tone.js commands
