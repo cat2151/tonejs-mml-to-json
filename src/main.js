@@ -13,6 +13,9 @@ window.addEventListener("load", ()=>{
     play();
   };
 
-  // playボタンを押さなくてもtextarea2にコンパイル結果を出力する用
-  play();
+  // Wait for WASM to be ready before initial play
+  window.addEventListener('wasmReady', ()=>{
+    // playボタンを押さなくてもtextarea2にコンパイル結果を出力する用
+    play();
+  }, { once: true });
 });
