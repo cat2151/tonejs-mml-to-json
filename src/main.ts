@@ -5,7 +5,7 @@ let textarea1: HTMLTextAreaElement | null;
 let textarea2: HTMLTextAreaElement | null;
 
 // Import play function
-import { play } from './play';
+import { play } from './play.js';
 
 window.addEventListener("load", () => {
   textarea1 = document.querySelector('#textarea1');
