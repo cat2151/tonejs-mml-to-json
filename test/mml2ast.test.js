@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mml2ast } from '../src/mml2ast.js';
+import { mml2ast } from '../src/mml2ast.ts';
 
 describe('mml2ast', () => {
   describe('Basic notes', () => {

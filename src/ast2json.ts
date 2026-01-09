@@ -3,8 +3,31 @@
  * Converts AST to Tone.js compatible JSON format
  */
 
-export function ast2json(ast) {
-  const commands = [];
+import type { ASTToken } from './mml2ast.js';
+
+// Type definitions for Tone.js command objects
+export interface CreateNodeCommand {
+  eventType: 'createNode';
+  nodeId: number;
+  nodeType: string;
+}
+
+export interface ConnectCommand {
+  eventType: 'connect';
+  nodeId: number;
+  connectTo: string | number;
+}
+
+export interface TriggerAttackReleaseCommand {
+  eventType: 'triggerAttackRelease';
+  nodeId: number;
+  args: [string, string, string];
+}
+
+export type ToneCommand = CreateNodeCommand | ConnectCommand | TriggerAttackReleaseCommand;
+
+export function ast2json(ast: ASTToken[]): ToneCommand[] {
+  const commands: ToneCommand[] = [];
   // Ticks per measure: 192 ticks per quarter note * 4 quarter notes = 768 ticks per 4/4 measure
   const measTick = 192 * 4;
   let startTick = 0;
@@ -75,14 +98,14 @@ export function ast2json(ast) {
 
       default:
         // Log warning for unknown token types to catch potential bugs
-        console.warn('ast2json: Unknown token type encountered:', token.type, token);
+        console.warn('ast2json: Unknown token type encountered:', (token as any).type, token);
         break;
     }
   }
 
   return commands;
 
-  function processNote(token) {
+  function processNote(token: ASTToken & { type: 'note' }): TriggerAttackReleaseCommand | null {
     const ticks = calcTicks(token.duration, token.dots);
     
     // Convert accidental to sharp/flat notation
@@ -95,7 +118,7 @@ export function ast2json(ast) {
       }
     }
 
-    const command = {
+    const command: TriggerAttackReleaseCommand = {
       eventType: "triggerAttackRelease",
       nodeId: getNodeId(),
       args: [token.note + accidental + octave, calcDuration(ticks), calcStartTick()]
@@ -105,13 +128,13 @@ export function ast2json(ast) {
     return command;
   }
 
-  function processRest(token) {
+  function processRest(token: ASTToken & { type: 'rest' }): void {
     const ticks = calcTicks(token.duration, token.dots);
     increaseStartTick(ticks);
   }
 
-  function calcTicks(duration, dots) {
-    let result;
+  function calcTicks(duration: number | null, dots: number): number {
+    let result: number;
     if (duration) {
       result = measTick / duration;
     } else {
@@ -139,7 +162,7 @@ export function ast2json(ast) {
     return result;
   }
 
-  function calcDuration(ticks) {
+  function calcDuration(ticks: number): string {
     let duration = ticks;
     // Apply gate time adjustment: subtract 10 ticks from durations >= 20 
     // to create a slight gap between notes (equivalent to 'q' quantize command).
@@ -148,15 +171,15 @@ export function ast2json(ast) {
     return duration + "i";
   }
 
-  function calcStartTick() {
+  function calcStartTick(): string {
     return "+" + startTick + "i";
   }
 
-  function increaseStartTick(ticks) {
+  function increaseStartTick(ticks: number): void {
     startTick += ticks;
   }
 
-  function getNodeId() {
+  function getNodeId(): number {
     return nodeId;
   }
 }

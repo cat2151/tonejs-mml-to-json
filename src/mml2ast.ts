@@ -3,13 +3,69 @@
  * Parses MML string into an Abstract Syntax Tree
  */
 
+// Type definitions for AST tokens
+export interface NoteToken {
+  type: 'note';
+  note: string;
+  accidental: string;
+  duration: number | null;
+  dots: number;
+  length: number;
+}
+
+export interface RestToken {
+  type: 'rest';
+  duration: number | null;
+  dots: number;
+  length: number;
+}
+
+export interface LengthToken {
+  type: 'length';
+  value: number | null;
+  length: number;
+}
+
+export interface OctaveToken {
+  type: 'octave';
+  value: number | null;
+  length: number;
+}
+
+export interface OctaveUpToken {
+  type: 'octaveUp';
+  length: number;
+}
+
+export interface OctaveDownToken {
+  type: 'octaveDown';
+  length: number;
+}
+
+export interface InstrumentToken {
+  type: 'instrument';
+  value: number | null;
+  length: number;
+}
+
+export type ASTToken = 
+  | NoteToken 
+  | RestToken 
+  | LengthToken 
+  | OctaveToken 
+  | OctaveUpToken 
+  | OctaveDownToken 
+  | InstrumentToken;
+
+interface ParseDigitsResult {
+  value: number | null;
+  length: number;
+}
+
 /**
  * Helper function to parse consecutive digits from a string
- * @param {string} mml - The MML string
- * @param {number} startIndex - Starting index for parsing
- * @returns {object} Object with parsed value and length consumed
  */
-function parseDigits(mml, startIndex) {
+function parseDigits(mml: string, startIndex: number): ParseDigitsResult {
   let index = startIndex;
   let digitStr = '';
   
@@ -26,10 +82,8 @@ function parseDigits(mml, startIndex) {
 
 /**
  * Validates that a duration value is a valid musical duration
- * @param {number} duration - The duration value to validate
- * @returns {boolean} True if valid, false otherwise
  */
-function isValidDuration(duration) {
+function isValidDuration(duration: number | null): boolean {
   if (duration === null) return true;
   // Valid durations are powers of 2: 1, 2, 4, 8, 16, 32, 64, etc.
   return duration > 0 && (duration & (duration - 1)) === 0;
@@ -37,10 +91,8 @@ function isValidDuration(duration) {
 
 /**
  * Validates that an octave value is in a reasonable range
- * @param {number} octave - The octave value to validate
- * @returns {boolean} True if valid, false otherwise
  */
-function isValidOctave(octave) {
+function isValidOctave(octave: number | null): boolean {
   if (octave === null) return true;
   // Typical MIDI range is 0-10, but we'll allow 0-8 as reasonable
   return octave >= 0 && octave <= 8;
@@ -48,16 +100,14 @@ function isValidOctave(octave) {
 
 /**
  * Validates that an instrument value is non-negative
- * @param {number} instrument - The instrument value to validate
- * @returns {boolean} True if valid, false otherwise
  */
-function isValidInstrument(instrument) {
+function isValidInstrument(instrument: number | null): boolean {
   if (instrument === null) return true;
   return instrument >= 0;
 }
 
-export function mml2ast(mml) {
-  const tokens = [];
+export function mml2ast(mml: string): ASTToken[] {
+  const tokens: ASTToken[] = [];
   let index = 0;
 
   // Parse MML string character by character
@@ -135,11 +185,11 @@ export function mml2ast(mml) {
   return tokens;
 }
 
-function parseNote(mml, startIndex) {
+function parseNote(mml: string, startIndex: number): NoteToken {
   let index = startIndex + 1; // Skip the note character
   const note = mml[startIndex];
   let accidental = '';
-  let duration = null;
+  let duration: number | null = null;
   let dots = 0;
 
   // Parse accidentals (+ or -)
@@ -174,9 +224,9 @@ function parseNote(mml, startIndex) {
   };
 }
 
-function parseRest(mml, startIndex) {
+function parseRest(mml: string, startIndex: number): RestToken {
   let index = startIndex + 1; // Skip 'r'
-  let duration = null;
+  let duration: number | null = null;
   let dots = 0;
 
   // Parse duration (number)
@@ -203,7 +253,7 @@ function parseRest(mml, startIndex) {
   };
 }
 
-function parseLength(mml, startIndex) {
+function parseLength(mml: string, startIndex: number): LengthToken {
   let index = startIndex + 1; // Skip 'l'
 
   // Parse duration (number)
@@ -223,7 +273,7 @@ function parseLength(mml, startIndex) {
   };
 }
 
-function parseOctave(mml, startIndex) {
+function parseOctave(mml: string, startIndex: number): OctaveToken {
   let index = startIndex + 1; // Skip 'o'
 
   // Parse octave number
@@ -243,7 +293,7 @@ function parseOctave(mml, startIndex) {
   };
 }
 
-function parseInstrument(mml, startIndex) {
+function parseInstrument(mml: string, startIndex: number): InstrumentToken {
   let index = startIndex + 1; // Skip '@'
 
   // Parse instrument number
