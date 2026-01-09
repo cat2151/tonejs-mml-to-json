@@ -18,4 +18,10 @@ window.addEventListener("load", ()=>{
     // playボタンを押さなくてもtextarea2にコンパイル結果を出力する用
     play();
   }, { once: true });
+
+  // Handle WASM initialization errors
+  window.addEventListener('wasmError', (e)=>{
+    console.error('WASM initialization failed:', e.detail);
+    textarea2.value = 'Error: Failed to initialize WASM module. Please refresh the page.';
+  }, { once: true });
 });

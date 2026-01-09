@@ -30,6 +30,8 @@ const wasmReadyPromise = initWasm().then(() => {
   window.dispatchEvent(new CustomEvent('wasmReady'));
 }).catch(err => {
   console.error('Failed to initialize WASM module:', err);
+  // Dispatch error event so UI can handle the failure
+  window.dispatchEvent(new CustomEvent('wasmError', { detail: err }));
 });
 
 export { initWasm, wasmReadyPromise };
