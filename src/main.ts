@@ -1,22 +1,13 @@
 // Declare Tone.js types
 declare const Tone: any;
 
-let errorPoint: string;
-let outputArea: HTMLElement | null;
 let textarea1: HTMLTextAreaElement | null;
 let textarea2: HTMLTextAreaElement | null;
-
-interface ToneNode {
-  dispose: () => void;
-}
-
-let nodes: ToneNode[] = [];
 
 // Import play function
 import { play } from './play';
 
 window.addEventListener("load", () => {
-  outputArea = document.getElementById('output');
   textarea1 = document.querySelector('#textarea1');
   textarea2 = document.querySelector('#textarea2');
   

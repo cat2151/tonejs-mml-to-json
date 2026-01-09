@@ -1,6 +1,8 @@
 // Declare Tone.js types
 declare const Tone: any;
 
+import type { ToneCommand } from './ast2json';
+
 // Global state
 interface ToneNode {
   dispose: () => void;
@@ -12,16 +14,8 @@ interface ToneNode {
   };
 }
 
-let nodes: ToneNode[] = [];
-let errorPoint: string;
-
-interface ToneCommand {
-  eventType: string;
-  nodeId?: number;
-  nodeType?: string;
-  args?: any[];
-  connectTo?: string | number;
-}
+export let nodes: ToneNode[] = [];
+export let errorPoint: string = "";
 
 export function play(): void {
   try {
@@ -88,7 +82,7 @@ function sub(element: ToneCommand): void {
         return;
       }
       
-      if (element.connectTo == "toDestination") {
+      if (element.connectTo === "toDestination") {
         nodes[element.nodeId].toDestination();
       } else {
         nodes[element.nodeId].connect(nodes[element.connectTo as number]);

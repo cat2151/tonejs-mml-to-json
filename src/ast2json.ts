@@ -10,6 +10,7 @@ export interface CreateNodeCommand {
   eventType: 'createNode';
   nodeId: number;
   nodeType: string;
+  args?: any[]; // Optional args for some node types like FMSynth
 }
 
 export interface ConnectCommand {
@@ -24,7 +25,13 @@ export interface TriggerAttackReleaseCommand {
   args: [string, string, string];
 }
 
-export type ToneCommand = CreateNodeCommand | ConnectCommand | TriggerAttackReleaseCommand;
+export interface DepthRampToCommand {
+  eventType: 'depth.rampTo';
+  nodeId: number;
+  args: any[];
+}
+
+export type ToneCommand = CreateNodeCommand | ConnectCommand | TriggerAttackReleaseCommand | DepthRampToCommand;
 
 export function ast2json(ast: ASTToken[]): ToneCommand[] {
   const commands: ToneCommand[] = [];
