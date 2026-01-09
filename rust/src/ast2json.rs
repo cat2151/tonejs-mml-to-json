@@ -97,7 +97,9 @@ pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
             }
 
             AstToken::OctaveDown(_) => {
-                octave -= 1;
+                if octave > 0 {
+                    octave -= 1;
+                }
             }
 
             AstToken::Instrument(_) => {
@@ -152,13 +154,16 @@ fn calc_ticks(duration: Option<u32>, dots: u32, default_length: u32, meas_tick: 
     result
 }
 
+const GATE_TIME_REDUCTION: u32 = 10;
+const MIN_DURATION_FOR_GATE: u32 = 20;
+
 fn calc_duration(ticks: u32) -> String {
     let mut duration = ticks;
     // Apply gate time adjustment: subtract 10 ticks from durations >= 20 
     // to create a slight gap between notes (equivalent to 'q' quantize command).
     // This prevents notes from bleeding together and makes the music sound more natural.
-    if duration >= 20 {
-        duration -= 10;
+    if duration >= MIN_DURATION_FOR_GATE {
+        duration -= GATE_TIME_REDUCTION;
     }
     format!("{}i", duration)
 }

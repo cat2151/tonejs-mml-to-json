@@ -23,10 +23,6 @@ window.mml2json = function(mml) {
 // Initialize on load
 initWasm().then(() => {
   console.log('WASM module initialized successfully');
-  // Trigger initial play if the demo is already loaded
-  if (typeof play === 'function') {
-    play();
-  }
 }).catch(err => {
   console.error('Failed to initialize WASM module:', err);
 });
