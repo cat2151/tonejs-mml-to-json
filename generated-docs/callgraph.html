@@ -12,15 +12,15 @@
         <h1>Function Call Graph with Source Links</h1>
         <div class="stats-container">
             <div class="stats">
-                <div class="stat-value">18</div>
+                <div class="stat-value">13</div>
                 <div class="stat-label">Functions</div>
             </div>
             <div class="stats">
-                <div class="stat-value">22</div>
+                <div class="stat-value">18</div>
                 <div class="stat-label">Call Relationships</div>
             </div>
             <div class="stats">
-                <div class="stat-value">13</div>
+                <div class="stat-value">10</div>
                 <div class="stat-label">With Callee Location</div>
             </div>
         </div>
@@ -46,72 +46,12 @@
     </div>
 
     <div class="generated-time">
-        Generated: 2025/12/1 20:05:21
+        Generated: 2026/1/9 20:04:39
     </div>
 
     <script>
       const graphData = {
   "nodes": [
-    {
-      "id": "onclick (main.js:11)",
-      "label": "onclick (main.js:11)",
-      "locations": [
-        {
-          "file": "src/main.js",
-          "line": 13,
-          "column": 5,
-          "type": "caller",
-          "sourceLine": "    play();"
-        }
-      ],
-      "hasLocationInfo": true,
-      "hasCalleeLocationInfo": false
-    },
-    {
-      "id": "play (play.js:1)",
-      "label": "play (play.js:1)",
-      "locations": [
-        {
-          "file": "src/main.js",
-          "line": 13,
-          "column": 5,
-          "type": "definition",
-          "sourceLine": "    play();"
-        },
-        {
-          "file": "src/main.js",
-          "line": 17,
-          "column": 3,
-          "type": "definition",
-          "sourceLine": "  play();"
-        },
-        {
-          "file": "src/play.js",
-          "line": 7,
-          "column": 16,
-          "type": "caller",
-          "sourceLine": "    let json = mml2json(mml);"
-        }
-      ],
-      "hasLocationInfo": true,
-      "hasCalleeLocationInfo": true,
-      "calleeFncDef": "function play() {"
-    },
-    {
-      "id": "anonymous_3 (main.js:3)",
-      "label": "anonymous_3 (main.js:3)",
-      "locations": [
-        {
-          "file": "src/main.js",
-          "line": 17,
-          "column": 3,
-          "type": "caller",
-          "sourceLine": "  play();"
-        }
-      ],
-      "hasLocationInfo": true,
-      "hasCalleeLocationInfo": false
-    },
     {
       "id": "mml2json (mml2json.js:1)",
       "label": "mml2json (mml2json.js:1)",
@@ -125,7 +65,7 @@
         }
       ],
       "hasLocationInfo": true,
-      "hasCalleeLocationInfo": true
+      "hasCalleeLocationInfo": false
     },
     {
       "id": "compileMmlToCommands (mml2json.js:14)",
@@ -179,8 +119,8 @@
       "calleeFncDef": "  function compileMmlToCommands(mml) {"
     },
     {
-      "id": "getNodeId (mml2json.js:153)",
-      "label": "getNodeId (mml2json.js:153)",
+      "id": "getNodeId (ast2json.ts:189)",
+      "label": "getNodeId (ast2json.ts:189)",
       "locations": [
         {
           "file": "src/mml2json.js",
@@ -213,7 +153,7 @@
       ],
       "hasLocationInfo": true,
       "hasCalleeLocationInfo": true,
-      "calleeFncDef": "  function getNodeId() {"
+      "calleeFncDef": null
     },
     {
       "id": "getMmlCommands (mml2json.js:50)",
@@ -378,8 +318,8 @@
       "calleeFncDef": "  function calcAttackToReleaseTicks(divide, points) {"
     },
     {
-      "id": "increaseStartTick (mml2json.js:147)",
-      "label": "increaseStartTick (mml2json.js:147)",
+      "id": "increaseStartTick (ast2json.ts:185)",
+      "label": "increaseStartTick (ast2json.ts:185)",
       "locations": [
         {
           "file": "src/mml2json.js",
@@ -398,7 +338,7 @@
       ],
       "hasLocationInfo": true,
       "hasCalleeLocationInfo": true,
-      "calleeFncDef": "  function increaseStartTick(ticks) {"
+      "calleeFncDef": null
     },
     {
       "id": "toInt (mml2json.js:136)",
@@ -424,8 +364,8 @@
       "calleeFncDef": "  function toInt(x) {"
     },
     {
-      "id": "calcDuration (mml2json.js:139)",
-      "label": "calcDuration (mml2json.js:139)",
+      "id": "calcDuration (ast2json.ts:172)",
+      "label": "calcDuration (ast2json.ts:172)",
       "locations": [
         {
           "file": "src/mml2json.js",
@@ -437,11 +377,11 @@
       ],
       "hasLocationInfo": true,
       "hasCalleeLocationInfo": true,
-      "calleeFncDef": "  function calcDuration(ticks) {"
+      "calleeFncDef": null
     },
     {
-      "id": "calcStartTick (mml2json.js:144)",
-      "label": "calcStartTick (mml2json.js:144)",
+      "id": "calcStartTick (ast2json.ts:181)",
+      "label": "calcStartTick (ast2json.ts:181)",
       "locations": [
         {
           "file": "src/mml2json.js",
@@ -453,7 +393,7 @@
       ],
       "hasLocationInfo": true,
       "hasCalleeLocationInfo": true,
-      "calleeFncDef": "  function calcStartTick() {"
+      "calleeFncDef": null
     },
     {
       "id": "calcLtick (mml2json.js:150)",
@@ -470,66 +410,11 @@
       "hasLocationInfo": true,
       "hasCalleeLocationInfo": true,
       "calleeFncDef": "  function calcLtick() {"
-    },
-    {
-      "id": "anonymous_17 (play.js:17)",
-      "label": "anonymous_17 (play.js:17)",
-      "locations": [
-        {
-          "file": "src/play.js",
-          "line": 17,
-          "column": 27,
-          "type": "caller",
-          "sourceLine": "    j.forEach (element => sub(element));"
-        }
-      ],
-      "hasLocationInfo": true,
-      "hasCalleeLocationInfo": false
-    },
-    {
-      "id": "sub (play.js:23)",
-      "label": "sub (play.js:23)",
-      "locations": [
-        {
-          "file": "src/play.js",
-          "line": 17,
-          "column": 27,
-          "type": "definition",
-          "sourceLine": "    j.forEach (element => sub(element));"
-        }
-      ],
-      "hasLocationInfo": true,
-      "hasCalleeLocationInfo": true,
-      "calleeFncDef": "function sub(element) {"
     }
   ],
   "edges": [
     {
       "id": "edge-0",
-      "source": "onclick (main.js:11)",
-      "target": "play (play.js:1)",
-      "hasCalleeLocationInfo": true,
-      "file": "src/main.js",
-      "line": 13,
-      "column": 5,
-      "location": "src/main.js:13:5",
-      "hasLocationInfo": true,
-      "sourceLine": "    play();"
-    },
-    {
-      "id": "edge-1",
-      "source": "anonymous_3 (main.js:3)",
-      "target": "play (play.js:1)",
-      "hasCalleeLocationInfo": true,
-      "file": "src/main.js",
-      "line": 17,
-      "column": 3,
-      "location": "src/main.js:17:3",
-      "hasLocationInfo": true,
-      "sourceLine": "  play();"
-    },
-    {
-      "id": "edge-2",
       "source": "mml2json (mml2json.js:1)",
       "target": "compileMmlToCommands (mml2json.js:14)",
       "hasCalleeLocationInfo": true,
@@ -541,9 +426,9 @@
       "sourceLine": "  let commands = compileMmlToCommands(mml);"
     },
     {
-      "id": "edge-3",
+      "id": "edge-1",
       "source": "compileMmlToCommands (mml2json.js:14)",
-      "target": "getNodeId (mml2json.js:153)",
+      "target": "getNodeId (ast2json.ts:189)",
       "hasCalleeLocationInfo": true,
       "file": "src/mml2json.js",
       "line": 18,
@@ -553,9 +438,9 @@
       "sourceLine": "      \"nodeId\": getNodeId(),"
     },
     {
-      "id": "edge-4",
+      "id": "edge-2",
       "source": "compileMmlToCommands (mml2json.js:14)",
-      "target": "getNodeId (mml2json.js:153)",
+      "target": "getNodeId (ast2json.ts:189)",
       "hasCalleeLocationInfo": true,
       "file": "src/mml2json.js",
       "line": 23,
@@ -565,7 +450,7 @@
       "sourceLine": "      \"nodeId\": getNodeId(),"
     },
     {
-      "id": "edge-5",
+      "id": "edge-3",
       "source": "compileMmlToCommands (mml2json.js:14)",
       "target": "getMmlCommands (mml2json.js:50)",
       "hasCalleeLocationInfo": true,
@@ -577,7 +462,7 @@
       "sourceLine": "    for (let i = 0, imax = getMmlCommands().length; i < imax; i++) {"
     },
     {
-      "id": "edge-6",
+      "id": "edge-4",
       "source": "compileMmlToCommands (mml2json.js:14)",
       "target": "getMmlCommands (mml2json.js:50)",
       "hasCalleeLocationInfo": true,
@@ -589,7 +474,7 @@
       "sourceLine": "      let m, checked = {}, def = getMmlCommands()[i];"
     },
     {
-      "id": "edge-7",
+      "id": "edge-5",
       "source": "compileMmlToCommands (mml2json.js:14)",
       "target": "repeat (mml2json.js:129)",
       "hasCalleeLocationInfo": true,
@@ -601,9 +486,9 @@
       "sourceLine": "            let mask = repeat(m[0].length, \" \");"
     },
     {
-      "id": "edge-8",
+      "id": "edge-6",
       "source": "func (mml2json.js:54)",
-      "target": "getNodeId (mml2json.js:153)",
+      "target": "getNodeId (ast2json.ts:189)",
       "hasCalleeLocationInfo": true,
       "file": "src/mml2json.js",
       "line": 57,
@@ -613,7 +498,7 @@
       "sourceLine": "                \"nodeId\": getNodeId(),"
     },
     {
-      "id": "edge-9",
+      "id": "edge-7",
       "source": "func (mml2json.js:75)",
       "target": "calcAttackToReleaseTicks (mml2json.js:111)",
       "hasCalleeLocationInfo": true,
@@ -625,9 +510,9 @@
       "sourceLine": "          const ticks = calcAttackToReleaseTicks(m[3], m[4]);"
     },
     {
-      "id": "edge-10",
+      "id": "edge-8",
       "source": "func (mml2json.js:75)",
-      "target": "increaseStartTick (mml2json.js:147)",
+      "target": "increaseStartTick (ast2json.ts:185)",
       "hasCalleeLocationInfo": true,
       "file": "src/mml2json.js",
       "line": 79,
@@ -637,7 +522,7 @@
       "sourceLine": "            increaseStartTick(ticks);"
     },
     {
-      "id": "edge-11",
+      "id": "edge-9",
       "source": "func (mml2json.js:75)",
       "target": "toInt (mml2json.js:136)",
       "hasCalleeLocationInfo": true,
@@ -649,7 +534,7 @@
       "sourceLine": "            lCommand = toInt(m[3]);"
     },
     {
-      "id": "edge-12",
+      "id": "edge-10",
       "source": "func (mml2json.js:75)",
       "target": "toInt (mml2json.js:136)",
       "hasCalleeLocationInfo": true,
@@ -661,7 +546,7 @@
       "sourceLine": "            octave = toInt(m[3]);"
     },
     {
-      "id": "edge-13",
+      "id": "edge-11",
       "source": "func (mml2json.js:75)",
       "target": "repeat (mml2json.js:129)",
       "hasCalleeLocationInfo": true,
@@ -673,7 +558,7 @@
       "sourceLine": "              pm = repeat(m[2].length, \"#\");  // TODO ## -> note number +2 (Tone.js ## 非対応)"
     },
     {
-      "id": "edge-14",
+      "id": "edge-12",
       "source": "func (mml2json.js:75)",
       "target": "repeat (mml2json.js:129)",
       "hasCalleeLocationInfo": true,
@@ -685,9 +570,9 @@
       "sourceLine": "              pm = repeat(m[2].length, \"b\");"
     },
     {
-      "id": "edge-15",
+      "id": "edge-13",
       "source": "func (mml2json.js:75)",
-      "target": "getNodeId (mml2json.js:153)",
+      "target": "getNodeId (ast2json.ts:189)",
       "hasCalleeLocationInfo": true,
       "file": "src/mml2json.js",
       "line": 101,
@@ -697,9 +582,9 @@
       "sourceLine": "              \"nodeId\": getNodeId(),"
     },
     {
-      "id": "edge-16",
+      "id": "edge-14",
       "source": "func (mml2json.js:75)",
-      "target": "calcDuration (mml2json.js:139)",
+      "target": "calcDuration (ast2json.ts:172)",
       "hasCalleeLocationInfo": true,
       "file": "src/mml2json.js",
       "line": 102,
@@ -709,9 +594,9 @@
       "sourceLine": "              \"args\": [m[1] + pm + octave, calcDuration(ticks), calcStartTick()]"
     },
     {
-      "id": "edge-17",
+      "id": "edge-15",
       "source": "func (mml2json.js:75)",
-      "target": "calcStartTick (mml2json.js:144)",
+      "target": "calcStartTick (ast2json.ts:181)",
       "hasCalleeLocationInfo": true,
       "file": "src/mml2json.js",
       "line": 102,
@@ -721,9 +606,9 @@
       "sourceLine": "              \"args\": [m[1] + pm + octave, calcDuration(ticks), calcStartTick()]"
     },
     {
-      "id": "edge-18",
+      "id": "edge-16",
       "source": "func (mml2json.js:75)",
-      "target": "increaseStartTick (mml2json.js:147)",
+      "target": "increaseStartTick (ast2json.ts:185)",
       "hasCalleeLocationInfo": true,
       "file": "src/mml2json.js",
       "line": 104,
@@ -733,7 +618,7 @@
       "sourceLine": "            increaseStartTick(ticks);"
     },
     {
-      "id": "edge-19",
+      "id": "edge-17",
       "source": "calcAttackToReleaseTicks (mml2json.js:111)",
       "target": "calcLtick (mml2json.js:150)",
       "hasCalleeLocationInfo": true,
@@ -743,30 +628,6 @@
       "location": "src/mml2json.js:116:16",
       "hasLocationInfo": true,
       "sourceLine": "      result = calcLtick();"
-    },
-    {
-      "id": "edge-20",
-      "source": "play (play.js:1)",
-      "target": "mml2json (mml2json.js:1)",
-      "hasCalleeLocationInfo": true,
-      "file": "src/play.js",
-      "line": 7,
-      "column": 16,
-      "location": "src/play.js:7:16",
-      "hasLocationInfo": true,
-      "sourceLine": "    let json = mml2json(mml);"
-    },
-    {
-      "id": "edge-21",
-      "source": "anonymous_17 (play.js:17)",
-      "target": "sub (play.js:23)",
-      "hasCalleeLocationInfo": true,
-      "file": "src/play.js",
-      "line": 17,
-      "column": 27,
-      "location": "src/play.js:17:27",
-      "hasLocationInfo": true,
-      "sourceLine": "    j.forEach (element => sub(element));"
     }
   ]
 };
