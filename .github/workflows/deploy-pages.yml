@@ -35,7 +35,8 @@ jobs:
           target: wasm32-unknown-unknown
 
       - name: Install wasm-pack
-        run: cargo install wasm-pack --version 0.13.1
+        run: |
+          curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh -s -- -v 0.13.1
 
       - name: Install dependencies
         run: npm ci
@@ -46,13 +47,22 @@ jobs:
       - name: Build TypeScript
         run: npm run build:ts
 
+      - name: Prepare deployment artifact
+        run: |
+          mkdir -p site
+          for item in dist pkg src index.html _config.yml .nojekyll googled947dc864c270e07.html generated-docs; do
+            if [ -e "$item" ]; then
+              cp -r "$item" site/
+            fi
+          done
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: './site'
 
   deploy:
     environment:
