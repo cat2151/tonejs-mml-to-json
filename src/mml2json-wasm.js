@@ -23,11 +23,19 @@ window.mml2json = function(mml) {
   return JSON.parse(jsonStr);
 };
 
-// Initialize on load
-initWasm().then(() => {
+// Initialize on load and dispatch event when ready
+const wasmReadyPromise = initWasm().then(() => {
   console.log('WASM module initialized successfully');
+  // Dispatch custom event to notify that WASM is ready
+  window.dispatchEvent(new CustomEvent('wasmReady'));
 }).catch(err => {
   console.error('Failed to initialize WASM module:', err);
+  // Dispatch error event so UI can handle the failure
+  window.dispatchEvent(new CustomEvent('wasmError', { detail: err }));
+  throw err; // Re-throw to keep promise rejected
 });
 
-export { initWasm };
+// Export to window for non-module scripts to access
+window.wasmReadyPromise = wasmReadyPromise;
+
+export { initWasm, wasmReadyPromise };

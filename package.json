@@ -7,7 +7,7 @@
   "scripts": {
     "test": "vitest",
     "test:watch": "vitest --watch",
-    "test:wasm": "node test/wasm-test.mjs && node test/wasm-integration-test.mjs && node test/demo-test.mjs",
+    "test:wasm": "node test/wasm-test.mjs && node test/wasm-integration-test.mjs && node test/demo-test.mjs && node test/wasm-init-test.mjs",
     "build:parser": "peggy --format es src/grammar.pegjs",
     "build:wasm": "cd rust && wasm-pack build --target web --out-dir ../pkg",
     "build": "npm run build:wasm",
