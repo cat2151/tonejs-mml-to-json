@@ -1,5 +1,5 @@
 // WASM-based mml2json implementation
-import init, { mml_to_json_wasm } from '../pkg/tonejs_mml_to_json.js';
+import init, { mml_to_json_wasm } from '../pkg/tonejs_mml_to_json';
 
 let wasmInitialized = false;
 
