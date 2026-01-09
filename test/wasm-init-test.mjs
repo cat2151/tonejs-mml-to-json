@@ -54,7 +54,6 @@ await init(wasmBuffer);
 
 // Now load the mml2json-wasm module (it will try to initialize, but WASM is already loaded)
 const wasmModulePath = join(__dirname, '../src/mml2json-wasm.js');
-const moduleContent = readFileSync(wasmModulePath, 'utf8');
 
 // Import and test the module
 const { initWasm, wasmReadyPromise } = await import(`file://${wasmModulePath}`);
