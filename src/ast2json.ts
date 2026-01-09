@@ -3,7 +3,7 @@
  * Converts AST to Tone.js compatible JSON format
  */
 
-import type { ASTToken } from './mml2ast.js';
+import type { ASTToken } from './mml2ast';
 
 // Type definitions for Tone.js command objects
 export interface CreateNodeCommand {

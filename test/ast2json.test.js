@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ast2json } from '../src/ast2json.ts';
+import { ast2json } from '../src/ast2json';
 
 describe('ast2json', () => {
   describe('Initialization', () => {

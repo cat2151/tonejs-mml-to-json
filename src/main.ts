@@ -13,7 +13,7 @@ interface ToneNode {
 let nodes: ToneNode[] = [];
 
 // Import play function
-import { play } from './play.js';
+import { play } from './play';
 
 window.addEventListener("load", () => {
   outputArea = document.getElementById('output');

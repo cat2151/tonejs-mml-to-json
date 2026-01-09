@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { mml2ast } from '../src/mml2ast.ts';
-import { ast2json } from '../src/ast2json.ts';
+import { mml2ast } from '../src/mml2ast';
+import { ast2json } from '../src/ast2json';
 
 describe('Integration: mml2ast + ast2json', () => {
   describe('Complete pipeline', () => {
