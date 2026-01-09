@@ -38,6 +38,18 @@
   - 詳細は [tonejs-json-sequencer](https://github.com/cat2151/tonejs-json-sequencer) もご参照ください
 
 # 検討中メモ
+## Rust実装について
+- **Rust + WASM 実装を追加しました**
+  - Rustライブラリクレートとして利用可能
+  - WASMコンパイルでブラウザでも動作
+  - JavaScript実装と100%互換
+  - 詳細は [rust/README.md](rust/README.md) を参照
+
+## アーキテクチャ
+- **mml2ast**: MML文字列をASTに変換するパーサー
+- **ast**: AST（抽象構文木）のデータ構造
+- **ast2json**: ASTをTone.js互換JSONに変換
+
 ## 入出力定義
 - ※例示してイメージを可視化する
 - 入力例

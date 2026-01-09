@@ -15,3 +15,13 @@ codeql-db
 
 # LLM
 copilot-instructions.md
+
+# Rust
+rust/target/
+rust/Cargo.lock
+pkg/
+
+
+# Added by cargo
+
+/target

@@ -7,7 +7,10 @@
   "scripts": {
     "test": "vitest",
     "test:watch": "vitest --watch",
+    "test:wasm": "node test/wasm-test.mjs && node test/wasm-integration-test.mjs && node test/demo-test.mjs",
     "build:parser": "peggy --format es src/grammar.pegjs",
+    "build:wasm": "cd rust && wasm-pack build --target web --out-dir ../pkg",
+    "build": "npm run build:wasm",
     "dev": "pnpm run build:parser && pnpm run test:watch",
     "test:summary": "node .github/scripts/test-summary.cjs"
   },
@@ -15,7 +18,9 @@
     "mml",
     "tonejs",
     "music",
-    "parser"
+    "parser",
+    "rust",
+    "wasm"
   ],
   "author": "cat2151",
   "license": "MIT",
