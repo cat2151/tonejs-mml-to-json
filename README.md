@@ -18,15 +18,15 @@
 | 📖 Call Graph | [generated-docs/callgraph-enhanced.html](https://cat2151.github.io/tonejs-mml-to-json/generated-docs/callgraph-enhanced.html) |
 | 📊 Development Status | [generated-docs/development-status.md](generated-docs/development-status.md) |
 
-# Summary
+# Overview
 - Converts music written in MML (Music Macro Language) into a JSON format playable in a browser.
-- Allows you to create music with simple text and play it on a website.
-- Available as an npm package and via CDN for easy integration into your projects.
-- This tool specializes in music conversion; actual playback is handled by a separate project (``tonejs-json-sequencer``).
+- Enables you to create music with simple text and play it on a website.
+- Available as an npm package and via CDN, making integration into your projects easy.
+- A specialized tool focused on music conversion; actual playback is handled by a separate project (`tonejs-json-sequencer`).
 
 # Usage
 
-## As an npm Package
+## As an npm package
 
 ```bash
 npm install tonejs-mml-to-json
@@ -35,7 +35,7 @@ npm install tonejs-mml-to-json
 ```javascript
 import { initWasm, mml2json } from 'tonejs-mml-to-json';
 
-// Initialize WASM module
+// Initialize the WASM module
 await initWasm();
 
 // Convert MML to JSON
@@ -56,59 +56,56 @@ console.log(json);
 </script>
 ```
 
-For detailed usage instructions, see [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
+For detailed usage instructions, please refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 
 # Notes
-- What are the benefits of writing music in MML (Music Macro Language)?
-  - **Conciseness and Portability**: Text-based, lightweight, and platform-independent for the web.
-  - **Programmer-friendly**: Code-like notation, easy Git management, and generation.
-  - **Web Development Compatibility**: Direct playback in browsers, real-time editing, and lightweight delivery.
-  - **Low Learning Curve**: Simple grammar, allows for progressive learning.
-  - **Modular Design**: Conversion and playback are separated, allowing independent evolution of each.
-  - **Fosters an Ecosystem**: Highly reusable, easy to share and accumulate knowledge.
-  - **Adaptability to Dialects**: Assumes that system-specific MML dialects can be easily created and adapted using PEG for simple conversions.
+- What are the advantages of writing music with MML (Music Macro Language)?
+  - **Conciseness and Portability**: Text-based and lightweight, platform-independent for the web.
+  - **Developer Friendliness**: Code-like notation, easy Git management, and generation.
+  - **Web Development Affinity**: Direct playback in browsers, real-time editing, lightweight delivery.
+  - **Low Learning Curve**: Simple syntax, supports gradual learning.
+  - **Modular Design**: Conversion and playback are separated, allowing independent evolution.
+  - **Fosters an Ecosystem**: High reusability, easy to share and accumulate knowledge.
+  - **Adaptability to Dialects**: Easily adaptable to system-specific MML dialects, with PEG making simple converters easy to create.
 
-- Why are tonejs-json-sequencer and tonejs-mml-to-json separate projects?
+- Why are `tonejs-json-sequencer` and `tonejs-mml-to-json` separate projects?
   - **To prioritize development independence and speed.**
-    - Allows focus on MML parser development.
-    - Enables rapid evolution without being constrained by dependencies between parser and playback functionalities.
+    - Allows focusing on MML parser development.
+    - Enables rapid evolution without being constrained by dependencies between parser and playback features.
   - For more details, please also refer to [tonejs-json-sequencer](https://github.com/cat2151/tonejs-json-sequencer).
 
-# Future Considerations
+# Memos (Under Consideration)
 ## Regarding Rust Implementation
-- **Rust + WASM implementation is now the primary implementation.**
-  - As of issue #26, the TypeScript and Rust implementations have been consolidated.
-  - All code (including tests) now uses the Rust WASM implementation.
+- **Rust + WASM implementation has been added.**
   - Available as a Rust library crate.
-  - Works in browsers via WASM compilation.
-  - TypeScript wrappers provide API compatibility.
+  - Operates in browsers via WASM compilation.
+  - 100% compatible with the JavaScript implementation.
   - See [rust/README.md](rust/README.md) for details.
-  - See [CONSOLIDATION.md](CONSOLIDATION.md) for consolidation details.
 
 ## Architecture
 - **mml2ast**: A parser that converts MML strings into an AST.
-- **ast**: The data structure for the AST (Abstract Syntax Tree).
-- **ast2json**: Converts the AST into Tone.js-compatible JSON.
+- **ast**: Data structure for AST (Abstract Syntax Tree).
+- **ast2json**: Converts AST to Tone.js compatible JSON.
 
 ## Input/Output Definition
-- *Illustrative examples to visualize the concept
+- *To visualize the concept with examples.*
 - Input Example
-  - ``o4 l16 e``
+  - `o4 l16 e`
 - Intermediate Format Example
-  - *Designed as loosely coupled, thin layers to facilitate changes.
-  - json (AST)
-  - json (Pre-processed)
+  - *Loose coupling with thin layers, making each easily modifiable.*
+  - JSON (AST)
+  - JSON (pre-processed)
     - What is "processing"?
-      - Node ID numbering, etc.
+      - Node ID assignment, etc.
 - Output Example
-  - json (Post-processed)
+  - JSON (post-processed)
     - Format recognized by tonejs-json-sequencer.
-    - Details omitted; TDD test cases serve as the definitive specification.
+    - Details omitted; test cases in TDD will serve as specifics.
 
-## TDD Approach
-- The test targets are mml2ast, ast2ast, and ast2json, individually.
-  - Refer to TDD for mml2abc / chord2mml.
-- I recall using Vitest for TDD in this project.
-  - I plan to organize the test procedures later.
+## TDD Policy
+- The test targets are `mml2ast`, `ast2ast`, and `ast2json`, respectively.
+  - Refer to the TDD for `mml2abc` / `chord2mml`.
+- I recall this project using Vitest for TDD.
+  - I intend to organize the test procedures later.
 
-*This README.md is automatically generated by GitHub Actions using Gemini's translation of README.ja.md.
+*Note: README.md is automatically generated from README.ja.md using Gemini's translation via GitHub Actions.*
