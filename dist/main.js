@@ -1,10 +1,43 @@
 let textarea1;
 let textarea2;
-// Import play function
+// Import play function and demos
 import { play } from './play.js';
+import { demos } from './demos.js';
+/**
+ * Initialize the demo dropdown menu
+ */
+function initializeDemoDropdown() {
+    const demoSelect = document.querySelector('#demoSelect');
+    if (!demoSelect) {
+        console.error('Demo select element not found');
+        return;
+    }
+    // Populate dropdown with demo options
+    demos.forEach((demo, index) => {
+        const option = document.createElement('option');
+        option.value = demo.id;
+        option.textContent = demo.name;
+        option.title = demo.description;
+        if (index === 0) {
+            option.selected = true;
+        }
+        demoSelect.appendChild(option);
+    });
+    // Handle demo selection change
+    demoSelect.addEventListener('change', () => {
+        const selectedDemo = demos.find(d => d.id === demoSelect.value);
+        if (selectedDemo && textarea1) {
+            textarea1.value = selectedDemo.mml;
+            // Trigger play to update the output
+            play();
+        }
+    });
+}
 window.addEventListener("load", () => {
     textarea1 = document.querySelector('#textarea1');
     textarea2 = document.querySelector('#textarea2');
+    // Initialize demo dropdown
+    initializeDemoDropdown();
     if (textarea1) {
         textarea1.addEventListener('input', play);
     }
