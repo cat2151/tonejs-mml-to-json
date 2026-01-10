@@ -16,6 +16,7 @@ export interface CreateNodeCommand {
   eventType: 'createNode';
   nodeId: number;
   nodeType: string;
+  // Optional constructor arguments for specific node types (e.g. FMSynth). Most node types do not require args.
   args?: any[];
 }
 

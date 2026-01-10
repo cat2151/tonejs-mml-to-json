@@ -1,6 +1,6 @@
 // WASM verification test
-// Since the TypeScript implementation now uses WASM internally (consolidation from issue #26),
-// this test simply verifies that the WASM implementation works correctly for various MML inputs.
+// After consolidation in issue #26, the TypeScript implementation now uses WASM internally.
+// This test verifies that the WASM implementation works correctly for various MML inputs.
 
 import init, { mml_to_json_wasm } from '../pkg/tonejs_mml_to_json.js';
 import { readFileSync } from 'fs';
