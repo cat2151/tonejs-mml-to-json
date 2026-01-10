@@ -2,11 +2,26 @@
 declare const Tone: any;
 
 import type { ToneCommand } from './ast2json';
-import { SequencerNodes, playSequence } from 'tonejs-json-sequencer';
+import { SequencerNodes, playSequence, type SequenceEvent } from 'tonejs-json-sequencer';
 
 // Global state - using SequencerNodes from tonejs-json-sequencer
 export const nodes = new SequencerNodes();
 export let errorPoint: string = "";
+
+/**
+ * Convert ToneCommand to SequenceEvent format
+ * The main difference is connectTo which can be any string in ToneCommand
+ * but must be number | 'toDestination' in SequenceEvent
+ */
+function toSequenceEvent(cmd: ToneCommand): SequenceEvent {
+  if (cmd.eventType === 'connect') {
+    return {
+      ...cmd,
+      connectTo: cmd.connectTo === 'toDestination' ? 'toDestination' : cmd.connectTo as number
+    };
+  }
+  return cmd as SequenceEvent;
+}
 
 export async function play(): Promise<void> {
   try {
@@ -33,9 +48,9 @@ export async function play(): Promise<void> {
     errorPoint = "JSON.parse";
     const sequence = JSON.parse(jsonStr) as ToneCommand[];
     
-    // Use tonejs-json-sequencer to play the sequence
+    // Convert to SequenceEvent format and use tonejs-json-sequencer to play
     errorPoint = "playSequence";
-    await playSequence(Tone, nodes, sequence as any);
+    await playSequence(Tone, nodes, sequence.map(toSequenceEvent));
   } catch (error) {
     console.log(errorPoint + " error : [" + error + "]");
   }

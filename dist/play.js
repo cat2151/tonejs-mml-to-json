@@ -2,6 +2,20 @@ import { SequencerNodes, playSequence } from 'tonejs-json-sequencer';
 // Global state - using SequencerNodes from tonejs-json-sequencer
 export const nodes = new SequencerNodes();
 export let errorPoint = "";
+/**
+ * Convert ToneCommand to SequenceEvent format
+ * The main difference is connectTo which can be any string in ToneCommand
+ * but must be number | 'toDestination' in SequenceEvent
+ */
+function toSequenceEvent(cmd) {
+    if (cmd.eventType === 'connect') {
+        return {
+            ...cmd,
+            connectTo: cmd.connectTo === 'toDestination' ? 'toDestination' : cmd.connectTo
+        };
+    }
+    return cmd;
+}
 export async function play() {
     try {
         // Get textarea references
@@ -22,9 +36,9 @@ export async function play() {
         const jsonStr = textarea2.value;
         errorPoint = "JSON.parse";
         const sequence = JSON.parse(jsonStr);
-        // Use tonejs-json-sequencer to play the sequence
+        // Convert to SequenceEvent format and use tonejs-json-sequencer to play
         errorPoint = "playSequence";
-        await playSequence(Tone, nodes, sequence);
+        await playSequence(Tone, nodes, sequence.map(toSequenceEvent));
     }
     catch (error) {
         console.log(errorPoint + " error : [" + error + "]");
