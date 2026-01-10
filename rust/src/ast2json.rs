@@ -5,6 +5,10 @@ use serde::{Deserialize, Serialize};
 const SINGLE_DOT_MULTIPLIER: f64 = 1.5;
 const DOUBLE_DOT_MULTIPLIER: f64 = 1.75;
 
+// Event type constants for sorting and comparison
+const EVENT_TYPE_CREATE_NODE: &str = "createNode";
+const EVENT_TYPE_CONNECT: &str = "connect";
+
 /// JSON command types for Tone.js
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -37,13 +41,16 @@ pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
         // Sort commands by start time (keeping setup commands at the beginning)
         all_commands.sort_by(|a, b| {
             // createNode and connect commands stay at the beginning
-            if a.event_type == "createNode" || a.event_type == "connect" {
-                if b.event_type == "createNode" || b.event_type == "connect" {
-                    return std::cmp::Ordering::Equal;
-                }
+            let a_is_setup = a.event_type == EVENT_TYPE_CREATE_NODE || a.event_type == EVENT_TYPE_CONNECT;
+            let b_is_setup = b.event_type == EVENT_TYPE_CREATE_NODE || b.event_type == EVENT_TYPE_CONNECT;
+            
+            if a_is_setup && b_is_setup {
+                return std::cmp::Ordering::Equal;
+            }
+            if a_is_setup {
                 return std::cmp::Ordering::Less;
             }
-            if b.event_type == "createNode" || b.event_type == "connect" {
+            if b_is_setup {
                 return std::cmp::Ordering::Greater;
             }
             
@@ -94,14 +101,14 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
 
     // Add initial setup commands
     commands.push(Command {
-        event_type: "createNode".to_string(),
+        event_type: EVENT_TYPE_CREATE_NODE.to_string(),
         node_id,
         node_type: Some("Synth".to_string()),
         connect_to: None,
         args: None,
     });
     commands.push(Command {
-        event_type: "connect".to_string(),
+        event_type: EVENT_TYPE_CONNECT.to_string(),
         node_id,
         node_type: None,
         connect_to: Some("toDestination".to_string()),
@@ -173,14 +180,14 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 node_id += 1;
                 // Both createNode and connect use the same nodeId (the new one)
                 commands.push(Command {
-                    event_type: "createNode".to_string(),
+                    event_type: EVENT_TYPE_CREATE_NODE.to_string(),
                     node_id,
                     node_type: Some("Synth".to_string()),
                     connect_to: None,
                     args: None,
                 });
                 commands.push(Command {
-                    event_type: "connect".to_string(),
+                    event_type: EVENT_TYPE_CONNECT.to_string(),
                     node_id,
                     node_type: None,
                     connect_to: Some("toDestination".to_string()),
@@ -204,7 +211,7 @@ fn get_start_tick(command: &Command) -> u32 {
         if args.len() >= 3 {
             // Parse "+123i" format
             let start_str = &args[2];
-            if start_str.starts_with('+') && start_str.ends_with('i') {
+            if start_str.len() > 2 && start_str.starts_with('+') && start_str.ends_with('i') {
                 if let Ok(tick) = start_str[1..start_str.len()-1].parse::<u32>() {
                     return tick;
                 }
