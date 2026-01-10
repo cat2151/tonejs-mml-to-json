@@ -74,6 +74,13 @@ pub fn mml2ast(mml: &str) -> Result<Vec<AstToken>, String> {
             continue;
         }
 
+        // Track separator: ;
+        if ch == ';' {
+            tokens.push(AstToken::TrackSeparator(TrackSeparatorToken { length: 1 }));
+            index += 1;
+            continue;
+        }
+
         // Unknown character, skip
         index += 1;
     }
@@ -315,5 +322,23 @@ mod tests {
         assert_eq!(result.len(), 2);
         assert!(matches!(result[0], AstToken::OctaveUp(_)));
         assert!(matches!(result[1], AstToken::OctaveDown(_)));
+    }
+
+    #[test]
+    fn test_parse_track_separator() {
+        let result = mml2ast("c;d").unwrap();
+        assert_eq!(result.len(), 3);
+        assert!(matches!(result[0], AstToken::Note(_)));
+        assert!(matches!(result[1], AstToken::TrackSeparator(_)));
+        assert!(matches!(result[2], AstToken::Note(_)));
+    }
+
+    #[test]
+    fn test_parse_multiple_tracks() {
+        let result = mml2ast("o4 l8 cde; o5 l16 efg").unwrap();
+        // Count the track separator
+        let separator_count = result.iter().filter(|t| matches!(t, AstToken::TrackSeparator(_))).count();
+        assert_eq!(separator_count, 1);
+        assert!(result.len() > 5); // Should have multiple tokens
     }
 }

@@ -274,4 +274,41 @@ describe('mml2ast', () => {
       expect(result).toHaveLength(3);
     });
   });
+
+  describe('Track separator', () => {
+    it('should parse semicolon as track separator', () => {
+      const result = mml2ast('c;d');
+      expect(result).toHaveLength(3);
+      expect(result[0].type).toBe('note');
+      expect(result[1].type).toBe('trackSeparator');
+      expect(result[2].type).toBe('note');
+    });
+
+    it('should parse multiple tracks', () => {
+      const result = mml2ast('cde;efg;abc');
+      const separators = result.filter(t => t.type === 'trackSeparator');
+      expect(separators).toHaveLength(2);
+    });
+
+    it('should parse tracks with different commands', () => {
+      const result = mml2ast('o4 l8 cde; o5 l16 efg');
+      const separators = result.filter(t => t.type === 'trackSeparator');
+      expect(separators).toHaveLength(1);
+      expect(result.length).toBeGreaterThan(5);
+    });
+
+    it('should handle empty track before separator', () => {
+      const result = mml2ast(';c');
+      expect(result).toHaveLength(2);
+      expect(result[0].type).toBe('trackSeparator');
+      expect(result[1].type).toBe('note');
+    });
+
+    it('should handle empty track after separator', () => {
+      const result = mml2ast('c;');
+      expect(result).toHaveLength(2);
+      expect(result[0].type).toBe('note');
+      expect(result[1].type).toBe('trackSeparator');
+    });
+  });
 });

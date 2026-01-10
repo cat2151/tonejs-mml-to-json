@@ -5,7 +5,7 @@ pub mod ast;
 pub mod mml2ast;
 pub mod ast2json;
 
-pub use ast::{AstToken, NoteToken, RestToken, LengthToken, OctaveToken, InstrumentToken};
+pub use ast::{AstToken, NoteToken, RestToken, LengthToken, OctaveToken, InstrumentToken, TrackSeparatorToken};
 pub use mml2ast::mml2ast;
 pub use ast2json::ast2json;
 

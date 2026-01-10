@@ -322,4 +322,92 @@ describe('ast2json', () => {
       expect(result[5].args[2]).toBe("+288i");
     });
   });
+
+  describe('Multi-track support', () => {
+    it('should create separate nodes for each track', () => {
+      const ast = [
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 },
+        { type: 'trackSeparator', length: 1 },
+        { type: 'note', note: 'd', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      // Should have 2 createNode commands
+      const createNodes = result.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      expect(createNodes[0].nodeId).toBe(0);
+      expect(createNodes[1].nodeId).toBe(1);
+      
+      // Should have 2 connect commands
+      const connects = result.filter(e => e.eventType === 'connect');
+      expect(connects).toHaveLength(2);
+      
+      // Should have 2 notes
+      const notes = result.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(2);
+    });
+
+    it('should handle tracks with different octaves', () => {
+      const ast = [
+        { type: 'octave', value: 4, length: 2 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 },
+        { type: 'trackSeparator', length: 1 },
+        { type: 'octave', value: 5, length: 2 },
+        { type: 'note', note: 'e', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      const notes = result.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes[0].args[0]).toBe('c4');
+      expect(notes[1].args[0]).toBe('e5');
+    });
+
+    it('should handle tracks with different lengths', () => {
+      const ast = [
+        { type: 'length', value: 8, length: 2 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 },
+        { type: 'trackSeparator', length: 1 },
+        { type: 'length', value: 16, length: 3 },
+        { type: 'note', note: 'd', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      const notes = result.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes[0].args[1]).toBe('86i');  // 96 - 10
+      expect(notes[1].args[1]).toBe('38i');  // 48 - 10
+    });
+
+    it('should start all tracks at time +0i', () => {
+      const ast = [
+        { type: 'note', note: 'c', accidental: '', duration: 8, dots: 0, length: 2 },
+        { type: 'note', note: 'd', accidental: '', duration: 8, dots: 0, length: 2 },
+        { type: 'trackSeparator', length: 1 },
+        { type: 'note', note: 'e', accidental: '', duration: 8, dots: 0, length: 2 },
+        { type: 'note', note: 'f', accidental: '', duration: 8, dots: 0, length: 2 }
+      ];
+      const result = ast2json(ast);
+      
+      const notes = result.filter(e => e.eventType === 'triggerAttackRelease');
+      // First note of each track should start at +0i
+      const firstNotes = notes.filter(n => n.args[2] === '+0i');
+      expect(firstNotes.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('should handle three tracks', () => {
+      const ast = [
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 },
+        { type: 'trackSeparator', length: 1 },
+        { type: 'note', note: 'd', accidental: '', duration: null, dots: 0, length: 1 },
+        { type: 'trackSeparator', length: 1 },
+        { type: 'note', note: 'e', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      const createNodes = result.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(3);
+      expect(createNodes[0].nodeId).toBe(0);
+      expect(createNodes[1].nodeId).toBe(1);
+      expect(createNodes[2].nodeId).toBe(2);
+    });
+  });
 });

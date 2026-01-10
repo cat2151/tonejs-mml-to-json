@@ -11,6 +11,7 @@ pub enum AstToken {
     OctaveUp(OctaveUpToken),
     OctaveDown(OctaveDownToken),
     Instrument(InstrumentToken),
+    TrackSeparator(TrackSeparatorToken),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -64,6 +65,12 @@ pub struct InstrumentToken {
     pub length: usize,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TrackSeparatorToken {
+    pub length: usize,
+}
+
 impl AstToken {
     pub fn length(&self) -> usize {
         match self {
@@ -74,6 +81,7 @@ impl AstToken {
             AstToken::OctaveUp(t) => t.length,
             AstToken::OctaveDown(t) => t.length,
             AstToken::Instrument(t) => t.length,
+            AstToken::TrackSeparator(t) => t.length,
         }
     }
 }
