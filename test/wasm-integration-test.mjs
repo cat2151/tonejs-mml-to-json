@@ -43,7 +43,10 @@ const testCases = [
   { mml: 'o4 c < d > e', desc: 'Octave changes' },
   { mml: 'l8 c d e r f g a', desc: 'Melody with rest' },
   { mml: 'o4 l16 efg+abag+f e8.<e8.>e8', desc: 'Complex melody' },
-  { mml: '@0 c d @1 e f', desc: 'Instrument changes' }
+  { mml: '@0 c d @1 e f', desc: 'Instrument changes' },
+  { mml: 'c;d', desc: 'Multi-track with semicolon' },
+  { mml: 'o4 cde; o5 efg', desc: 'Multi-track with different octaves' },
+  { mml: 'l8 cd; l16 ef', desc: 'Multi-track with different lengths' }
 ];
 
 console.log('Testing WASM implementation...\n');
