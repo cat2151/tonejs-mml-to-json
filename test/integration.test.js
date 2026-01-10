@@ -273,9 +273,9 @@ describe('Integration: mml2ast + ast2json', () => {
       const notes = json.filter(e => e.eventType === 'triggerAttackRelease');
       expect(notes).toHaveLength(6);
       
-      // Check octaves
+      // Check octaves - Track 1 has nodeId 100
       const track1Notes = notes.filter(n => n.nodeId === 0).map(n => n.args[0]);
-      const track2Notes = notes.filter(n => n.nodeId === 1).map(n => n.args[0]);
+      const track2Notes = notes.filter(n => n.nodeId === 100).map(n => n.args[0]);
       
       expect(track1Notes).toEqual(['c4', 'd4', 'e4']);
       expect(track2Notes).toEqual(['e5', 'f5', 'g5']);
@@ -294,7 +294,7 @@ describe('Integration: mml2ast + ast2json', () => {
       track1Notes.forEach(n => expect(n.args[1]).toBe('86i')); // 96 - 10
       
       // Track 2 notes should have sixteenth note duration
-      const track2Notes = notes.filter(n => n.nodeId === 1);
+      const track2Notes = notes.filter(n => n.nodeId === 100);
       track2Notes.forEach(n => expect(n.args[1]).toBe('38i')); // 48 - 10
     });
 
@@ -337,7 +337,7 @@ describe('Integration: mml2ast + ast2json', () => {
       
       // Verify octaves are maintained
       const track1Notes = notes.filter(n => n.nodeId === 0).map(n => n.args[0]);
-      const track2Notes = notes.filter(n => n.nodeId === 1).map(n => n.args[0]);
+      const track2Notes = notes.filter(n => n.nodeId === 100).map(n => n.args[0]);
       
       track1Notes.forEach(note => expect(note).toMatch(/4$/));
       track2Notes.forEach(note => expect(note).toMatch(/5$/));

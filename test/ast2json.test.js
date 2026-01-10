@@ -336,7 +336,7 @@ describe('ast2json', () => {
       const createNodes = result.filter(e => e.eventType === 'createNode');
       expect(createNodes).toHaveLength(2);
       expect(createNodes[0].nodeId).toBe(0);
-      expect(createNodes[1].nodeId).toBe(1);
+      expect(createNodes[1].nodeId).toBe(100); // Track 1 starts at 100
       
       // Should have 2 connect commands
       const connects = result.filter(e => e.eventType === 'connect');
@@ -406,8 +406,8 @@ describe('ast2json', () => {
       const createNodes = result.filter(e => e.eventType === 'createNode');
       expect(createNodes).toHaveLength(3);
       expect(createNodes[0].nodeId).toBe(0);
-      expect(createNodes[1].nodeId).toBe(1);
-      expect(createNodes[2].nodeId).toBe(2);
+      expect(createNodes[1].nodeId).toBe(100); // Track 1 starts at 100
+      expect(createNodes[2].nodeId).toBe(200); // Track 2 starts at 200
     });
   });
 });

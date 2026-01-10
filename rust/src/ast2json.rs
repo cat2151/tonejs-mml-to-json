@@ -33,31 +33,31 @@ pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
         let tracks = split_into_tracks(ast);
         let mut all_commands = Vec::new();
         
+        // Use a base node_id offset for each track to prevent collisions with instrument changes
+        // Allocate 100 node IDs per track (track 0: 0-99, track 1: 100-199, etc.)
+        const NODE_ID_SPACING: u32 = 100;
+        
         for (track_index, track_ast) in tracks.iter().enumerate() {
-            let track_commands = process_single_track(track_ast, track_index as u32)?;
+            let base_node_id = (track_index as u32) * NODE_ID_SPACING;
+            let track_commands = process_single_track(track_ast, base_node_id)?;
             all_commands.extend(track_commands);
         }
         
-        // Sort commands by start time (keeping setup commands at the beginning)
-        all_commands.sort_by(|a, b| {
-            // createNode and connect commands stay at the beginning
-            let a_is_setup = a.event_type == EVENT_TYPE_CREATE_NODE || a.event_type == EVENT_TYPE_CONNECT;
-            let b_is_setup = b.event_type == EVENT_TYPE_CREATE_NODE || b.event_type == EVENT_TYPE_CONNECT;
-            
-            if a_is_setup && b_is_setup {
-                return std::cmp::Ordering::Equal;
-            }
-            if a_is_setup {
-                return std::cmp::Ordering::Less;
-            }
-            if b_is_setup {
-                return std::cmp::Ordering::Greater;
-            }
-            
-            // Sort other events by start time
-            let a_start = get_start_tick(a);
-            let b_start = get_start_tick(b);
-            a_start.cmp(&b_start)
+        // Sort commands by start time using stable sort with key
+        // This preserves insertion order for commands with the same key
+        all_commands.sort_by_key(|cmd| {
+            let is_setup = cmd.event_type == EVENT_TYPE_CREATE_NODE || cmd.event_type == EVENT_TYPE_CONNECT;
+            let start_tick = if is_setup {
+                // Setup commands conceptually occur at time 0 for sorting purposes
+                0
+            } else {
+                get_start_tick(cmd)
+            };
+            // Key tuple:
+            // - First: non-setup commands sort after setup (false < true)
+            // - Second: start time for ordering events
+            // - Third: node_id as a deterministic tie-breaker
+            (!is_setup, start_tick, cmd.node_id)
         });
         
         Ok(all_commands)
@@ -333,7 +333,7 @@ mod tests {
             .collect();
         assert_eq!(create_nodes.len(), 2);
         assert_eq!(create_nodes[0].node_id, 0);
-        assert_eq!(create_nodes[1].node_id, 1);
+        assert_eq!(create_nodes[1].node_id, 100); // Track 1 starts at 100
         
         // Check that we have notes from both tracks
         let notes: Vec<_> = result.iter()
