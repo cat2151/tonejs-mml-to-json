@@ -55,14 +55,4 @@ describe('Library entry point', () => {
     expect(Array.isArray(result)).toBe(true);
     expect(result.length).toBeGreaterThan(0);
   });
-
-  it('should throw error when WASM not initialized', async () => {
-    // Create a new isolated context to test uninitialized state
-    // This test demonstrates the error behavior but in practice
-    // the beforeAll ensures WASM is initialized
-    const { mml2json: uninitMml2json } = await import('../src/index.js');
-    // We can't actually test this in the current setup because WASM is already initialized
-    // This is more of a documentation of expected behavior
-    expect(typeof uninitMml2json).toBe('function');
-  });
 });

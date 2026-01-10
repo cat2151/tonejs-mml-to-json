@@ -18,7 +18,7 @@
 | 📖 コールグラフ | [generated-docs/callgraph-enhanced.html](https://cat2151.github.io/tonejs-mml-to-json/generated-docs/callgraph-enhanced.html) |
 | 📊 開発状況 | [generated-docs/development-status.md](generated-docs/development-status.md) |
 
-# 3行で説明
+# 概要
 - MML（Music Macro Language）で書いた音楽を、ブラウザで再生できるJSON形式に変換します
 - 簡単なテキストで音楽を作成し、ウェブサイトで演奏することができます
 - npmパッケージおよびCDN経由で利用可能で、プロジェクトへの統合が簡単です

@@ -6,7 +6,7 @@
  * compatible with tonejs-json-sequencer.
  */
 
-import init, { mml_to_json_wasm, mml2ast_wasm, ast2json_wasm } from '../pkg/tonejs_mml_to_json.js';
+import init, { mml_to_json_wasm } from '../pkg/tonejs_mml_to_json.js';
 
 // Import types for internal use
 import type { ASTToken } from './mml2ast.js';

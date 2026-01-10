@@ -18,7 +18,7 @@
 | 📖 Call Graph | [generated-docs/callgraph-enhanced.html](https://cat2151.github.io/tonejs-mml-to-json/generated-docs/callgraph-enhanced.html) |
 | 📊 Development Status | [generated-docs/development-status.md](generated-docs/development-status.md) |
 
-# Summary in 3 Lines
+# Summary
 - Converts music written in MML (Music Macro Language) into a JSON format playable in a browser.
 - Allows you to create music with simple text and play it on a website.
 - Available as an npm package and via CDN for easy integration into your projects.
