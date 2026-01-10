@@ -36,6 +36,55 @@ pub fn mml_to_json_wasm(mml: &str) -> String {
     }
 }
 
+/// WASM binding for mml2ast - converts MML string to AST JSON
+#[wasm_bindgen]
+pub fn mml2ast_wasm(mml: &str) -> String {
+    match mml2ast(mml) {
+        Ok(ast) => {
+            serde_json::to_string(&ast)
+                .unwrap_or_else(|e| {
+                    let error_response = ErrorResponse { error: format!("JSON serialization error: {}", e) };
+                    serde_json::to_string(&error_response)
+                        .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
+                })
+        }
+        Err(e) => {
+            let error_response = ErrorResponse { error: e };
+            serde_json::to_string(&error_response)
+                .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
+        }
+    }
+}
+
+/// WASM binding for ast2json - converts AST JSON to Tone.js JSON
+#[wasm_bindgen]
+pub fn ast2json_wasm(ast_json: &str) -> String {
+    match serde_json::from_str::<Vec<AstToken>>(ast_json) {
+        Ok(ast) => {
+            match ast2json(&ast) {
+                Ok(json) => {
+                    serde_json::to_string(&json)
+                        .unwrap_or_else(|e| {
+                            let error_response = ErrorResponse { error: format!("JSON serialization error: {}", e) };
+                            serde_json::to_string(&error_response)
+                                .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
+                        })
+                }
+                Err(e) => {
+                    let error_response = ErrorResponse { error: e };
+                    serde_json::to_string(&error_response)
+                        .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
+                }
+            }
+        }
+        Err(e) => {
+            let error_response = ErrorResponse { error: format!("Failed to parse AST JSON: {}", e) };
+            serde_json::to_string(&error_response)
+                .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
