@@ -29,11 +29,8 @@ The TypeScript files `src/mml2ast.ts` and `src/ast2json.ts` now contain thin wra
 - Provide the same TypeScript API as before
 - Delegate all logic to the Rust WASM implementation
 
-The old TypeScript implementations have been preserved as:
-- `src/mml2ast-typescript-impl.ts`
-- `src/ast2json-typescript-impl.ts`
-
-These are kept for reference but are no longer used.
+The old TypeScript implementations have been completely removed to avoid confusion.
+They can be found in git history (commit d5723ea and earlier) if needed for reference.
 
 ### 3. Updated Test Infrastructure
 
@@ -73,19 +70,22 @@ All tests pass:
 - `test/wasm-integration-test.mjs` - Updated to test WASM only
 - `test/wasm-init-test.mjs` - Fixed import path
 
-### Preserved for Reference
-- `src/mml2ast-typescript-impl.ts` - Original TypeScript implementation
-- `src/ast2json-typescript-impl.ts` - Original TypeScript implementation
-- `src/mml2ast.ts.backup` - Backup copy
-- `src/ast2json.ts.backup` - Backup copy
+### Removed
+- `src/mml2ast-typescript-impl.ts` - Old TypeScript implementation (available in git history)
+- `src/ast2json-typescript-impl.ts` - Old TypeScript implementation (available in git history)
+- `src/mml2ast.ts.backup` - Duplicate backup file
+- `src/ast2json.ts.backup` - Duplicate backup file
+
+All removed TypeScript implementations can be found in git history (commit d5723ea and earlier).
 
 ## Future Work
 
-- Consider removing the `-typescript-impl.ts` reference files after a stabilization period
-- Consider deprecating direct usage of `mml2ast` and `ast2json` in favor of the full `mml2json` function
 - Update documentation to clarify that all implementations now use Rust WASM
+- Consider deprecating direct usage of `mml2ast` and `ast2json` in favor of the full `mml2json` function
 
 ## Notes
 
 - The WASM initialization uses the deprecated parameter format to maintain compatibility. This produces warnings but doesn't affect functionality.
 - All TypeScript type definitions are preserved for TypeScript consumers of the library.
+- The original TypeScript implementations have been completely removed to maintain a single source of truth in Rust.
+- If you need to reference the old TypeScript implementations, they can be found in git history (commit d5723ea and earlier).

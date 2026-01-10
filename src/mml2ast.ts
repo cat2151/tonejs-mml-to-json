@@ -4,8 +4,8 @@
  * This module uses the Rust WASM implementation, consolidating the duplicate
  * TypeScript implementation (issue #26).
  * 
- * The previous pure TypeScript implementation has been moved to mml2ast-typescript-impl.ts
- * for reference, but is no longer used.
+ * The previous pure TypeScript implementation has been removed as part of the
+ * consolidation. It can be found in git history (commit d5723ea and earlier).
  */
 
 import { mml2ast_wasm } from '../pkg/tonejs_mml_to_json.js';
