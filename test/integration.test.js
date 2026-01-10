@@ -248,4 +248,99 @@ describe('Integration: mml2ast + ast2json', () => {
       });
     });
   });
+
+  describe('Multi-track integration', () => {
+    it('should convert simple two-track MML', () => {
+      const mml = 'c;d';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      // Should have 2 nodes
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      
+      // Should have 2 notes
+      const notes = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(2);
+      expect(notes.map(n => n.args[0])).toEqual(['c4', 'd4']);
+    });
+
+    it('should convert multi-track MML with different octaves', () => {
+      const mml = 'o4 cde; o5 efg';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      const notes = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(6);
+      
+      // Check octaves - Track 1 has nodeId 100
+      const track1Notes = notes.filter(n => n.nodeId === 0).map(n => n.args[0]);
+      const track2Notes = notes.filter(n => n.nodeId === 100).map(n => n.args[0]);
+      
+      expect(track1Notes).toEqual(['c4', 'd4', 'e4']);
+      expect(track2Notes).toEqual(['e5', 'f5', 'g5']);
+    });
+
+    it('should convert multi-track MML with different lengths', () => {
+      const mml = 'l8 cd; l16 ef';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      const notes = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(4);
+      
+      // Track 1 notes should have eighth note duration
+      const track1Notes = notes.filter(n => n.nodeId === 0);
+      track1Notes.forEach(n => expect(n.args[1]).toBe('86i')); // 96 - 10
+      
+      // Track 2 notes should have sixteenth note duration
+      const track2Notes = notes.filter(n => n.nodeId === 100);
+      track2Notes.forEach(n => expect(n.args[1]).toBe('38i')); // 48 - 10
+    });
+
+    it('should handle three tracks', () => {
+      const mml = 'o3 c; o4 e; o5 g';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(3);
+      
+      const notes = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(3);
+      expect(notes.map(n => n.args[0])).toEqual(['c3', 'e4', 'g5']);
+    });
+
+    it('should properly time multi-track sequences', () => {
+      const mml = 'c8 d8 e8; f8 g8 a8';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      const notes = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(6);
+      
+      // Both tracks should start at +0i
+      const firstNotes = notes.filter(n => n.args[2] === '+0i');
+      expect(firstNotes).toHaveLength(2);
+    });
+
+    it('should handle complex multi-track example', () => {
+      const mml = 'o4 l8 cdef; o5 l8 egab';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      
+      const notes = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(8);
+      
+      // Verify octaves are maintained
+      const track1Notes = notes.filter(n => n.nodeId === 0).map(n => n.args[0]);
+      const track2Notes = notes.filter(n => n.nodeId === 100).map(n => n.args[0]);
+      
+      track1Notes.forEach(note => expect(note).toMatch(/4$/));
+      track2Notes.forEach(note => expect(note).toMatch(/5$/));
+    });
+  });
 });
