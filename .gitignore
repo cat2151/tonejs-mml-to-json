@@ -7,8 +7,7 @@ coverage/
 .DS_Store
 Thumbs.db
 
-# TypeScript build output
-dist/
+# TypeScript build output (keep dist/ for CDN usage)
 *.tsbuildinfo
 
 # コールグラフ
@@ -23,7 +22,8 @@ copilot-instructions.md
 # Rust
 rust/target/
 rust/Cargo.lock
-pkg/
+
+# WASM pkg is needed for library usage, so not ignored
 
 
 # Added by cargo

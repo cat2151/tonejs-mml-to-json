@@ -1,20 +1,34 @@
 {
   "name": "tonejs-mml-to-json",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "MML to JSON converter for tonejs-json-sequencer",
-  "main": "dist/main.js",
-  "types": "dist/main.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./pkg/*": "./pkg/*"
+  },
+  "files": [
+    "dist",
+    "pkg",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
+    "build:wasm": "cd rust && wasm-pack build --target web --out-dir ../pkg",
     "build:ts": "tsc",
+    "build": "npm run build:wasm && npm run build:ts",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:wasm": "node test/wasm-test.mjs && node test/wasm-integration-test.mjs && node test/demo-test.mjs && node test/wasm-init-test.mjs",
     "build:parser": "peggy --format es src/grammar.pegjs",
-    "build:wasm": "cd rust && wasm-pack build --target web --out-dir ../pkg",
-    "build": "npm run build:ts && npm run build:wasm",
     "dev": "pnpm run build:parser && pnpm run test:watch",
-    "test:summary": "node .github/scripts/test-summary.cjs"
+    "test:summary": "node .github/scripts/test-summary.cjs",
+    "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [
     "mml",
