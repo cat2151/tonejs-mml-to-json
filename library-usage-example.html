@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tonejs-mml-to-json - Library Usage Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .example-section {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            font-family: monospace;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>tonejs-mml-to-json - Library Usage Example</h1>
+    
+    <div id="status" class="status" style="display: none;"></div>
+    
+    <div class="example-section">
+        <h2>Example 1: Convert MML to JSON</h2>
+        <p>Enter MML code below and click "Convert" to see the JSON output.</p>
+        
+        <label for="mmlInput">MML Input:</label>
+        <textarea id="mmlInput">o4 l16 e f g+ a b a g+ f e8. &lt;e8. &gt;e8</textarea>
+        
+        <button onclick="convertMML()">Convert to JSON</button>
+        
+        <div style="margin-top: 20px;">
+            <label>JSON Output:</label>
+            <pre id="jsonOutput">// JSON output will appear here</pre>
+        </div>
+    </div>
+    
+    <div class="example-section">
+        <h2>Example 2: Two-Step Conversion</h2>
+        <p>Convert MML to AST, then AST to JSON.</p>
+        
+        <label for="mmlInput2">MML Input:</label>
+        <textarea id="mmlInput2">o4 l16 c d e f g</textarea>
+        
+        <button onclick="convertToAST()">Convert to AST</button>
+        <button onclick="convertASTToJSON()">Convert AST to JSON</button>
+        
+        <div style="margin-top: 20px;">
+            <label>AST Output:</label>
+            <pre id="astOutput">// AST output will appear here</pre>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <label>JSON Output (from AST):</label>
+            <pre id="jsonOutput2">// JSON output will appear here</pre>
+        </div>
+    </div>
+    
+    <script type="module">
+        // Import the library
+        import { initWasm, mml2json, mml2ast, ast2json } from './dist/index.js';
+        
+        // Store AST for two-step conversion
+        let currentAST = null;
+        
+        // Initialize WASM on page load
+        const statusDiv = document.getElementById('status');
+        statusDiv.style.display = 'block';
+        statusDiv.className = 'status';
+        statusDiv.textContent = 'Initializing WASM module...';
+        
+        try {
+            await initWasm();
+            statusDiv.className = 'status success';
+            statusDiv.textContent = '✓ Library initialized successfully! Ready to convert MML.';
+            
+            // Make functions available globally for onclick handlers
+            window.convertMML = convertMML;
+            window.convertToAST = convertToAST;
+            window.convertASTToJSON = convertASTToJSON;
+        } catch (error) {
+            statusDiv.className = 'status error';
+            statusDiv.textContent = '✗ Failed to initialize library: ' + error.message;
+        }
+        
+        // Conversion functions
+        function convertMML() {
+            const mmlInput = document.getElementById('mmlInput').value;
+            const jsonOutput = document.getElementById('jsonOutput');
+            
+            try {
+                const result = mml2json(mmlInput);
+                jsonOutput.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                jsonOutput.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        function convertToAST() {
+            const mmlInput = document.getElementById('mmlInput2').value;
+            const astOutput = document.getElementById('astOutput');
+            
+            try {
+                currentAST = mml2ast(mmlInput);
+                astOutput.textContent = JSON.stringify(currentAST, null, 2);
+            } catch (error) {
+                astOutput.textContent = 'Error: ' + error.message;
+                currentAST = null;
+            }
+        }
+        
+        function convertASTToJSON() {
+            const jsonOutput = document.getElementById('jsonOutput2');
+            
+            if (!currentAST) {
+                jsonOutput.textContent = 'Error: Please convert MML to AST first!';
+                return;
+            }
+            
+            try {
+                const result = ast2json(currentAST);
+                jsonOutput.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                jsonOutput.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

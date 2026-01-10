@@ -12,14 +12,51 @@
 | 項目 | リンク |
 |------|--------|
 | 🎵 Demo | https://cat2151.github.io/tonejs-mml-to-json/index.html |
+| 📦 NPM Package | [npm install tonejs-mml-to-json](https://www.npmjs.com/package/tonejs-mml-to-json) |
+| 📚 ライブラリ利用ガイド | [LIBRARY_USAGE.md](LIBRARY_USAGE.md) |
 | 📖 プロジェクト概要 | [generated-docs/project-overview.md](generated-docs/project-overview.md) |
 | 📖 コールグラフ | [generated-docs/callgraph-enhanced.html](https://cat2151.github.io/tonejs-mml-to-json/generated-docs/callgraph-enhanced.html) |
 | 📊 開発状況 | [generated-docs/development-status.md](generated-docs/development-status.md) |
 
-# 3行で説明
+# 概要
 - MML（Music Macro Language）で書いた音楽を、ブラウザで再生できるJSON形式に変換します
 - 簡単なテキストで音楽を作成し、ウェブサイトで演奏することができます
+- npmパッケージおよびCDN経由で利用可能で、プロジェクトへの統合が簡単です
 - 音楽の変換部分に特化したツールで、実際の再生は別プロジェクト（`tonejs-json-sequencer`）が担当します
+
+# 使い方
+
+## npmパッケージとして利用
+
+```bash
+npm install tonejs-mml-to-json
+```
+
+```javascript
+import { initWasm, mml2json } from 'tonejs-mml-to-json';
+
+// WASMモジュールを初期化
+await initWasm();
+
+// MMLをJSONに変換
+const mml = 'o4 l16 e f g+ a b a g+ f e8. <e8. >e8';
+const json = mml2json(mml);
+console.log(json);
+```
+
+## CDN経由で利用
+
+```html
+<script type="module">
+  import { initWasm, mml2json } from 'https://cat2151.github.io/tonejs-mml-to-json/dist/index.js';
+  
+  await initWasm();
+  const json = mml2json('o4 l16 e f g+ a');
+  console.log(json);
+</script>
+```
+
+詳細な使い方については [LIBRARY_USAGE.md](LIBRARY_USAGE.md) を参照してください。
 
 # notes
 - MML（Music Macro Language）で音楽を書くメリットは？
