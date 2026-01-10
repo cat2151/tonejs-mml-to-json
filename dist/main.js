@@ -36,6 +36,10 @@ function initializeDemoDropdown() {
 window.addEventListener("load", () => {
     textarea1 = document.querySelector('#textarea1');
     textarea2 = document.querySelector('#textarea2');
+    // Initialize textarea1 with the first demo's MML
+    if (textarea1 && demos.length > 0) {
+        textarea1.value = demos[0].mml;
+    }
     if (textarea1) {
         textarea1.addEventListener('input', play);
     }
