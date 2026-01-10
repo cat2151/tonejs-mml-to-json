@@ -1,51 +1,50 @@
-Last updated: 2026-01-10
+Last updated: 2026-01-11
 
 # Development Status
 
 ## 現在のIssues
-- GitHub Pagesのデモでビルド成果物が見つからず404エラーが発生しており、[Issue #32](../issue-notes/32.md)としてワークフローの最適化が求められています。
-- JSON変換がエラーとなる[Issue #31](../issue-notes/31.md)が発生しており、根本原因の特定と修正が必要です。
-- 長期的には、TypeScriptとRust WASMで重複する機能の洗い出しと一本化（[Issue #26](../issue-notes/26.md)）およびmjsライブラリとしての利用（[Issue #24](../issue-notes/24.md)）が課題として挙げられています。
+- 最近のコミットで `tonejs-json-sequencer` ライブラリへの移行が行われたため、主要機能の動作確認 ([Issue #45](../issue-notes/45.md)) が喫緊の課題となっています。
+- また、TDDアプローチで `mml2json` 関数を再実装する準備として、既存のコードベースからAgentにテストケースを生成させる計画 ([Issue #5](../issue-notes/5.md)) が進行中です。
+- これらのタスクは、プロジェクトの安定性向上と効率的な開発ワークフロー確立を目指しています。
 
 ## 次の一手候補
-1. [Issue #32](../issue-notes/32.md) GitHub Pagesデモの404エラー修正
-   - 最初の小さな一歩: `generated-docs`ディレクトリの内容と、TypeScript/WASMのビルド成果物がGitHub Pagesで正しく提供されるように、デプロイワークフローが参照すべきパスを特定する。
-   - Agent実行プロンプト:
-     ```
-     対象ファイル: `.github/workflows/deploy-pages.yml` (存在しない場合は新規作成), `package.json`, `tsconfig.json`
+1.  Tone.jsシーケンサーライブラリへの移行に伴う主要機能の動作確認とテスト強化 ([Issue #45](../issue-notes/45.md))
+    -   最初の小さな一歩: `src/play.ts` と `src/demos.ts` を確認し、`tonejs-json-sequencer` の具体的な利用方法と、既存のMML入力に対する再生動作を把握する。
+    -   Agent実行プロンプト:
+        ```
+        対象ファイル: `src/play.ts`, `src/demos.ts`, `test/integration.test.js`, `test/mml2ast.test.js`
 
-     実行内容: GitHub Pagesのデモで発生している404エラー（`dist/mml2json-wasm.js`, `dist/play.js`, `dist/main.js`が見つからない）を修正するため、GitHub Pagesへのデプロイワークフローを分析・設計してください。具体的には、TypeScriptとRust WASMのビルドステップ、アーティファクトのアップロード、およびGitHub Pagesへのデプロイ設定を最適化し、ビルド成果物のパスがGitHub Pagesの配信パスと整合するように調整してください。
+        実行内容: `src/play.ts`と`src/demos.ts`における`tonejs-json-sequencer`の利用状況を分析し、既存のテストファイル(`test/integration.test.js`や`test/mml2ast.test.js`)でカバーされている範囲と、`tonejs-json-sequencer`への移行によって新たに考慮すべきテストシナリオを洗い出してください。特に、複数のMMLトラックの再生、テンポ・音量・音色変更が正しく反映されるかを確認する観点で分析してください。
 
-     確認事項: `package.json`および`tsconfig.json`に定義されているビルドコマンドと出力ディレクトリ（`dist`）、GitHub Pagesのデプロイ設定、既存の`.github/workflows`内のデプロイ関連ワークフローとの依存関係、`generated-docs`ディレクトリとの兼ね合い。
+        確認事項: `package.json`で`tonejs-json-sequencer`が正しく依存関係として定義され、最新バージョンが利用されていることを確認してください。また、`src/mml2json-wasm.ts`や`rust/src/lib.rs`など、MMLパーシング部分の出力が期待通りであることを前提とします。
 
-     期待する出力: GitHub Pagesデプロイ用のワークフローファイル (`.github/workflows/deploy-pages.yml`など) の変更案、または新規作成案をMarkdown形式で提示してください。
-     ```
+        期待する出力: 既存のテストを拡張するための具体的なテストケース案（MML入力と期待される再生結果の記述、またはテストコードの骨格）をmarkdown形式で出力してください。また、未カバーの動作確認シナリオがあれば列挙してください。
+        ```
 
-2. [Issue #31](../issue-notes/31.md) JSON変換エラーの根本原因調査と修正方針の提案
-   - 最初の小さな一歩: 最新のコミット履歴（特にTypeScript移行に関する`#30`, `#29`）をレビューし、JSON変換ロジック（`src/mml2ast.ts`, `src/ast2json.ts`など）に影響を与えうる変更点を特定する。
-   - Agent実行プロンプト:
-     ```
-     対象ファイル: `src/mml2ast.ts`, `src/ast2json.ts`, `src/mml2json-wasm.ts`, `test/mml2ast.test.js`, `test/ast2json.test.js`, `package.json`, `tsconfig.json`
+2.  `mml2json` 関数TDD再実装のためのテストケース生成 ([Issue #5](../issue-notes/5.md))
+    -   最初の小さな一歩: `src/mml2json.js` (または`src/mml2json-wasm.ts`のラッパー関数) の現在の入出力仕様を理解し、既存のMMLパーサー関連テスト(`test/parser.test.js`)から典型的な入力MML文字列とそれに対応するJSON出力を特定する。
+    -   Agent実行プロンプト:
+        ```
+        対象ファイル: `src/mml2json.js`, `src/mml2json-wasm.ts`, `test/parser.test.js`, `test/mml2ast.test.js`, `rust/src/mml2ast.rs`, `rust/src/ast2json.rs`
 
-     実行内容: [Issue #31](../issue-notes/31.md)「エラーのためJSON変換ができない」の根本原因を特定するため、最近のTypeScript移行による`mml2ast.ts`や`ast2json.ts`への影響を分析してください。既存のテストがパスするかを確認し、エラーメッセージや挙動から原因を仮説として立て、具体的な修正方針を提案してください。
+        実行内容: `mml2json`関数の新規TDD実装の準備として、現在のJavaScript/WASM実装（`src/mml2json.js`または`src/mml2json-wasm.ts`を通じてRustの`mml2ast.rs`と`ast2json.rs`）の入出力挙動を分析してください。MML文字列がJSONオブジェクトに変換される際の、主要な文法要素（音符、休符、長さ、オクターブ、ボリューム、テンポ、トラックなど）に対応する入力MMLと期待されるJSON出力のペアを、テストケースとして利用可能な形式で5つ生成してください。
 
-     確認事項: `package.json`の依存関係、`tsconfig.json`の設定、`test/`ディレクトリ内の既存テストの実行結果、WASMモジュールの利用状況とJS/TSコードとの連携。
+        確認事項: `mml2json`の出力が、`tonejs-json-sequencer`で利用可能なJSONフォーマットに準拠していることを確認してください。生成するテストケースは、TDDのREDフェーズを想定し、簡潔かつ明確なものとしてください。
 
-     期待する出力: [Issue #31](../issue-notes/31.md)のJSON変換エラーの根本原因に関する分析結果と、その問題を解決するための具体的な修正方針をMarkdown形式で出力してください。可能であれば、エラーの再現手順と期待する修正箇所を特定してください。
-     ```
+        期待する出力: 生成された入力MMLと期待されるJSON出力のペアを、JavaScriptのテストフレームワーク（例: `test`関数）で直接利用できる形式のコードブロックとしてmarkdownで出力してください。
+        ```
 
-3. [Issue #26](../issue-notes/26.md) TypeScriptとRust WASMの機能重複洗い出しと一本化の検討
-   - 最初の小さな一歩: `src/`ディレクトリ内のTypeScriptファイルと`rust/src/`ディレクトリ内のRustファイルを比較し、MMLからASTへの変換（mml2ast）、ASTからJSONへの変換（ast2json）など、機能的に重複している可能性のあるモジュールや関数を概観する。
-   - Agent実行プロンプト:
-     ```
-     対象ファイル: `src/mml2ast.ts`, `src/ast2json.ts`, `rust/src/mml2ast.rs`, `rust/src/ast2json.rs`, `rust/src/lib.rs` (および関連ファイル)
+3.  `tonejs-json-sequencer` への移行に関するドキュメント更新
+    -   最初の小さな一歩: `README.md`, `QUICKSTART.md`, `LIBRARY_USAGE.md` をレビューし、古い再生方法やプレイヤーに言及している箇所がないか、また `tonejs-json-sequencer` の導入によって変更されたAPIや使用方法について記述が不足していないかを確認する。
+    -   Agent実行プロンプト:
+        ```
+        対象ファイル: `README.md`, `QUICKSTART.md`, `LIBRARY_USAGE.md`, `src/play.ts`, `src/demos.ts`
 
-     実行内容: [Issue #26](../issue-notes/26.md)の目標達成のため、`src/`ディレクトリ内のTypeScriptコードと`rust/src/`ディレクトリ内のRustコードを比較し、機能的に重複している箇所を洗い出してください。特に、MMLからASTへの変換（mml2ast）やASTからJSONへの変換（ast2json）に焦点を当ててください。また、それぞれの実装の現状と、Rust WASMへの一本化の際の技術的課題（データ型変換、パフォーマンス、既存コードへの影響など）について分析してください。
+        実行内容: 最近のコミット(`efe9f38`)でカスタムプレイヤーが`tonejs-json-sequencer`ライブラリに置き換えられたことを踏まえ、既存のドキュメント(`README.md`, `QUICKSTART.md`, `LIBRARY_USAGE.md`)を分析してください。この変更がユーザーに与える影響を考慮し、ドキュメント内で更新または追加が必要な箇所（例: ライブラリのセットアップ、MMLデータの再生方法、利用可能な機能の記述など）を具体的に特定してください。
 
-     確認事項: 両言語で実装されている変換ロジックの詳細、インターフェースの互換性、テストカバレッジ、および既存のJavaScript/TypeScript側からのWASM呼び出し箇所。
+        確認事項: ドキュメントの変更案は、既存のプロジェクト構造や用語の整合性を保つようにしてください。特に、`tonejs-json-sequencer`の利用方法が明確に示されているかを確認してください。
 
-     期待する出力: 重複機能のリストと、Rust WASMに一本化する際の技術的アプローチ、および具体的なロードマップの初期案をMarkdown形式で提示してください。
-     ```
+        期待する出力: 更新が必要なドキュメントのセクション名と、それぞれのセクションに対する具体的な変更内容の提案をmarkdown形式で出力してください。提案には、必要に応じて`src/play.ts`や`src/demos.ts`からのコードスニペットを含めることができます。
 
 ---
-Generated at: 2026-01-10 07:05:44 JST
+Generated at: 2026-01-11 07:05:24 JST

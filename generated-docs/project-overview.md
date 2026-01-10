@@ -1,185 +1,354 @@
-Last updated: 2026-01-10
+Last updated: 2026-01-11
 
 # Project Overview
 
 ## プロジェクト概要
-- MML（Music Macro Language）で書いた音楽を、ブラウザで再生できるJSON形式に変換します
-- 簡単なテキストで音楽を作成し、ウェブサイトで演奏することができます
-- 音楽の変換部分に特化したツールで、実際の再生は別プロジェクト（`tonejs-json-sequencer`）が担当します
+- MML (Music Macro Language) で書かれた音楽を、Webブラウザで再生可能なTone.js JSONシーケンス形式に変換するライブラリです。
+- JavaScript/TypeScriptとRust+WASMの両実装を提供し、npmパッケージやCDNを通じてWebアプリケーションへ手軽に統合できます。
+- 音楽変換機能に特化しており、生成されたJSONは`tonejs-json-sequencer`などの外部ライブラリと連携して、Web上での音楽演奏を実現します。
 
 ## 技術スタック
-- フロントエンド: 
-  - **WebAssembly (WASM)**: Rustで実装された変換ロジックをブラウザで高速に実行するために利用されます。
-  - **Tone.js (JSON Sequencer Format)**: 変換後の音楽データの出力形式であり、ブラウザでの音楽再生ライブラリであるTone.jsと連携することを想定しています。
-- 音楽・オーディオ: 
-  - **MML (Music Macro Language)**: 音楽をテキストで記述するための入力形式として使用されます。
-  - **Tone.js JSON Sequencer Format**: 変換後の音楽データを表現するためのターゲット形式です。
-- 開発ツール: 
-  - **TypeScript**: 静的型付けされたJavaScriptで、堅牢なコード開発を支援します。
-  - **Peggy (PEG.js)**: MML文字列を解析するためのパーサー（構文解析器）を生成するツールです。
-  - **Vitest**: JavaScript/TypeScriptプロジェクト向けの高速なユニットテストフレームワークです。
-  - **dotenv**: 環境変数を管理し、設定を柔軟にするために使用されます。
-  - **@octokit/rest**: GitHub APIと連携し、自動化スクリプトなどでの利用が想定されます。
-  - **@google/generative-ai**: 自動化されたドキュメント生成などに利用される可能性があります。
-- テスト: 
-  - **Vitest**: 各モジュール（mml2ast, ast2jsonなど）の機能が正しく動作することを検証するためのテストを実行します。
-- ビルドツール: 
-  - **Peggy**: MMLパーサーをJavaScriptコードとして生成します。
-  - **TypeScript Compiler**: TypeScriptコードをJavaScriptにコンパイルします。
-- 言語機能: 
-  - **JavaScript**: プロジェクトの主要な実装言語です。
-  - **TypeScript**: JavaScriptのスーパーセットであり、型安全性を提供します。
-  - **Rust**: 変換ロジックの代替実装を提供し、WASMを通じてWebブラウザでの利用も可能です。
-  - **WebAssembly (WASM)**: Rust実装をブラウザでネイティブに近い速度で実行するためのバイナリ形式です。
-- 自動化・CI/CD: 
-  - **GitHub Actions**: READMEファイルの多言語対応（日本語から英語への自動翻訳）など、開発プロセスの自動化に利用されます。
-- 開発標準: 
-  - **EditorConfig**: 異なるエディタやIDE間で一貫したコーディングスタイルを維持するための設定ファイルです。
+- フロントエンド:
+    - **JavaScript**: ブラウザ上での実行環境を提供し、ライブラリのコア機能やラッパーとして使用されます。
+    - **TypeScript**: コードの型安全性を高め、大規模なプロジェクトでの開発効率と保守性を向上させます。
+    - **WASM (WebAssembly)**: Rustで実装されたMMLパーサーをWeb上で高速に実行するために利用されます。
+    - **HTML/CSS**: デモページやドキュメントの表示に使用されます。
+- 音楽・オーディオ:
+    - **MML (Music Macro Language)**: 音楽をテキスト形式で記述するための入力言語として利用されます。
+    - **Tone.js JSON Sequencer Format**: MMLから変換される音楽データの出力形式であり、`tonejs-json-sequencer`ライブラリと連携して音楽を再生します。
+- 開発ツール:
+    - **Node.js**: 開発環境の基盤として、スクリプト実行やパッケージ管理に利用されます。
+    - **npm/pnpm**: プロジェクトの依存関係を管理し、パッケージのインストールや公開を行います。
+    - **http-server**: ローカルで開発サーバーを立ち上げ、デモやドキュメントの確認に使用されます。
+- テスト:
+    - **Vitest**: JavaScript/TypeScriptコードの単体テストや結合テストを高速に実行するためのテストフレームワークです。
+- ビルドツール:
+    - **Peggy**: MML文字列をAST (抽象構文木) に変換するためのパーサーコードを生成するツールです。
+    - **TypeScript Compiler (tsc)**: TypeScriptコードを標準のJavaScriptにコンパイルするために使用されます。
+    - **Rust Cargo**: Rust言語プロジェクトのビルドシステムであり、WASMへのコンパイルも管理します。
+- 言語機能:
+    - **JavaScript**: プロジェクトの主要なプログラミング言語です。
+    - **TypeScript**: JavaScriptに静的型付けを追加し、開発プロセスを強化します。
+    - **Rust**: 高性能なMMLパーサーの実装に用いられ、WebAssemblyとしてブラウザで実行されます。
+- 自動化・CI/CD:
+    - **GitHub Actions**: READMEの自動翻訳など、プロジェクトの継続的インテグレーション・デプロイメントワークフローに利用されています。
+- 開発標準:
+    - **EditorConfig**: 開発チーム全体でコードの書式設定を統一し、一貫性のあるコードスタイルを維持します。
 
 ## ファイル階層ツリー
 ```
-.
-├── .editorconfig
-├── .github_automation/
-│   └── callgraph/
-│       └── config/
-│           └── my.json
-├── .gitignore
-├── IMPLEMENTATION_SUMMARY.md
-├── LICENSE
-├── QUICKSTART.md
-├── README.ja.md
-├── README.md
-├── TYPESCRIPT_MIGRATION.md
-├── _config.yml
-├── dev-setup/
-│   ├── README.md
-│   └── setup.js
-├── generated-docs/
-│   ├── callgraph-enhanced.html
-│   ├── callgraph.html
-│   ├── callgraph.js
-│   └── style.css
-├── googled947dc864c270e07.html
-├── index.html
-├── issue-notes/
-│   ├── 1.md
-│   ├── 10.md
-│   ├── 11.md
-│   ├── 12.md
-│   ├── 13.md
-│   ├── 14.md
-│   ├── 15.md
-│   ├── 16.md
-│   ├── 17.md
-│   ├── 18.md
-│   ├── 2.md
-│   ├── 20.md
-│   ├── 21.md
-│   ├── 23.md
-│   ├── 24.md
-│   ├── 26.md
-│   ├── 27.md
-│   ├── 28.md
-│   ├── 3.md
-│   ├── 31.md
-│   ├── 4.md
-│   ├── 5.md
-│   ├── 6.md
-│   ├── 7.md
-│   ├── 8.md
-│   └── 9.md
-├── package-lock.json
-├── package.json
-├── pnpm-lock.yaml
-├── rust/
-│   ├── Cargo.toml
-│   ├── IMPLEMENTATION.md
-│   ├── README.md
-│   ├── examples/
-│   │   └── basic_usage.rs
-│   └── src/
-│       ├── ast.rs
-│       ├── ast2json.rs
-│       ├── lib.rs
-│       └── mml2ast.rs
-├── src/
-│   ├── ast2json.ts
-│   ├── grammar.js
-│   ├── grammar.pegjs
-│   ├── index.html
-│   ├── main.ts
-│   ├── mml2ast.ts
-│   ├── mml2json-wasm.ts
-│   ├── mml2json.js
-│   └── play.ts
-├── test/
-│   ├── ast2json.test.js
-│   ├── demo-test.mjs
-│   ├── integration.test.js
-│   ├── mml2ast.test.js
-│   ├── parser.test.js
-│   ├── wasm-init-test.mjs
-│   ├── wasm-integration-test.mjs
-│   └── wasm-test.mjs
-├── tsconfig.json
-└── vitest.config.js
+📄 .editorconfig
+📁 .github_automation/
+  📁 callgraph/
+    📁 config/
+      📊 my.json
+📄 .gitignore
+📄 .nojekyll
+📖 CONSOLIDATION.md
+📖 IMPLEMENTATION_ISSUE_24.md
+📖 IMPLEMENTATION_SUMMARY.md
+📖 LIBRARY_USAGE.md
+📄 LICENSE
+📖 MULTI_TRACK_INVESTIGATION.md
+📖 QUICKSTART.md
+📖 README.ja.md
+📖 README.md
+📖 TYPESCRIPT_MIGRATION.md
+📄 _config.yml
+📁 dev-setup/
+  📖 README.md
+  📜 setup.js
+📁 dist/
+  📘 ast2json.d.ts
+  📄 ast2json.d.ts.map
+  📜 ast2json.js
+  📄 ast2json.js.map
+  📘 demos.d.ts
+  📄 demos.d.ts.map
+  📜 demos.js
+  📄 demos.js.map
+  📘 index.d.ts
+  📄 index.d.ts.map
+  📜 index.js
+  📄 index.js.map
+  📁 libs/
+    📘 tonejs-json-sequencer.d.ts
+    📄 tonejs-json-sequencer.mjs
+  📘 main.d.ts
+  📄 main.d.ts.map
+  📜 main.js
+  📄 main.js.map
+  📘 mml2ast.d.ts
+  📄 mml2ast.d.ts.map
+  📜 mml2ast.js
+  📄 mml2ast.js.map
+  📘 mml2json-wasm.d.ts
+  📄 mml2json-wasm.d.ts.map
+  📜 mml2json-wasm.js
+  📄 mml2json-wasm.js.map
+  📘 play.d.ts
+  📄 play.d.ts.map
+  📜 play.js
+  📄 play.js.map
+📁 generated-docs/
+  🌐 callgraph-enhanced.html
+  🌐 callgraph.html
+  📜 callgraph.js
+  🎨 style.css
+🌐 googled947dc864c270e07.html
+🌐 index.html
+📁 issue-notes/
+  📖 1.md
+  📖 10.md
+  📖 11.md
+  📖 12.md
+  📖 13.md
+  📖 14.md
+  📖 15.md
+  📖 16.md
+  📖 17.md
+  📖 18.md
+  📖 2.md
+  📖 20.md
+  📖 21.md
+  📖 23.md
+  📖 24.md
+  📖 26.md
+  📖 27.md
+  📖 28.md
+  📖 3.md
+  📖 31.md
+  📖 33.md
+  📖 37.md
+  📖 39.md
+  📖 4.md
+  📖 40.md
+  📖 41.md
+  📖 45.md
+  📖 5.md
+  📖 6.md
+  📖 7.md
+  📖 8.md
+  📖 9.md
+🌐 library-usage-example.html
+📊 package-lock.json
+📊 package.json
+📁 pkg/
+  📄 .npmignore
+  📖 README.md
+  📊 package.json
+  📘 tonejs_mml_to_json.d.ts
+  📜 tonejs_mml_to_json.js
+  📄 tonejs_mml_to_json_bg.wasm
+  📘 tonejs_mml_to_json_bg.wasm.d.ts
+📄 pnpm-lock.yaml
+📁 rust/
+  📄 Cargo.toml
+  📖 IMPLEMENTATION.md
+  📖 README.md
+  📁 examples/
+    📄 basic_usage.rs
+  📁 src/
+    📄 ast.rs
+    📄 ast2json.rs
+    📄 lib.rs
+    📄 mml2ast.rs
+📁 scripts/
+  📜 copy-libs.js
+📁 src/
+  📘 ast2json.ts
+  📘 demos.ts
+  📜 grammar.js
+  📝 grammar.pegjs
+  🌐 index.html
+  📘 index.ts
+  📘 main.ts
+  📘 mml2ast.ts
+  📘 mml2json-wasm.ts
+  📜 mml2json.js
+  📘 play.ts
+📁 test/
+  📜 ast2json.test.js
+  📄 demo-test.mjs
+  📜 integration.test.js
+  📜 library-entry.test.js
+  📜 mml2ast.test.js
+  📜 parser.test.js
+  📜 setup.js
+  📄 wasm-init-test.mjs
+  📄 wasm-integration-test.mjs
+  📄 wasm-test.mjs
+📊 tsconfig.json
+📜 vitest.config.js
 ```
 
 ## ファイル詳細説明
-- **README.ja.md / README.md**: プロジェクトの概要、目的、使い方などを説明する多言語対応のメインドキュメントです。
-- **src/mml2ast.ts**: MML（Music Macro Language）のテキストを解析し、抽象構文木（AST: Abstract Syntax Tree）に変換するTypeScriptファイルです。音楽の構造をデータとして表現します。
-- **src/ast2json.ts**: `mml2ast.ts`によって生成されたASTを、Tone.jsが解釈できるJSONシーケンサーフォーマットに変換するTypeScriptファイルです。MMLの情報を具体的な音のイベントに落とし込みます。
-- **src/grammar.pegjs**: Peggy（PEG.js）というパーサー生成ツールがMMLの構文を定義するために使用するファイルです。MMLのルールがここで記述され、`src/grammar.js`を生成します。
-- **src/grammar.js**: `grammar.pegjs`から生成されたMMLパーサーのJavaScriptコードです。MML文字列の解析を担当します。
-- **src/mml2json-wasm.ts**: Rustで実装されたMML変換ロジックをWebAssembly（WASM）としてブラウザで利用するためのインターフェースを提供するTypeScriptファイルです。
-- **rust/** (ディレクトリ): MMLからJSONへの変換ロジックのRust言語による実装を含みます。
-  - **rust/src/mml2ast.rs**: Rust版のMMLからASTへのパーサーです。
-  - **rust/src/ast2json.rs**: Rust版のASTからTone.js JSONへのコンバーターです。
-- **src/play.ts**: 変換された音楽データをブラウザ上で実際に再生するためのロジックを含むTypeScriptファイルです。デモページで利用されます。
-- **index.html / src/index.html**: プロジェクトのデモページやメインのウェブページを構成するHTMLファイルです。変換機能を試したり、結果を視覚的に確認したりするために使われます。
-- **test/** (ディレクトリ): 各変換ステップ（mml2ast, ast2json）や統合テスト、WASMのテストなど、プロジェクトの機能が正しく動作することを検証するためのテストコードを含みます。
-- **generated-docs/** (ディレクトリ): プロジェクトのコールグラフやその他の視覚化されたドキュメント、スタイルシートなど、自動生成されたドキュメント資産が格納されています。
-- **issue-notes/** (ディレクトリ): 開発中の検討事項や、特定の課題に関するメモがMarkdown形式で記録されています。
-- **dev-setup/setup.js**: 開発環境のセットアップや特定の開発タスクを実行するためのスクリプトです。
+- **`.editorconfig`**: コードエディタの設定を統一し、インデントスタイルや文字コードなど、プロジェクト全体のコーディング規約を維持するための設定ファイルです。
+- **`.github_automation/callgraph/config/my.json`**: GitHub Actionsによって生成される可能性のある、関数呼び出しグラフ自動生成の設定ファイルです。
+- **`.gitignore`**: Gitによるバージョン管理から除外するファイルやディレクトリを指定するファイルです。
+- **`.nojekyll`**: GitHub PagesでJekyll処理を無効にするための空ファイルです。
+- **`CONSOLIDATION.md`**: プロジェクトにおける情報や実装の統合に関する記録や考察をまとめたドキュメントです。
+- **`IMPLEMENTATION_ISSUE_24.md`**: 特定の課題（Issue #24）に関する実装の詳細や検討事項を記したドキュメントです。
+- **`IMPLEMENTATION_SUMMARY.md`**: プロジェクトの実装に関する全体的な概要や重要な点をまとめたドキュメントです。
+- **`LIBRARY_USAGE.md`**: このライブラリをどのようにプロジェクトで使用するかを説明するガイドドキュメントです。
+- **`LICENSE`**: プロジェクトのライセンス情報が記載されています。
+- **`MULTI_TRACK_INVESTIGATION.md`**: 複数トラックの音楽処理に関する調査や検討の結果をまとめたドキュメントです。
+- **`QUICKSTART.md`**: プロジェクトを素早く開始するための手順や最小限の利用方法を説明するドキュメントです。
+- **`README.ja.md`**: プロジェクトの日本語版概要ドキュメントです。
+- **`README.md`**: プロジェクトの英語版概要ドキュメントです。
+- **`TYPESCRIPT_MIGRATION.md`**: TypeScriptへの移行に関する詳細や、移行中の課題と解決策を記録したドキュメントです。
+- **`_config.yml`**: GitHub PagesのJekyll設定ファイルです。
+- **`dev-setup/README.md`**: 開発環境のセットアップに関する説明ドキュメントです。
+- **`dev-setup/setup.js`**: 開発環境のセットアップやテスト準備のためのスクリプトファイルです。
+- **`dist/ast2json.d.ts`**: AST (抽象構文木) をJSON形式に変換する関数の型定義ファイルです。
+- **`dist/ast2json.js`**: ASTをJSON形式に変換するJavaScriptコードです。WASMモジュールへのラッパーとしても機能します。
+- **`dist/demos.d.ts`**: デモ関連のコードの型定義ファイルです。
+- **`dist/demos.js`**: デモ関連のJavaScriptコードです。
+- **`dist/index.d.ts`**: ライブラリの主要なエクスポート (initWasm, mml2jsonなど) の型定義ファイルです。
+- **`dist/index.js`**: ライブラリのエントリーポイントとなるJavaScriptファイルで、WASM版とJS版の機能を統合して提供します。
+- **`dist/libs/tonejs-json-sequencer.d.ts`**: 依存する`tonejs-json-sequencer`ライブラリの型定義ファイルです。
+- **`dist/main.d.ts`**: デモページのメインスクリプトの型定義ファイルです。
+- **`dist/main.js`**: デモページの初期化や音楽再生を制御するJavaScriptファイルです。
+- **`dist/mml2ast.d.ts`**: MMLをASTに変換する関数の型定義ファイルです。
+- **`dist/mml2ast.js`**: MMLをASTに変換するJavaScriptコードです。WASMモジュールへのラッパーとしても機能します。
+- **`dist/mml2json-wasm.d.ts`**: WebAssemblyモジュールの初期化に関する型定義ファイルです。
+- **`dist/mml2json-wasm.js`**: WebAssemblyモジュールをロードし、初期化するためのJavaScriptコードです。
+- **`dist/play.d.ts`**: 音楽再生関連の関数の型定義ファイルです。
+- **`dist/play.js`**: 生成されたJSONデータをTone.jsシーケンスイベントに変換し、再生するJavaScriptコードです。
+- **`generated-docs/callgraph-enhanced.html`**: 詳細な関数呼び出しグラフを表示するHTMLドキュメントです。
+- **`generated-docs/callgraph.html`**: 基本的な関数呼び出しグラフを表示するHTMLドキュメントです。
+- **`generated-docs/callgraph.js`**: 関数呼び出しグラフの表示ロジックやインタラクティブ機能を提供するJavaScriptファイルです。
+- **`generated-docs/style.css`**: 生成されたドキュメントのスタイルを定義するCSSファイルです。
+- **`googled947dc864c270e07.html`**: Googleサイト認証用のファイルです。
+- **`index.html`**: プロジェクトのデモページまたはトップページとなるHTMLファイルです。
+- **`issue-notes/`**: 開発中の各課題（Issue）に関するメモや詳細が記録されているディレクトリです。
+- **`library-usage-example.html`**: ライブラリの使用方法を示す具体的なコード例を掲載したHTMLファイルです。
+- **`package-lock.json`**: `npm`が使用する依存関係の正確なツリーを記録するファイルです。
+- **`package.json`**: プロジェクトのメタデータ（名前、バージョン、依存関係、スクリプトなど）を定義するファイルです。
+- **`pkg/`**: RustのWASMコンパイル結果と、それを利用するためのJavaScriptラッパーが格納されているディレクトリです。
+    - **`pkg/tonejs_mml_to_json.d.ts`**: WASMモジュールが提供するRust関数の型定義ファイルです。
+    - **`pkg/tonejs_mml_to_json.js`**: WASMモジュールをロードし、JavaScriptからRust関数を呼び出すためのラッパーJavaScriptファイルです。
+    - **`pkg/tonejs_mml_to_json_bg.wasm`**: RustコードからコンパイルされたWebAssemblyバイナリファイルです。
+    - **`pkg/tonejs_mml_to_json_bg.wasm.d.ts`**: WASMバイナリの型定義ファイルです。
+- **`pnpm-lock.yaml`**: `pnpm`が使用する依存関係の正確なツリーを記録するファイルです。
+- **`rust/`**: Rust言語で実装されたMMLパーサーとAST-JSON変換ロジックのソースコードが格納されているディレクトリです。
+    - **`rust/Cargo.toml`**: Rustプロジェクトの設定ファイルです。
+    - **`rust/IMPLEMENTATION.md`**: Rust実装の詳細に関するドキュメントです。
+    - **`rust/README.md`**: Rustモジュールの概要ドキュメントです。
+    - **`rust/examples/basic_usage.rs`**: Rustモジュールの基本的な使用例を示すコードです。
+    - **`rust/src/ast.rs`**: Rust版のASTデータ構造を定義しています。
+    - **`rust/src/ast2json.rs`**: RustでASTをJSONに変換するロジックを実装しています。
+    - **`rust/src/lib.rs`**: Rustライブラリのエントリーポイントです。
+    - **`rust/src/mml2ast.rs`**: RustでMML文字列をASTに変換するロジックを実装しています。
+- **`scripts/copy-libs.js`**: 外部ライブラリファイルを特定のディレクトリにコピーするためのスクリプトです。
+- **`src/ast2json.ts`**: TypeScriptで記述された、ASTをJSON形式に変換するロジックのソースコードです。
+- **`src/demos.ts`**: TypeScriptで記述されたデモ関連のソースコードです。
+- **`src/grammar.js`**: Peggyによって`grammar.pegjs`から生成されたMMLパーサーのJavaScriptコードです。
+- **`src/grammar.pegjs`**: MMLの文法を定義するPEG (Parsing Expression Grammar) 形式のファイルです。
+- **`src/index.html`**: デモ用のHTMLファイルです。
+- **`src/index.ts`**: TypeScriptで記述された、ライブラリのメインエントリーポイントとなるソースコードです。
+- **`src/main.ts`**: TypeScriptで記述された、デモページのメインロジックのソースコードです。
+- **`src/mml2ast.ts`**: TypeScriptで記述された、MMLをASTに変換するロジックのソースコードです。
+- **`src/mml2json-wasm.ts`**: TypeScriptで記述された、WebAssemblyモジュールの初期化ロジックのソースコードです。
+- **`src/mml2json.js`**: 初期または代替のMMLからJSONへの変換を行うJavaScript実装コードです。
+- **`src/play.ts`**: TypeScriptで記述された、音楽再生ロジックのソースコードです。
+- **`test/`**: プロジェクトのテストコードが格納されているディレクトリです。
+    - **`test/ast2json.test.js`**: AST-JSON変換モジュールのテストコードです。
+    - **`test/demo-test.mjs`**: デモ関連機能のテストコードです。
+    - **`test/integration.test.js`**: 複数のモジュール間の連携をテストする結合テストコードです。
+    - **`test/library-entry.test.js`**: ライブラリのエントリーポイントのテストコードです。
+    - **`test/mml2ast.test.js`**: MML-AST変換モジュールのテストコードです。
+    - **`test/parser.test.js`**: MMLパーサーのテストコードです。
+    - **`test/setup.js`**: テスト環境のセットアップスクリプトです。
+    - **`test/wasm-init-test.mjs`**: WASM初期化に関するテストコードです。
+    - **`test/wasm-integration-test.mjs`**: WASMモジュールを含む結合テストコードです。
+    - **`test/wasm-test.mjs`**: WASMモジュールのテストコードです。
+- **`tsconfig.json`**: TypeScriptコンパイラの設定ファイルです。
+- **`vitest.config.js`**: Vitestテストフレームワークの設定ファイルです。
 
 ## 関数詳細説明
-- **mml2ast (src/mml2ast.ts)**
-  - 役割: MML文字列を抽象構文木（AST）にパースします。
-  - 引数: MML形式の音楽文字列。
-  - 戻り値: MMLの構造を表すASTオブジェクト。
-  - 機能: MMLの文法（音符、休符、長さ、オクターブ、楽器など）に従って入力文字列を解析し、音の要素を階層的なデータ構造に変換します。
-- **ast2json (src/ast2json.ts)**
-  - 役割: 抽象構文木（AST）をTone.jsのJSONシーケンサーフォーマットに変換します。
-  - 引数: `mml2ast`によって生成されたAST。
-  - 戻り値: Tone.jsが認識するJSONオブジェクト。
-  - 機能: AST内の音楽情報を解析し、Tone.jsがブラウザで再生できる時間軸ベースのイベントシーケンス（音符の開始時刻、長さ、ベロシティなど）に変換します。
-- **play (src/play.ts)**
-  - 役割: 変換された音楽データをブラウザで再生します。
-  - 引数: Tone.js互換のJSON音楽データ。
-  - 戻り値: なし。
-  - 機能: `ast2json`によって生成された音楽データを利用して、Tone.jsのシーケンサーを初期化し、ウェブブラウザ上で実際に音を鳴らします。デモページのコア機能です。
-- **initWasm (src/mml2json-wasm.ts)**
-  - 役割: Rustで実装されたWebAssembly (WASM) モジュールを初期化します。
-  - 引数: なし。
-  - 戻り値: 初期化されたWASMモジュールが提供するMML変換機能。
-  - 機能: プロジェクトのRust実装（MMLからJSONへの変換ロジック）をブラウザのJavaScript環境で利用可能にするため、WASMモジュールをロードし、必要な設定を行います。
-- **mml2json (src/mml2json.js)**
-  - 役割: MMLを直接Tone.js JSON形式に変換する（レガシーまたは代替実装）。
-  - 引数: MML文字列。
-  - 戻り値: Tone.js互換のJSONオブジェクト。
-  - 機能: 以前の変換ロジック、または一部のシンプルなMML変換を直接処理する機能を提供します。
-- **parseNote (src/mml2ast.ts)**
-  - 役割: MML文字列の一部から音符の情報を解析します。
-  - 引数: MML文字列。
-  - 戻り値: 音符のASTノード。
-  - 機能: MMLの音符表現（例: "c4", "e+8"）を抽出し、その音の高さ、長さ、符点などの属性を決定します。
+- **`ast2json(ast: object): object`**: AST (抽象構文木) をTone.jsシーケンサーが認識するJSON形式のデータ構造に変換します。WASM版も利用できます。
+- **`mml2ast(mml: string): object`**: MML (Music Macro Language) の文字列を入力として受け取り、それを解析して抽象構文木 (AST) を生成します。WASM版も利用できます。
+- **`mml2json(mml: string): object`**: MML文字列を直接受け取り、内部的に`mml2ast`と`ast2json`を呼び出して、Tone.js JSONシーケンス形式に変換します。
+- **`initWasm(): Promise<void>`**: WebAssemblyモジュールを非同期で初期化します。`mml2json`のWASM版を使用する前に一度呼び出す必要があります。
+- **`play(json: object)`**: Tone.js JSONシーケンス形式の音楽データを受け取り、それを再生します。
+- **`toSequenceEvent(mmlEvent: object): object`**: MMLイベントの内部表現を、`tonejs-json-sequencer`が扱えるシーケンスイベントの形式に変換します。
+- **`initializeDemoDropdown()`**: デモページに表示されるMML選択ドロップダウンを初期化し、ユーザーが選択したMMLの再生を開始できるようにします。
+- **`getStringFromWasm0(ptr: number, len: number): string`**: WASMのメモリから指定されたポインタと長さのUTF-8エンコードされた文字列をJavaScriptの文字列として取得します。
+- **`getUint8ArrayMemory0(): Uint8Array`**: WASMのメモリをUint8Arrayとして取得し、JavaScriptから直接WASMメモリを操作できるようにします。
+- **`passStringToWasm0(arg: string, len: number, is_null: boolean): number`**: JavaScriptの文字列をUTF-8エンコードしてWASMのメモリに書き込み、そのポインタを返します。
+- **`decodeText(decoder: TextDecoder, byteoffset: number, byteLength: number): string`**: 指定されたバイトオフセットと長さのバイト配列をTextDecoderを使用して文字列にデコードします。
+- **`ast2json_wasm(ast_json_ptr: number, ast_json_len: number): number`**: WASMモジュール内で、ASTのJSON表現（ポインタと長さで指定）を受け取り、それをTone.js JSON形式に変換して、結果のJSONへのポインタを返します。
+- **`mml2ast_wasm(mml_ptr: number, mml_len: number): number`**: WASMモジュール内で、MML文字列（ポインタと長さで指定）を受け取り、それをASTのJSON表現に変換して、結果のASTへのポインタを返します。
+- **`mml_to_json_wasm(mml_ptr: number, mml_len: number): number`**: WASMモジュール内で、MML文字列を受け取り、直接Tone.js JSON形式に変換して、結果のJSONへのポインタを返します。
+- **`initSync(module: WebAssembly.Module | BufferSource, maybe_memory?: WebAssembly.Memory): void`**: WebAssemblyモジュールを同期的に初期化します。主にテストやNode.js環境での利用を想定しています。
+- **`__wbg_init(input: RequestInfo | URL | Response | BufferSource, maybe_memory?: WebAssembly.Memory): Promise<void>`**: WASMモジュールを非同期でロードし、初期化します。ブラウザ環境での推奨される初期化方法です。
+- **`peg$parse(input: string, options?: object): object`**: Peggyによって生成されたMMLパーサーの主要な関数で、入力MML文字列を解析し、その結果（AST）を返します。
+- **`escapeHtml(unsafe: string): string`**: HTML特殊文字をエスケープし、セキュリティを向上させるとともに、HTMLコンテンツとして安全に表示できるようにします。主に呼び出しグラフのドキュメント生成で使用されます。
+- **`getLayoutConfig(): object`**: 呼び出しグラフの視覚化に使用されるレイアウト設定オブジェクトを取得します。
+- **`placeCentralNode(): void`**: 呼び出しグラフ内で特定のノード（通常は最も重要な関数）を中央に配置する処理を行います。
+- **`showNodeInfo(nodeId: string): void`**: 呼び出しグラフ上の特定のノード（関数）に関する詳細情報をパネルに表示します。
+- **`showEdgeInfo(fromNodeId: string, toNodeId: string): void`**: 呼び出しグラフ上の特定のエッジ（関数間の呼び出し関係）に関する詳細情報をパネルに表示します。
+- **`hideInfoPanel(): void`**: 情報表示パネルを非表示にします。
+- **`showInfoPanel(): void`**: 情報表示パネルを表示します。
+- **`toggleInfoPanel(): void`**: 情報表示パネルの表示/非表示を切り替えます。
+- **`generateGitHubURL(path: string, line?: number): string`**: GitHub上の特定のファイルや行へのURLを生成します。主に呼び出しグラフからソースコードへジャンプするために使用されます。
+- **`resetLayout(): void`**: 呼び出しグラフのレイアウトを初期状態に戻します。
+- **`watchNodeMovementAndFixOverlapsWrap(): void`**: ノードの移動を監視し、その重なりを修正するロジックのラッパー関数です。
+- **`watchNodeMovementAndFixOverlaps(): void`**: 呼び出しグラフのノードが移動した際に、他のノードとの重なりを自動的に調整し、視認性を維持します。
+- **`resolveNodeOverlaps(): void`**: 呼び出しグラフ内の重なっているノードを検出し、互いに重ならないように配置を調整します。
+- **`switchLayout(layoutName: string): void`**: 呼び出しグラフの表示レイアウト（例：ツリー、フォースダイレクトなど）を切り替えます。
+- **`resetNodeStates(): void`**: 呼び出しグラフのノードの表示状態（ハイライトなど）をリセットします。
+- **`fitToContent(): void`**: 呼び出しグラフ全体が表示領域に収まるようにズームレベルや位置を調整します。
+- **`toggleNodeLabels(): void`**: 呼び出しグラフのノードに表示されるラベルの表示/非表示を切り替えます。
+- **`toggleCalleeLocationFilter(): void`**: 呼び出し先関数のロケーション（ファイルパスなど）でフィルターをかける機能の表示/非表示を切り替えます。
+- **`hex(ch: string): string`**: Peggyパーサー内部で、16進数文字の処理を補助する関数です。
+- **`unicodeEscape(ch: string): string`**: Peggyパーサー内部で、Unicodeエスケープシーケンスの処理を補助する関数です。
+- **`literalEscape(ch: string): string`**: Peggyパーサー内部で、リテラルエスケープシーケンスの処理を補助する関数です。
+- **`classEscape(ch: string): string`**: Peggyパーサー内部で、文字クラスエスケープシーケンスの処理を補助する関数です。
+- **`describeExpectation(expectation: object): string`**: Peggyパーサー内部で、解析中に期待される要素を記述する関数です。
+- **`describeExpected(expected: object): string`**: Peggyパーサー内部で、期待される入力の種類を説明する関数です。
+- **`describeFound(found: string): string`**: Peggyパーサー内部で、解析中に実際に検出された要素を説明する関数です。
+- **`text(): string`**: Peggyパーサー内部で、現在解析中のテキスト部分を返します。
+- **`offset(): number`**: Peggyパーサー内部で、現在の解析位置のオフセット（文字数）を返します。
+- **`range(): [number, number]`**: Peggyパーサー内部で、現在の解析範囲の開始と終了オフセットを返します。
+- **`location(): object`**: Peggyパーサー内部で、現在の解析位置（行、列、オフセット）を返します。
+- **`expected(): object`**: Peggyパーサー内部で、現在の解析位置で期待されるトークンやパターンを返します。
+- **`error(message: string, details?: object): Error`**: Peggyパーサー内部で、解析エラーを生成してスローします。
+- **`peg$getUnicode(): string`**: Peggyパーサー内部で、Unicode文字の処理を補助する関数です。
+- **`peg$literalExpectation(value: string, ignoreCase: boolean): object`**: Peggyパーサー内部で、特定のリテラル文字列の期待値を生成します。
+- **`peg$classExpectation(value: string, inverted: boolean, ignoreCase: boolean): object`**: Peggyパーサー内部で、特定の文字クラスの期待値を生成します。
+- **`peg$anyExpectation(): object`**: Peggyパーサー内部で、任意の文字の期待値を生成します。
+- **`peg$endExpectation(): object`**: Peggyパーサー内部で、入力の終了位置の期待値を生成します。
+- **`peg$otherExpectation(description: string): object`**: Peggyパーサー内部で、特定のリテラルやクラスに該当しない「その他」の期待値を生成します。
+- **`peg$computePosDetails(text: string, pos: number): object`**: Peggyパーサー内部で、指定されたテキストと位置から、行、列、オフセットの詳細を計算します。
+- **`peg$computeLocation(startPos: number, endPos: number): object`**: Peggyパーサー内部で、開始位置と終了位置から、解析範囲のロケーション情報を計算します。
+- **`peg$fail(expected: object): void`**: Peggyパーサー内部で、解析が失敗したことを通知し、期待される要素を記録します。
+- **`peg$buildSimpleError(message: string, expected: object): Error`**: Peggyパーサー内部で、シンプルなエラーメッセージと期待値を含むエラーオブジェクトを構築します。
+- **`peg$buildStructuredError(message: string, expected: object, location: object): Error`**: Peggyパーサー内部で、エラーメッセージ、期待値、ロケーション情報を含む構造化されたエラーオブジェクトを構築します。
+- **`peg$parsestart(): object`**: Peggyパーサー内部で、MMLの解析を開始するための`start`ルールを実行します。
+- **`peg$parsenote(): object`**: Peggyパーサー内部で、MMLの`note`要素を解析するためのルールを実行します。
+- **`peg$throw(error: Error): never`**: Peggyパーサー内部で、与えられたエラーオブジェクトをスローします。
+- **`compileMmlToCommands(mml: string): Array<object>`**: MML文字列を解析し、音楽コマンドのリストにコンパイルします。
+- **`getMmlCommands(mml: string): Array<object>`**: MML文字列から抽出された音楽コマンドのリストを取得します。
+- **`calcAttackToReleaseTicks(mml: string): number`**: MMLの記述に基づいて、アタックからリリースまでのティック数を計算します。
+- **`repeat(n: number, char: string): string`**: 指定された文字をn回繰り返した文字列を生成します。
+- **`toInt(value: any): number`**: 指定された値を整数に変換します。
+- **`calcDuration(mmlEvent: object): number`**: MMLイベントの持続時間（ティック数）を計算します。
+- **`calcStartTick(mmlEvent: object, currentTick: number): number`**: MMLイベントの開始ティックを計算します。
+- **`increaseStartTick(tick: number, duration: number): number`**: 指定されたティックを開始点として、持続時間を加算して次の開始ティックを計算します。
+- **`calcLtick(mmlEvent: object, defaultL: number): number`**: MMLイベントのLティック（音符の長さの基準）を計算します。
+- **`getNodeId(): string`**: 一意のノードIDを生成します。
+- **`sort(arr: Array<any>): Array<any>`**: 指定された配列をソートします。
 
 ## 関数呼び出し階層ツリー
 ```
-- switch (generated-docs/callgraph.js)
-  - escapeHtml (generated-docs/callgraph.js)
-    - getLayoutConfig ()
+- if (dist/ast2json.js)
+  - ast2json (dist/ast2json.d.ts)
+    - on ()
+      - function (dist/mml2json-wasm.js)
+      - escapeHtml (generated-docs/callgraph.js)
+      - getLayoutConfig ()
       - placeCentralNode ()
       - showNodeInfo ()
       - showEdgeInfo ()
@@ -197,44 +366,43 @@ Last updated: 2026-01-10
       - toggleNodeLabels ()
       - toggleCalleeLocationFilter ()
       - replace ()
-      - function ()
       - max ()
-      - on ()
       - ready ()
       - addListener ()
-  - ast2json (src/ast2json.ts)
-    - processNote ()
-      - processRest ()
-      - calcTicks ()
+    - ast2json_wasm ()
+      - mml2ast_wasm ()
+      - mml_to_json_wasm ()
+      - initSync ()
+      - __wbg_init (pkg/tonejs_mml_to_json.d.ts)
+      - getStringFromWasm0 (pkg/tonejs_mml_to_json.js)
+      - getUint8ArrayMemory0 ()
+      - passStringToWasm0 ()
+      - decodeText ()
+      - __wbg_load ()
+      - __wbg_get_imports ()
+      - __wbg_finalize_init ()
+      - start ()
+    - initWasm (dist/index.d.ts)
+      - mml2json ()
+      - mml2ast ()
+      - catch (dev-setup/setup.js)
+      - error ()
+  - initializeDemoDropdown (dist/main.js)
+    - play ()
+      - playSequence ()
+      - toSequenceEvent (dist/play.js)
+  - compileMmlToCommands ()
+    - getMmlCommands ()
+      - calcAttackToReleaseTicks ()
+      - repeat ()
+      - toInt ()
       - calcDuration ()
       - calcStartTick ()
       - increaseStartTick ()
-      - getNodeId ()
-      - repeat ()
-  - mml2json (src/mml2json.js)
-    - compileMmlToCommands ()
-      - getMmlCommands ()
-      - calcAttackToReleaseTicks ()
-      - toInt ()
       - calcLtick ()
+      - getNodeId ()
       - sort ()
-  - error ()
-  - play ()
-    - sub ()
-- if (generated-docs/callgraph.js)
-  - catch (dev-setup/setup.js)
-  - start (src/grammar.pegjs)
-  - parseDigits (src/mml2ast.ts)
-    - isValidDuration ()
-      - isValidOctave ()
-      - isValidInstrument ()
-      - mml2ast ()
-      - parseNote ()
-      - parseRest ()
-      - parseLength ()
-      - parseOctave ()
-      - parseInstrument ()
-  - initWasm (src/mml2json-wasm.ts)
+- switch (generated-docs/callgraph.js)
 - for (generated-docs/callgraph.js)
 - hex (src/grammar.js)
   - unicodeEscape ()
@@ -266,7 +434,6 @@ Last updated: 2026-01-10
   - peg$throw ()
   - constructor (undefined)
 - note (src/grammar.pegjs)
-- while (src/mml2ast.ts)
 
 ---
-Generated at: 2026-01-10 07:05:53 JST
+Generated at: 2026-01-11 07:06:02 JST
