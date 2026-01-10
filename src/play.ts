@@ -2,22 +2,28 @@
 declare const Tone: any;
 
 import type { ToneCommand } from './ast2json';
+import { SequencerNodes, playSequence, type SequenceEvent } from 'tonejs-json-sequencer';
 
-// Global state
-interface ToneNode {
-  dispose: () => void;
-  toDestination: () => void;
-  connect: (node: ToneNode) => void;
-  triggerAttackRelease: (...args: any[]) => void;
-  depth?: {
-    rampTo: (...args: any[]) => void;
-  };
-}
-
-export let nodes: ToneNode[] = [];
+// Global state - using SequencerNodes from tonejs-json-sequencer
+export const nodes = new SequencerNodes();
 export let errorPoint: string = "";
 
-export function play(): void {
+/**
+ * Convert ToneCommand to SequenceEvent format
+ * The main difference is connectTo which can be any string in ToneCommand
+ * but must be number | 'toDestination' in SequenceEvent
+ */
+function toSequenceEvent(cmd: ToneCommand): SequenceEvent {
+  if (cmd.eventType === 'connect') {
+    return {
+      ...cmd,
+      connectTo: cmd.connectTo === 'toDestination' ? 'toDestination' : cmd.connectTo as number
+    };
+  }
+  return cmd as SequenceEvent;
+}
+
+export async function play(): Promise<void> {
   try {
     // Get textarea references
     const textarea1 = document.querySelector('#textarea1') as HTMLTextAreaElement;
@@ -40,72 +46,12 @@ export function play(): void {
     // Tone.js playable JSON -> Tone.js
     const jsonStr = textarea2.value;
     errorPoint = "JSON.parse";
-    const j = JSON.parse(jsonStr) as ToneCommand[];
+    const sequence = JSON.parse(jsonStr) as ToneCommand[];
     
-    // dispose
-    nodes.forEach(element => element.dispose());
-    
-    // play
-    j.forEach(element => sub(element));
+    // Convert to SequenceEvent format and use tonejs-json-sequencer to play
+    errorPoint = "playSequence";
+    await playSequence(Tone, nodes, sequence.map(toSequenceEvent));
   } catch (error) {
     console.log(errorPoint + " error : [" + error + "]");
-  }
-}
-
-function sub(element: ToneCommand): void {
-  errorPoint = "sub";
-  console.log(element);
-  
-  switch (element.eventType) {
-    case "createNode":
-      if (element.nodeId === undefined || element.nodeType === undefined) {
-        console.error('Missing nodeId or nodeType for createNode');
-        return;
-      }
-      
-      switch (element.nodeType) {
-        case "Synth":
-          nodes[element.nodeId] = new Tone.Synth();
-          break;
-        case "FMSynth":
-          nodes[element.nodeId] = new Tone.FMSynth(element.args);
-          break;
-        case "Vibrato":
-          nodes[element.nodeId] = new Tone.Vibrato(...(element.args || []));
-          break;
-      }
-      break;
-      
-    case "connect":
-      if (element.nodeId === undefined || element.connectTo === undefined) {
-        console.error('Missing nodeId or connectTo for connect');
-        return;
-      }
-      
-      if (element.connectTo === "toDestination") {
-        nodes[element.nodeId].toDestination();
-      } else {
-        nodes[element.nodeId].connect(nodes[element.connectTo as number]);
-      }
-      break;
-      
-    case "triggerAttackRelease":
-      if (element.nodeId === undefined || !element.args) {
-        console.error('Missing nodeId or args for triggerAttackRelease');
-        return;
-      }
-      
-      errorPoint = "triggerAttackRelease";
-      nodes[element.nodeId].triggerAttackRelease(...element.args);
-      break;
-      
-    case "depth.rampTo":
-      if (element.nodeId === undefined || !element.args) {
-        console.error('Missing nodeId or args for depth.rampTo');
-        return;
-      }
-      
-      nodes[element.nodeId].depth?.rampTo(...element.args);
-      break;
   }
 }

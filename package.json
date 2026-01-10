@@ -21,7 +21,8 @@
   "scripts": {
     "build:wasm": "cd rust && wasm-pack build --target web --out-dir ../pkg",
     "build:ts": "tsc",
-    "build": "npm run build:wasm && npm run build:ts",
+    "build:libs": "node scripts/copy-libs.js",
+    "build": "npm run build:wasm && npm run build:ts && npm run build:libs",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:wasm": "node test/wasm-test.mjs && node test/wasm-integration-test.mjs && node test/demo-test.mjs && node test/wasm-init-test.mjs",
@@ -44,6 +45,7 @@
     "@types/node": "^25.0.3",
     "http-server": "^14.1.1",
     "peggy": "^5.0.5",
+    "tonejs-json-sequencer": "github:cat2151/tonejs-json-sequencer",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   },

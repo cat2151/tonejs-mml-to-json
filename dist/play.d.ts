@@ -1,14 +1,5 @@
-interface ToneNode {
-    dispose: () => void;
-    toDestination: () => void;
-    connect: (node: ToneNode) => void;
-    triggerAttackRelease: (...args: any[]) => void;
-    depth?: {
-        rampTo: (...args: any[]) => void;
-    };
-}
-export declare let nodes: ToneNode[];
+import { SequencerNodes } from 'tonejs-json-sequencer';
+export declare const nodes: SequencerNodes;
 export declare let errorPoint: string;
-export declare function play(): void;
-export {};
+export declare function play(): Promise<void>;
 //# sourceMappingURL=play.d.ts.map
