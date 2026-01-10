@@ -8,6 +8,10 @@
 
 import init, { mml_to_json_wasm, mml2ast_wasm, ast2json_wasm } from '../pkg/tonejs_mml_to_json.js';
 
+// Import types for internal use
+import type { ASTToken } from './mml2ast.js';
+import type { ToneCommand } from './ast2json.js';
+
 // Re-export types
 export type {
   ASTToken,
@@ -65,7 +69,7 @@ export async function initWasm(): Promise<void> {
  * @returns Tone.js compatible JSON commands
  * @throws Error if WASM is not initialized or if conversion fails
  */
-export function mml2json(mml: string): any {
+export function mml2json(mml: string): ToneCommand[] {
   if (!wasmInitialized) {
     throw new Error('WASM module not initialized. Call initWasm() first.');
   }
@@ -87,7 +91,7 @@ export function mml2json(mml: string): any {
  * @returns Array of AST tokens
  * @throws Error if WASM is not initialized or if parsing fails
  */
-export function mml2ast(mml: string): any {
+export function mml2ast(mml: string): ASTToken[] {
   if (!wasmInitialized) {
     throw new Error('WASM module not initialized. Call initWasm() first.');
   }
@@ -102,7 +106,7 @@ export function mml2ast(mml: string): any {
  * @returns Tone.js compatible JSON commands
  * @throws Error if WASM is not initialized or if conversion fails
  */
-export function ast2json(ast: any): any {
+export function ast2json(ast: ASTToken[]): ToneCommand[] {
   if (!wasmInitialized) {
     throw new Error('WASM module not initialized. Call initWasm() first.');
   }

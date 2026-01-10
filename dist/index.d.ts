@@ -5,6 +5,8 @@
  * It exports the core functionality for converting MML to JSON format
  * compatible with tonejs-json-sequencer.
  */
+import type { ASTToken } from './mml2ast.js';
+import type { ToneCommand } from './ast2json.js';
 export type { ASTToken, NoteToken, RestToken, LengthToken, OctaveToken, OctaveUpToken, OctaveDownToken, InstrumentToken } from './mml2ast.js';
 export type { ToneCommand, CreateNodeCommand, ConnectCommand, TriggerAttackReleaseCommand, DepthRampToCommand } from './ast2json.js';
 /**
@@ -22,7 +24,7 @@ export declare function initWasm(): Promise<void>;
  * @returns Tone.js compatible JSON commands
  * @throws Error if WASM is not initialized or if conversion fails
  */
-export declare function mml2json(mml: string): any;
+export declare function mml2json(mml: string): ToneCommand[];
 /**
  * Convert MML string to Abstract Syntax Tree (AST).
  *
@@ -30,7 +32,7 @@ export declare function mml2json(mml: string): any;
  * @returns Array of AST tokens
  * @throws Error if WASM is not initialized or if parsing fails
  */
-export declare function mml2ast(mml: string): any;
+export declare function mml2ast(mml: string): ASTToken[];
 /**
  * Convert Abstract Syntax Tree (AST) to Tone.js JSON format.
  *
@@ -38,7 +40,7 @@ export declare function mml2ast(mml: string): any;
  * @returns Tone.js compatible JSON commands
  * @throws Error if WASM is not initialized or if conversion fails
  */
-export declare function ast2json(ast: any): any;
+export declare function ast2json(ast: ASTToken[]): ToneCommand[];
 declare const _default: {
     initWasm: typeof initWasm;
     mml2json: typeof mml2json;
