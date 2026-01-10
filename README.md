@@ -12,6 +12,8 @@
 | Item | Link |
 |------|--------|
 | 🎵 Demo | https://cat2151.github.io/tonejs-mml-to-json/index.html |
+| 📦 NPM Package | [npm install tonejs-mml-to-json](https://www.npmjs.com/package/tonejs-mml-to-json) |
+| 📚 Library Usage Guide | [LIBRARY_USAGE.md](LIBRARY_USAGE.md) |
 | 📖 Project Overview | [generated-docs/project-overview.md](generated-docs/project-overview.md) |
 | 📖 Call Graph | [generated-docs/callgraph-enhanced.html](https://cat2151.github.io/tonejs-mml-to-json/generated-docs/callgraph-enhanced.html) |
 | 📊 Development Status | [generated-docs/development-status.md](generated-docs/development-status.md) |
@@ -19,7 +21,42 @@
 # Summary in 3 Lines
 - Converts music written in MML (Music Macro Language) into a JSON format playable in a browser.
 - Allows you to create music with simple text and play it on a website.
+- Available as an npm package and via CDN for easy integration into your projects.
 - This tool specializes in music conversion; actual playback is handled by a separate project (``tonejs-json-sequencer``).
+
+# Usage
+
+## As an npm Package
+
+```bash
+npm install tonejs-mml-to-json
+```
+
+```javascript
+import { initWasm, mml2json } from 'tonejs-mml-to-json';
+
+// Initialize WASM module
+await initWasm();
+
+// Convert MML to JSON
+const mml = 'o4 l16 e f g+ a b a g+ f e8. <e8. >e8';
+const json = mml2json(mml);
+console.log(json);
+```
+
+## Via CDN
+
+```html
+<script type="module">
+  import { initWasm, mml2json } from 'https://cat2151.github.io/tonejs-mml-to-json/dist/index.js';
+  
+  await initWasm();
+  const json = mml2json('o4 l16 e f g+ a');
+  console.log(json);
+</script>
+```
+
+For detailed usage instructions, see [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 
 # Notes
 - What are the benefits of writing music in MML (Music Macro Language)?

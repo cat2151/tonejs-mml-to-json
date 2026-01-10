@@ -1,0 +1,24 @@
+{
+  "name": "tonejs_mml_to_json",
+  "type": "module",
+  "collaborators": [
+    "cat2151"
+  ],
+  "description": "MML to JSON converter for tonejs-json-sequencer",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cat2151/tonejs-mml-to-json"
+  },
+  "files": [
+    "tonejs_mml_to_json_bg.wasm",
+    "tonejs_mml_to_json.js",
+    "tonejs_mml_to_json.d.ts"
+  ],
+  "main": "tonejs_mml_to_json.js",
+  "types": "tonejs_mml_to_json.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
