@@ -46,15 +46,15 @@ window.addEventListener("load", () => {
   textarea1 = document.querySelector('#textarea1');
   textarea2 = document.querySelector('#textarea2');
   
-  // Initialize demo dropdown
-  initializeDemoDropdown();
-  
   if (textarea1) {
     textarea1.addEventListener('input', play);
   }
   if (textarea2) {
     textarea2.addEventListener('input', play);
   }
+
+  // Initialize demo dropdown after textareas are assigned
+  initializeDemoDropdown();
 
   const button = document.querySelector('button');
   if (button) {
