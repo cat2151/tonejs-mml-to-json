@@ -135,7 +135,7 @@ Expected behavior:
 **Current behavior**: Semicolon is silently skipped (like other unknown characters)
 
 ```rust
-// From mml2ast.rs line 77-79
+// From mml2ast.rs line 77-78
 // Unknown character, skip
 index += 1;
 ```
