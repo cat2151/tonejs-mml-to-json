@@ -99,7 +99,7 @@ console.log(json);
 o4 l16 cdefgab
 
 // 臨時記号付き音階
-o4 l16 c c+ d e- e f f+ g a- a b- b
+o4 l16 c c+ d d+ e f f+ g g+ a a+ b
 
 // 付点音符とリズム
 o4 l8 c4. d e8. f16 g4
