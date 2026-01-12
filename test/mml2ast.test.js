@@ -213,9 +213,12 @@ describe('mml2ast', () => {
       expect(result[0].type).toBe('instrument');
       expect(result[0].value).toBe('Sampler');
       expect(result[0].args).toBeDefined();
-      expect(result[0].args).toContain('urls');
-      expect(result[0].args).toContain('C4');
-      expect(result[0].args).toContain('test.mp3');
+      
+      // Validate that args contains valid JSON
+      const parsedArgs = JSON.parse(result[0].args);
+      expect(parsedArgs).toHaveProperty('urls');
+      expect(parsedArgs.urls).toHaveProperty('C4', 'test.mp3');
+      expect(parsedArgs).toHaveProperty('release', 1);
     });
 
     it('should parse @Sampler with nested JSON', () => {

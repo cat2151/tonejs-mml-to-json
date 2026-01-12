@@ -82,7 +82,7 @@ export function mml2json(mml: string): ToneCommand[] {
     throw new Error(`MML parsing error: ${astResult.error}`);
   }
   
-  // Then convert AST to Tone.js JSON
+  // Then convert AST to Tone.js JSON (reuse already-parsed astJson)
   const jsonStr = ast2json_wasm(astJson);
   const result = JSON.parse(jsonStr);
   

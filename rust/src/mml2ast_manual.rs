@@ -288,9 +288,10 @@ fn parse_instrument(chars: &[char], start_index: usize) -> Result<(InstrumentTok
         match serde_json::from_str::<serde_json::Value>(&json_content) {
             Ok(_) => args = Some(json_content),
             Err(e) => {
-                eprintln!("mml2ast: Invalid JSON in instrument args at position {}: {}", json_start, e);
-                // Still store the invalid JSON, let the consumer handle it
-                args = Some(json_content);
+                return Err(format!(
+                    "Invalid JSON in instrument args at position {}: {}",
+                    json_start, e
+                ));
             }
         }
     }
