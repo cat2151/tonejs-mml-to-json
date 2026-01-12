@@ -205,7 +205,8 @@ describe('Integration: mml2ast + ast2json', () => {
       const ast = mml2ast(mml);
       const json = ast2json(ast);
       
-      expect(json).toHaveLength(4); // setup + instrument change (createNode + connect)
+      // Should only have setup (createNode + connect), no duplicate for @Synth since it's first
+      expect(json).toHaveLength(2);
     });
   });
 
