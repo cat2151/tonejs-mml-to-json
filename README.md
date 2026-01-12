@@ -90,7 +90,7 @@ For detailed usage, refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 ### Timbre Control
 | Command | Description | Example |
 |---------|------|-----|
-| `@Number` | Changes the timbre (synthesizer)<br>Currently creates a new Synth node<br>(See "Timbre Specification" below for details) | `@0` `@1` `@2` |
+| `@InstrumentName` | Changes the timbre (synthesizer)<br>Use Tone.js synth class names<br>(See "Timbre Specification" below for details) | `@Synth` `@FMSynth` `@AMSynth` |
 
 ### Multi-track
 | Command | Description | Example |
@@ -129,15 +129,15 @@ o4 c 'eg' d 'fac' e
 o4 'c+eg-'4 'd+f+a'8 'eg+b'4.
 
 // Instrument change (timbre)
-@0 cde @1 efg @2 abc
+@Synth cde @FMSynth efg @AMSynth abc
 
 // Different instrument types
-@1 o4 l8 cdefgab>c  // FMSynth - electric piano sound
-@3 o3 l8 ccccdddd    // MonoSynth - bass sound
-@4 o4 l8 cdefgab     // PluckSynth - guitar sound
+@FMSynth o4 l8 cdefgab>c  // FMSynth - electric piano sound
+@MonoSynth o3 l8 ccccdddd    // MonoSynth - bass sound
+@PluckSynth o4 l8 cdefgab     // PluckSynth - guitar sound
 
 // Instrument switching in one track
-@0 o4 cde @1 fga @2 b>c
+@Synth o4 cde @FMSynth fga @AMSynth b>c
 ```
 
 ## Unimplemented Commands (Planned for Future Implementation)
@@ -207,16 +207,30 @@ Below are Tone.js synthesizer types that may be specifiable with the `@` command
 
 ### Current Implementation Status
 
-- **Current**: The `@` command now maps instrument numbers to specific synth types:
-  - `@0` = Synth (default)
-  - `@1` = FMSynth (FM synthesis)
-  - `@2` = AMSynth (AM synthesis)
-  - `@3` = MonoSynth (monophonic synthesis)
-  - `@4` = PluckSynth (plucked strings)
-  - `@5` = MembraneSynth (drums/percussion)
-  - `@6` = MetalSynth (cymbals/metallic)
-  - `@7+` = DuoSynth (dual-voice synthesis)
-- **Note**: Tracks with chords automatically use PolySynth regardless of instrument number.
+- **Current**: The `@` command uses Tone.js class names directly:
+  - `@Synth` = Basic subtractive synthesis (default)
+  - `@FMSynth` = FM synthesis (electric piano, bells)
+  - `@AMSynth` = AM synthesis (bells, metallic sounds)
+  - `@MonoSynth` = Monophonic synthesis (bass, leads)
+  - `@PluckSynth` = Plucked strings (guitar, harp)
+  - `@MembraneSynth` = Drums and percussion
+  - `@MetalSynth` = Cymbals and metallic percussion
+  - `@DuoSynth` = Dual-voice synthesis (rich textures)
+  - `@PolySynth` = Polyphonic synthesis
+- **Note**: Tracks with chords automatically use PolySynth regardless of instrument specified.
+
+### Usage Examples
+
+```mml
+// Use FM synthesis for electric piano sound
+@FMSynth o4 l8 cdefgab>c
+
+// Switch instruments mid-track
+@Synth o4 cde @FMSynth fga @AMSynth b>c
+
+// Bass line with MonoSynth
+@MonoSynth o3 l8 c c c c d d d d
+```
 
 ### Potential for Specification Changes
 

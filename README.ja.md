@@ -90,7 +90,7 @@ console.log(json);
 ### 音色制御
 | コマンド | 説明 | 例 |
 |---------|------|-----|
-| `@数字` | 音色（シンセサイザー）を変更<br>現在は新しいSynthノードを作成<br>（詳細は下記の「音色仕様について」を参照） | `@0` `@1` `@2` |
+| `@楽器名` | 音色（シンセサイザー）を変更<br>Tone.jsのシンセクラス名を使用<br>（詳細は下記の「音色仕様について」を参照） | `@Synth` `@FMSynth` `@AMSynth` |
 
 ### マルチトラック
 | コマンド | 説明 | 例 |
@@ -129,15 +129,15 @@ o4 c 'eg' d 'fac' e
 o4 'c+eg-'4 'd+f+a'8 'eg+b'4.
 
 // 楽器変更（音色）
-@0 cde @1 efg @2 abc
+@Synth cde @FMSynth efg @AMSynth abc
 
 // 異なる楽器タイプ
-@1 o4 l8 cdefgab>c  // FMSynth - エレピの音
-@3 o3 l8 ccccdddd    // MonoSynth - ベース音
-@4 o4 l8 cdefgab     // PluckSynth - ギターの音
+@FMSynth o4 l8 cdefgab>c  // FMSynth - エレピの音
+@MonoSynth o3 l8 ccccdddd    // MonoSynth - ベース音
+@PluckSynth o4 l8 cdefgab     // PluckSynth - ギターの音
 
 // 1トラック内での楽器切り替え
-@0 o4 cde @1 fga @2 b>c
+@Synth o4 cde @FMSynth fga @AMSynth b>c
 ```
 
 ## 未実装コマンド（将来実装予定）
@@ -207,16 +207,30 @@ c;e;g
 
 ### 現在の実装状況
 
-- **現在**: `@` コマンドは楽器番号を特定のシンセタイプにマッピングします：
-  - `@0` = Synth (デフォルト)
-  - `@1` = FMSynth (FM合成)
-  - `@2` = AMSynth (AM合成)
-  - `@3` = MonoSynth (モノフォニック合成)
-  - `@4` = PluckSynth (撥弦楽器)
-  - `@5` = MembraneSynth (ドラム/パーカッション)
-  - `@6` = MetalSynth (シンバル/金属音)
-  - `@7+` = DuoSynth (デュアルボイス合成)
-- **注意**: 和音を含むトラックは楽器番号に関係なく自動的にPolySynthを使用します
+- **現在**: `@` コマンドはTone.jsのクラス名を直接使用します：
+  - `@Synth` = 基本減算合成（デフォルト）
+  - `@FMSynth` = FM合成（エレクトリックピアノ、ベル）
+  - `@AMSynth` = AM合成（ベル、金属的な音）
+  - `@MonoSynth` = モノフォニック合成（ベース、リード）
+  - `@PluckSynth` = 撥弦楽器（ギター、ハープ）
+  - `@MembraneSynth` = ドラム、打楽器
+  - `@MetalSynth` = シンバル、金属打楽器
+  - `@DuoSynth` = デュアルボイス合成（豊かな音色）
+  - `@PolySynth` = ポリフォニック合成
+- **注意**: 和音を含むトラックは指定された楽器に関係なく自動的にPolySynthを使用します
+
+### 使用例
+
+```mml
+// FMSynthでエレピの音
+@FMSynth o4 l8 cdefgab>c
+
+// トラック内で楽器を切り替え
+@Synth o4 cde @FMSynth fga @AMSynth b>c
+
+// MonoSynthでベースライン
+@MonoSynth o3 l8 c c c c d d d d
+```
 
 ### 仕様変更の可能性について
 
