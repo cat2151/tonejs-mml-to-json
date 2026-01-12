@@ -319,9 +319,8 @@ fn parse_chord(chars: &[char], start_index: usize) -> Result<(ChordToken, usize)
     index += 1; // Skip closing single quote
 
     // Ignore numbers immediately after the closing quote (mml2abc format)
-    while index < chars.len() && chars[index].is_ascii_digit() {
-        index += 1;
-    }
+    let (_, digit_len) = parse_digits(chars, index);
+    index += digit_len;
 
     // Validate duration if one was found inside the chord
     if let Some(d) = duration {
