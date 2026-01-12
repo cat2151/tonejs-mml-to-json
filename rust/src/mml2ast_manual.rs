@@ -324,11 +324,16 @@ fn parse_chord(chars: &[char], start_index: usize) -> Result<(ChordToken, usize)
     
     index += 1; // Skip closing single quote
 
-    // Ignore numbers immediately after the closing quote (mml2abc format)
-    let (_, digit_len) = parse_digits(chars, index);
+    // Parse numbers immediately after the closing quote as a possible duration
+    let (parsed_duration_after, digit_len) = parse_digits(chars, index);
+    if duration.is_none() {
+        if let Some(d) = parsed_duration_after {
+            duration = Some(d);
+        }
+    }
     index += digit_len;
 
-    // Validate duration if one was found inside the chord
+    // Validate duration if one was found inside or after the chord
     if let Some(d) = duration {
         if !is_valid_duration(d) {
             eprintln!("mml2ast: Invalid duration '{}' for chord at position {}. {}", d, start_index, INVALID_DURATION_MSG);
