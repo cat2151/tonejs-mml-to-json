@@ -331,6 +331,47 @@ describe('ast2json', () => {
       
       expect(result[2].nodeType).toBe("DuoSynth");
     });
+
+    it('should use PolySynth for tracks with chords regardless of instrument number', () => {
+      const ast = [
+        { type: 'instrument', value: 1, length: 2 }, // FMSynth request
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'c', accidental: '' },
+            { note: 'e', accidental: '' },
+            { note: 'g', accidental: '' }
+          ],
+          duration: null, 
+          dots: 0, 
+          length: 5 
+        },
+        { type: 'instrument', value: 3, length: 2 }, // MonoSynth request
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'd', accidental: '' },
+            { note: 'f', accidental: '' }
+          ],
+          duration: null, 
+          dots: 0, 
+          length: 5 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      // Initial node should be PolySynth (not FMSynth) because track has chords
+      expect(result[0]).toEqual({
+        eventType: "createNode",
+        nodeId: 0,
+        nodeType: "PolySynth"
+      });
+      
+      // Second instrument change should also create PolySynth (not MonoSynth)
+      // Index: 0=createNode, 1=connect, 2=createNode(@1), 3=connect, 4=chord, 5=createNode(@3), 6=connect, 7=chord
+      expect(result[5].eventType).toBe("createNode");
+      expect(result[5].nodeType).toBe("PolySynth");
+    });
   });
 
   describe('Complex sequences', () => {
