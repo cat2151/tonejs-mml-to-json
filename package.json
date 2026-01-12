@@ -26,8 +26,7 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:wasm": "node test/wasm-test.mjs && node test/wasm-integration-test.mjs && node test/demo-test.mjs && node test/wasm-init-test.mjs",
-    "build:parser": "peggy --format es src/grammar.pegjs",
-    "dev": "pnpm run build:parser && pnpm run test:watch",
+    "dev": "pnpm run test:watch",
     "test:summary": "node .github/scripts/test-summary.cjs",
     "prepublishOnly": "npm run build && npm test"
   },
@@ -44,7 +43,6 @@
   "devDependencies": {
     "@types/node": "^25.0.3",
     "http-server": "^14.1.1",
-    "peggy": "^5.0.5",
     "tonejs-json-sequencer": "github:cat2151/tonejs-json-sequencer",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
