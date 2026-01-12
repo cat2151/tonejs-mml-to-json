@@ -289,10 +289,9 @@ fn parse_chord(chars: &[char], start_index: usize) -> Result<(ChordToken, usize)
                 }
                 index += digit_len;
             } else {
-                // Ignore subsequent numbers - skip them
-                while index < chars.len() && chars[index] != '\'' && chars[index].is_ascii_digit() {
-                    index += 1;
-                }
+                // Ignore subsequent numbers - just skip digits
+                let (_, digit_len) = parse_digits(chars, index);
+                index += digit_len;
             }
         } else {
             // Skip non-note characters within the chord, but warn on unexpected ones
