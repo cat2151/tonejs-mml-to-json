@@ -246,7 +246,7 @@ fn parse_instrument(chars: &[char], start_index: usize) -> Result<(InstrumentTok
         None
     } else {
         if !is_valid_instrument(&instrument_name) {
-            eprintln!("mml2ast: Invalid instrument '{}' at position {}. Valid instruments: Synth, FMSynth, AMSynth, MonoSynth, DuoSynth, PluckSynth, MembraneSynth, MetalSynth, PolySynth", 
+            eprintln!("mml2ast: Invalid instrument '{}' at position {}. Valid instruments: Synth, FMSynth, AMSynth, MonoSynth, DuoSynth, PluckSynth, MembraneSynth, MetalSynth, PolySynth, NoiseSynth, Sampler", 
                 instrument_name, start_index);
         }
         Some(instrument_name)
