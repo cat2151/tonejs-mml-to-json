@@ -59,22 +59,29 @@ fn parse_node(node: &Node, source: &str) -> Result<Option<AstToken>, String> {
         "rest" => Ok(Some(AstToken::Rest(parse_rest(node, source)?))),
         "length_command" => Ok(Some(AstToken::Length(parse_length(node, source)?))),
         "octave_command" => Ok(Some(AstToken::Octave(parse_octave(node, source)?))),
-        "octave_up" => Ok(Some(AstToken::OctaveUp(OctaveUpToken { length: 1 }))),
-        "octave_down" => Ok(Some(AstToken::OctaveDown(OctaveDownToken { length: 1 }))),
+        "octave_up" => {
+            let length = node.end_byte() - node.start_byte();
+            Ok(Some(AstToken::OctaveUp(OctaveUpToken { length })))
+        }
+        "octave_down" => {
+            let length = node.end_byte() - node.start_byte();
+            Ok(Some(AstToken::OctaveDown(OctaveDownToken { length })))
+        }
         "instrument_command" => Ok(Some(AstToken::Instrument(parse_instrument(node, source)?))),
         "chord" => Ok(Some(AstToken::Chord(parse_chord(node, source)?))),
-        "track_separator" => Ok(Some(AstToken::TrackSeparator(TrackSeparatorToken { length: 1 }))),
+        "track_separator" => {
+            let length = node.end_byte() - node.start_byte();
+            Ok(Some(AstToken::TrackSeparator(TrackSeparatorToken { length })))
+        }
         _ => Ok(None), // Skip unknown nodes
     }
 }
 
 fn parse_note(node: &Node, source: &str) -> Result<NoteToken, String> {
-    let mut note = NoteToken {
-        pitch: String::new(),
-        accidentals: 0,
-        duration: None,
-        dots: 0,
-    };
+    let mut note: Option<char> = None;
+    let mut accidental = String::new();
+    let mut duration: Option<u32> = None;
+    let mut dots = 0;
     
     let mut cursor = node.walk();
     if cursor.goto_first_child() {
@@ -84,17 +91,18 @@ fn parse_note(node: &Node, source: &str) -> Result<NoteToken, String> {
             
             match field_name {
                 Some("pitch") => {
-                    note.pitch = get_node_text(&child, source).to_string();
+                    let text = get_node_text(&child, source);
+                    note = text.chars().next();
                 }
                 Some("accidentals") => {
                     let text = get_node_text(&child, source);
-                    note.accidentals += if text == "+" { 1 } else { -1 };
+                    accidental.push_str(text);
                 }
                 Some("duration") => {
-                    note.duration = Some(parse_duration(&child, source)?);
+                    duration = Some(parse_duration(&child, source)?);
                 }
                 Some("dots") => {
-                    note.dots += 1;
+                    dots += 1;
                 }
                 _ => {}
             }
@@ -105,14 +113,22 @@ fn parse_note(node: &Node, source: &str) -> Result<NoteToken, String> {
         }
     }
     
-    Ok(note)
+    let note = note.ok_or_else(|| "Note missing pitch".to_string())?;
+    let start = node.start_byte();
+    let end = node.end_byte();
+    
+    Ok(NoteToken {
+        note,
+        accidental,
+        duration,
+        dots,
+        length: end - start,
+    })
 }
 
 fn parse_rest(node: &Node, source: &str) -> Result<RestToken, String> {
-    let mut rest = RestToken {
-        duration: None,
-        dots: 0,
-    };
+    let mut duration: Option<u32> = None;
+    let mut dots = 0;
     
     let mut cursor = node.walk();
     if cursor.goto_first_child() {
@@ -122,10 +138,10 @@ fn parse_rest(node: &Node, source: &str) -> Result<RestToken, String> {
             
             match field_name {
                 Some("duration") => {
-                    rest.duration = Some(parse_duration(&child, source)?);
+                    duration = Some(parse_duration(&child, source)?);
                 }
                 Some("dots") => {
-                    rest.dots += 1;
+                    dots += 1;
                 }
                 _ => {}
             }
@@ -136,7 +152,14 @@ fn parse_rest(node: &Node, source: &str) -> Result<RestToken, String> {
         }
     }
     
-    Ok(rest)
+    let start = node.start_byte();
+    let end = node.end_byte();
+    
+    Ok(RestToken {
+        duration,
+        dots,
+        length: end - start,
+    })
 }
 
 fn parse_length(node: &Node, source: &str) -> Result<LengthToken, String> {
@@ -146,7 +169,12 @@ fn parse_length(node: &Node, source: &str) -> Result<LengthToken, String> {
             let child = cursor.node();
             if cursor.field_name() == Some("value") {
                 let duration = parse_duration(&child, source)?;
-                return Ok(LengthToken { duration });
+                let start = node.start_byte();
+                let end = node.end_byte();
+                return Ok(LengthToken { 
+                    value: Some(duration),
+                    length: end - start,
+                });
             }
             
             if !cursor.goto_next_sibling() {
@@ -165,7 +193,12 @@ fn parse_octave(node: &Node, source: &str) -> Result<OctaveToken, String> {
             let child = cursor.node();
             if cursor.field_name() == Some("value") {
                 let value = parse_duration(&child, source)?;
-                return Ok(OctaveToken { octave: value });
+                let start = node.start_byte();
+                let end = node.end_byte();
+                return Ok(OctaveToken { 
+                    value: Some(value),
+                    length: end - start,
+                });
             }
             
             if !cursor.goto_next_sibling() {
@@ -184,7 +217,12 @@ fn parse_instrument(node: &Node, source: &str) -> Result<InstrumentToken, String
             let child = cursor.node();
             if cursor.field_name() == Some("name") {
                 let name = get_node_text(&child, source).to_string();
-                return Ok(InstrumentToken { name });
+                let start = node.start_byte();
+                let end = node.end_byte();
+                return Ok(InstrumentToken { 
+                    value: Some(name),
+                    length: end - start,
+                });
             }
             
             if !cursor.goto_next_sibling() {
@@ -198,7 +236,7 @@ fn parse_instrument(node: &Node, source: &str) -> Result<InstrumentToken, String
 
 fn parse_chord(node: &Node, source: &str) -> Result<ChordToken, String> {
     let mut notes = Vec::new();
-    let mut duration = None;
+    let mut duration: Option<u32> = None;
     let mut dots = 0;
     
     let mut cursor = node.walk();
@@ -226,18 +264,20 @@ fn parse_chord(node: &Node, source: &str) -> Result<ChordToken, String> {
         }
     }
     
+    let start = node.start_byte();
+    let end = node.end_byte();
+    
     Ok(ChordToken {
         notes,
         duration,
         dots,
+        length: end - start,
     })
 }
 
-fn parse_chord_note(node: &Node, source: &str) -> Result<ChordNoteToken, String> {
-    let mut note = ChordNoteToken {
-        pitch: String::new(),
-        accidentals: 0,
-    };
+fn parse_chord_note(node: &Node, source: &str) -> Result<ChordNote, String> {
+    let mut note: Option<char> = None;
+    let mut accidental = String::new();
     
     let mut cursor = node.walk();
     if cursor.goto_first_child() {
@@ -247,11 +287,12 @@ fn parse_chord_note(node: &Node, source: &str) -> Result<ChordNoteToken, String>
             
             match field_name {
                 Some("pitch") => {
-                    note.pitch = get_node_text(&child, source).to_string();
+                    let text = get_node_text(&child, source);
+                    note = text.chars().next();
                 }
                 Some("accidentals") => {
                     let text = get_node_text(&child, source);
-                    note.accidentals += if text == "+" { 1 } else { -1 };
+                    accidental.push_str(text);
                 }
                 _ => {}
             }
@@ -262,7 +303,12 @@ fn parse_chord_note(node: &Node, source: &str) -> Result<ChordNoteToken, String>
         }
     }
     
-    Ok(note)
+    let note = note.ok_or_else(|| "Chord note missing pitch".to_string())?;
+    
+    Ok(ChordNote {
+        note,
+        accidental,
+    })
 }
 
 fn parse_duration(node: &Node, source: &str) -> Result<u32, String> {
@@ -288,8 +334,8 @@ mod tests {
         
         match &tokens[0] {
             AstToken::Note(note) => {
-                assert_eq!(note.pitch, "c");
-                assert_eq!(note.accidentals, 0);
+                assert_eq!(note.note, 'c');
+                assert_eq!(note.accidental, "");
             }
             _ => panic!("Expected Note token"),
         }
@@ -303,8 +349,8 @@ mod tests {
         
         match &tokens[0] {
             AstToken::Note(note) => {
-                assert_eq!(note.pitch, "c");
-                assert_eq!(note.accidentals, 1);
+                assert_eq!(note.note, 'c');
+                assert_eq!(note.accidental, "+");
             }
             _ => panic!("Expected Note token"),
         }
@@ -318,7 +364,7 @@ mod tests {
         
         match &tokens[0] {
             AstToken::Note(note) => {
-                assert_eq!(note.pitch, "c");
+                assert_eq!(note.note, 'c');
                 assert_eq!(note.duration, Some(4));
             }
             _ => panic!("Expected Note token"),
@@ -333,7 +379,7 @@ mod tests {
         
         match &tokens[0] {
             AstToken::Octave(octave) => {
-                assert_eq!(octave.octave, 4);
+                assert_eq!(octave.value, Some(4));
             }
             _ => panic!("Expected Octave token"),
         }
@@ -347,7 +393,7 @@ mod tests {
         
         match &tokens[0] {
             AstToken::Length(length) => {
-                assert_eq!(length.duration, 16);
+                assert_eq!(length.value, Some(16));
             }
             _ => panic!("Expected Length token"),
         }
@@ -372,9 +418,9 @@ mod tests {
         match &tokens[0] {
             AstToken::Chord(chord) => {
                 assert_eq!(chord.notes.len(), 3);
-                assert_eq!(chord.notes[0].pitch, "c");
-                assert_eq!(chord.notes[1].pitch, "e");
-                assert_eq!(chord.notes[2].pitch, "g");
+                assert_eq!(chord.notes[0].note, 'c');
+                assert_eq!(chord.notes[1].note, 'e');
+                assert_eq!(chord.notes[2].note, 'g');
             }
             _ => panic!("Expected Chord token"),
         }
