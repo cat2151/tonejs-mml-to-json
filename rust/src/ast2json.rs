@@ -130,7 +130,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
     let mut default_length = 8; // default note length (eighth note)
     let mut octave = 4; // default octave 4
     let mut node_id = track_node_id; // Start with track's base node_id
-    let mut current_instrument = 0; // default instrument number
+    let mut current_instrument = 0; // default instrument number (Synth)
 
     // Determine if this track needs PolySynth (has chords)
     let needs_polysynth = has_chords(ast);

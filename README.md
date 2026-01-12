@@ -128,8 +128,16 @@ o4 c 'eg' d 'fac' e
 // Chords with accidentals and length
 o4 'c+eg-'4 'd+f+a'8 'eg+b'4.
 
-// Timbre change
+// Instrument change (timbre)
 @0 cde @1 efg @2 abc
+
+// Different instrument types
+@1 o4 l8 cdefgab>c  // FMSynth - electric piano sound
+@3 o3 l8 ccccdddd    // MonoSynth - bass sound
+@4 o4 l8 cdefgab     // PluckSynth - guitar sound
+
+// Instrument switching in one track
+@0 o4 cde @1 fga @2 b>c
 ```
 
 ## Unimplemented Commands (Planned for Future Implementation)
@@ -199,8 +207,16 @@ Below are Tone.js synthesizer types that may be specifiable with the `@` command
 
 ### Current Implementation Status
 
-- **Current**: The `@` command creates a new `Synth` node.
-- **Future**: Considering a mapping like `@0`=Synth, `@1`=AMSynth, `@2`=FMSynth.
+- **Current**: The `@` command now maps instrument numbers to specific synth types:
+  - `@0` = Synth (default)
+  - `@1` = FMSynth (FM synthesis)
+  - `@2` = AMSynth (AM synthesis)
+  - `@3` = MonoSynth (monophonic synthesis)
+  - `@4` = PluckSynth (plucked strings)
+  - `@5` = MembraneSynth (drums/percussion)
+  - `@6` = MetalSynth (cymbals/metallic)
+  - `@7+` = DuoSynth (dual-voice synthesis)
+- **Note**: Tracks with chords automatically use PolySynth regardless of instrument number.
 
 ### Potential for Specification Changes
 

@@ -70,7 +70,7 @@ export const demos = [
         id: 'instrument-switch',
         name: 'Instrument Switching',
         description: 'Switch between different instruments in one track',
-        mml: '@0 o4 cde @1 fga @2 b>c<b @3 agf'
+        mml: '@0 o4 cde @1 fga @2 gab @3 agf'
     }
 ];
 //# sourceMappingURL=demos.js.map
