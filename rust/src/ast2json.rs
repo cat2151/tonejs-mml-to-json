@@ -357,7 +357,13 @@ fn convert_accidental(accidental: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    
+    // Import the appropriate parser based on feature flags
+    #[cfg(feature = "tree-sitter")]
     use crate::mml2ast::mml2ast;
+    
+    #[cfg(not(feature = "tree-sitter"))]
+    use crate::mml2ast_manual::mml2ast;
 
     #[test]
     fn test_basic_conversion() {
