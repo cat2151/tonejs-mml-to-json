@@ -1,4 +1,4 @@
-Last updated: 2026-01-11
+Last updated: 2026-01-13
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -87,6 +87,8 @@ Last updated: 2026-01-11
 - npmパッケージおよびCDN経由で利用可能で、プロジェクトへの統合が簡単です
 - 音楽の変換部分に特化したツールで、実際の再生は別プロジェクト（`tonejs-json-sequencer`）が担当します
 
+
+
 # 使い方
 
 ## npmパッケージとして利用
@@ -120,6 +122,370 @@ console.log(json);
 ```
 
 詳細な使い方については [LIBRARY_USAGE.md](LIBRARY_USAGE.md) を参照してください。
+
+# MMLコマンドリファレンス
+
+## 実装済みコマンド
+
+### 音符と休符
+| コマンド | 説明 | 例 |
+|---------|------|-----|
+| `c d e f g a b` | 音符（ド・レ・ミ・ファ・ソ・ラ・シ） | `cdefgab` |
+| `+` `-` | 臨時記号（シャープ/フラット）<br>※音符の直後に記述（音符の前には置けません） | `c+` `e-` `c++` `e--` |
+| `数字` | 音符の長さ（4=4分音符、8=8分音符、16=16分音符）<br>音符または休符の直後に記述 | `c4` `e8` `c16` |
+| `.` | 付点（音符の長さを1.5倍に）<br>連続して指定可能（`..`=1.75倍） | `c4.` `e8..` |
+| `r` | 休符<br>音符と同様に長さと付点を指定可能 | `r` `r4` `r8.` |
+
+### オクターブ制御
+| コマンド | 説明 | 例 |
+|---------|------|-----|
+| `o数字` | オクターブを指定（デフォルト: `o4`） | `o4` `o5` `o3` |
+| `<` | オクターブを1つ上げる | `<` |
+| `>` | オクターブを1つ下げる | `>` |
+
+### デフォルト設定
+| コマンド | 説明 | 例 |
+|---------|------|-----|
+| `l数字` | デフォルト音符長を設定<br>（以降の音符に長さ指定がない場合に適用） | `l8` `l16` `l4` |
+
+### 音色制御
+| コマンド | 説明 | 例 |
+|---------|------|-----|
+| `@楽器名` | 音色（シンセサイザー）を変更<br>Tone.jsのシンセクラス名を使用<br>（詳細は下記の「音色仕様について」を参照） | `@Synth` `@FMSynth` `@AMSynth` |
+
+### マルチトラック
+| コマンド | 説明 | 例 |
+|---------|------|-----|
+| `;` | トラック区切り<br>複数パートを同時演奏 | `cde;efg;abc` |
+
+### 和音
+| コマンド | 説明 | 例 |
+|---------|------|-----|
+| `'音符'` | 和音（シングルクォートで囲まれた音符が同時に演奏される）<br>臨時記号、長さ、付点を指定可能<br>※長さは最初の音符の後ろ（クォート内）、付点はクォート外 | `'ceg'` `'c+eg-'` `'c4eg'` `'c4eg'.` |
+
+### 使用例
+```mml
+// 基本的な音階
+o4 l16 cdefgab
+
+// 臨時記号付き音階
+o4 l16 c c+ d d+ e f f+ g g+ a a+ b
+
+// 付点音符とリズム
+o4 l8 c4. d e8. f16 g4
+
+// オクターブ変更
+o4 c d e < f g a > b < c
+
+// マルチトラック（別々のパート）
+o4 l8 ceg;dfb;ace
+
+// 和音（同時に演奏される音符）
+o4 l4 'ceg' 'dfb' 'ace'
+
+// 単音と和音の混在
+o4 c 'eg' d 'fac' e
+
+// 臨時記号と長さを含む和音
+o4 'c+4eg-' 'd+8f+a' 'e4g+b'.
+
+// 楽器変更（音色）
+@Synth cde @FMSynth efg @AMSynth abc
+
+// 異なる楽器タイプ
+@FMSynth o4 l8 cdefgab>c  // FMSynth - エレピの音
+@MonoSynth o3 l8 ccccdddd    // MonoSynth - ベース音
+@PluckSynth o4 l8 cdefgab     // PluckSynth - ギターの音
+
+// 1トラック内での楽器切り替え
+@Synth o4 cde @FMSynth fga @AMSynth b>c
+```
+
+## 未実装コマンド（将来実装予定）
+
+以下のコマンドは、標準的なMMLでよく使用されるコマンドですが、本ライブラリではまだ実装されていません。将来のバージョンで実装される可能性があります。
+
+| コマンド | 説明 | 標準的な例 |
+|---------|------|-----------|
+| `t` `T` | テンポ設定（BPM） | `t120` `T140` |
+| `v` `V` | 音量設定（0-127） | `v100` `V80` |
+| `&` `^` | タイ（同じ音高の音符を結合） | `c4&c4` `c4^c4` |
+| `q` `Q` | ゲートタイム（音符の長さの割合、スタッカート制御） | `q60` `Q80` |
+| `p` `P` | パン（定位）設定 | `p64` `P0` |
+| `u` `U` | ベロシティ（アタック強度） | `u120` |
+| `[` `]` | ループ（繰り返し） | `[cde]4` |
+
+**⚠️ 重要な注意事項**: 
+- これらのコマンドの実装時期や仕様は未定です
+- 実装される場合、仕様が変更される可能性があります
+- プロトタイピング段階では破壊的変更が頻繁に発生する可能性があります
+
+## 和音実装について
+
+和音はTone.jsの`PolySynth`を使用して実装されており、複数のシンセサイザーボイスを管理して音符を同時に演奏します。
+
+### 技術詳細
+
+- **構文**: シングルクォートで囲まれた音符（例: `'ceg'`）が和音として扱われます
+- **PolySynth**: 和音を含むトラックは自動的に通常の`Synth`ではなく`PolySynth`を使用します
+- **機能**:
+  - 和音内での臨時記号のサポート: `'c+eg-'` = C# E Gb
+  - 長さと付点のサポート: `'c4eg'.` = 付点4分音符のC-E-G和音（長さはクォート内、付点はクォート外）
+  - オクターブコマンドとの連携: `o5 'ceg'` = C5-E5-G5和音
+  - マルチトラックとの互換性: 一部のトラックで和音を使用し、他のトラックでは使用しないことが可能
+- **マルチトラックとの違い**:
+  - マルチトラック（`;`）: 異なるメロディー/パートを同時に演奏する別々のトラック
+  - 和音（`'...'`）: 完全に同じタイミングで一緒に演奏される複数の音符
+
+### 比較例
+
+```mml
+// マルチトラック: C、E、Gが別々のパート（メロディライン）として演奏される
+c;e;g
+
+// 和音: C、E、Gが単一の和音として一緒に演奏される
+'ceg'
+```
+
+## 音色仕様について（`@` コマンド）
+
+現在の `@` コマンドは基本的な音色切り替えを実装していますが、将来的にはTone.jsの多様なシンセサイザータイプに対応する予定です。
+
+### Tone.jsで利用可能なシンセサイザータイプ候補
+
+以下は、将来的に `@` コマンドで指定できる可能性のあるTone.jsシンセサイザータイプです：
+
+| タイプ | 特徴 | 適した音色 |
+|--------|------|-----------|
+| `Synth` | 基本的な減算合成<br>単一オシレータ + エンベロープ | リード、パッド、基本的な音色 |
+| `AMSynth` | 振幅変調合成<br>2つのオシレータで振幅を変調 | ベル、金属的な音、トレモロ効果 |
+| `FMSynth` | 周波数変調合成<br>2つのオシレータで周波数を変調 | エレクトリックピアノ、ベル、金属的な音 |
+| `MonoSynth` | モノフォニック減算合成<br>フィルターエンベロープ付き | ベース、モノリード、アナログシンセ風 |
+| `DuoSynth` | デュアルボイスポリフォニック<br>2つのMonoSynthを組み合わせ | 豊かなテクスチャ、コーラス効果、複雑な音色 |
+| `PluckSynth` | カープラス・ストロング法<br>撥弦楽器シミュレーション | ギター、ハープ、琴、撥弦系 |
+| `MembraneSynth` | 膜振動シミュレーション | ドラム、打楽器 |
+| `MetalSynth` | 金属的な音響シミュレーション | シンバル、金属打楽器 |
+
+### 現在の実装状況
+
+- **現在**: `@` コマンドはTone.jsのクラス名を直接使用します：
+  - `@Synth` = 基本減算合成（デフォルト）
+  - `@FMSynth` = FM合成（エレクトリックピアノ、ベル）
+  - `@AMSynth` = AM合成（ベル、金属的な音）
+  - `@MonoSynth` = モノフォニック合成（ベース、リード）
+  - `@PluckSynth` = 撥弦楽器（ギター、ハープ）
+  - `@MembraneSynth` = ドラム、打楽器
+  - `@MetalSynth` = シンバル、金属打楽器
+  - `@DuoSynth` = デュアルボイス合成（豊かな音色）
+  - `@PolySynth` = ポリフォニック合成
+- **注意**: 和音を含むトラックは指定された楽器に関係なく自動的にPolySynthを使用します
+
+### 使用例
+
+```mml
+// FMSynthでエレピの音
+@FMSynth o4 l8 cdefgab>c
+
+// トラック内で楽器を切り替え
+@Synth o4 cde @FMSynth fga @AMSynth b>c
+
+// MonoSynthでベースライン
+@MonoSynth o3 l8 c c c c d d d d
+```
+
+### 仕様変更の可能性について
+
+⚠️ **重要**: 音色指定機能は現在プロトタイピング段階です
+
+- Tone.jsのデフォルト音色表現を検証するための仮仕様です
+- 各バリエーションを簡易的に確認できるよう実装しています
+- 仕様は頻繁に破壊的変更される可能性があります
+- プロダクション環境で使用する場合は、バージョンを固定することを推奨します
+- フィードバックや要望があれば、GitHubのIssueで共有してください
+
+# tonejs-json-sequencer との機能対応状況
+
+このセクションでは、[tonejs-json-sequencer](https://github.com/cat2151/tonejs-json-sequencer) でサポートされている機能と、本ライブラリ（tonejs-mml-to-json）での対応状況を記載します。
+
+## 調査の目的
+
+tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのMMLでも表現できるようにすることを目指しています。これにより、MMLから完全な音楽表現への変換が可能になります。
+
+## tonejs-json-sequencer でサポートされているコンポーネント
+
+### 音源（Instrument）- 対応状況
+
+| Tone.js クラス | tonejs-json-sequencer | 本ライブラリ(MML) | 備考 |
+|---------------|----------------------|------------------|------|
+| **Synth** | ✅ 対応済み | ✅ 対応済み | `@Synth` で実装済み（デフォルト） |
+| **MonoSynth** | ✅ 対応済み | ✅ 対応済み | `@MonoSynth` で実装済み（ベース音色） |
+| **FMSynth** | ✅ 対応済み | ✅ 対応済み | `@FMSynth` で実装済み（エレピ、ベル） |
+| **AMSynth** | ✅ 対応済み | ✅ 対応済み | `@AMSynth` で実装済み（ベル、金属音） |
+| **DuoSynth** | ✅ 対応済み | ✅ 対応済み | `@DuoSynth` で実装済み（デュアルボイス） |
+| **PluckSynth** | ✅ 対応済み | ✅ 対応済み | `@PluckSynth` で実装済み（撥弦楽器） |
+| **MembraneSynth** | ✅ 対応済み | ✅ 対応済み | `@MembraneSynth` で実装済み（ドラム） |
+| **MetalSynth** | ✅ 対応済み | ✅ 対応済み | `@MetalSynth` で実装済み（シンバル） |
+| **NoiseSynth** | ✅ 対応済み | ⏳ 未対応 | ノイズベース音色 |
+| **PolySynth** | ✅ 対応済み | ✅ 対応済み | 和音機能で自動使用 |
+| **Sampler** | ✅ 対応済み | ⏳ 未対応 | サンプルベース音源 |
+
+### エフェクト（Effect）- 対応状況
+
+#### 空間系（Spatial）
+
+| エフェクト | tonejs-json-sequencer | 本ライブラリ(MML) | 用途 |
+|-----------|----------------------|------------------|------|
+| **Reverb** | ✅ 対応済み | ⏳ 未対応 | リバーブ効果 |
+| **Freeverb** | ✅ 対応済み | ⏳ 未対応 | Freeverbアルゴリズム |
+| **JCReverb** | ✅ 対応済み | ⏳ 未対応 | JCReverbアルゴリズム |
+
+#### モジュレーション系（Modulation）
+
+| エフェクト | tonejs-json-sequencer | 本ライブラリ(MML) | 用途 |
+|-----------|----------------------|------------------|------|
+| **Chorus** | ✅ 対応済み | ⏳ 未対応 | コーラス効果 |
+| **Phaser** | ✅ 対応済み | ⏳ 未対応 | フェイザー効果 |
+| **Tremolo** | ✅ 対応済み | ⏳ 未対応 | トレモロ効果 |
+| **Vibrato** | ✅ 対応済み | ⏳ 未対応 | ビブラート効果 |
+| **AutoFilter** | ✅ 対応済み | ⏳ 未対応 | オートフィルター |
+| **AutoPanner** | ✅ 対応済み | ⏳ 未対応 | オートパンナー |
+| **AutoWah** | ✅ 対応済み | ⏳ 未対応 | オートワウ |
+
+#### ディレイ系（Delay）
+
+| エフェクト | tonejs-json-sequencer | 本ライブラリ(MML) | 用途 |
+|-----------|----------------------|------------------|------|
+| **FeedbackDelay** | ✅ 対応済み | ⏳ 未対応 | フィードバックディレイ |
+| **PingPongDelay** | ✅ 対応済み | ⏳ 未対応 | ピンポンディレイ |
+
+#### 歪み系（Distortion）
+
+| エフェクト | tonejs-json-sequencer | 本ライブラリ(MML) | 用途 |
+|-----------|----------------------|------------------|------|
+| **Distortion** | ✅ 対応済み | ⏳ 未対応 | ディストーション |
+| **BitCrusher** | ✅ 対応済み | ⏳ 未対応 | ビットクラッシャー |
+| **Chebyshev** | ✅ 対応済み | ⏳ 未対応 | チェビシェフ歪み（倍音生成） |
+
+#### ピッチ系（Pitch）
+
+| エフェクト | tonejs-json-sequencer | 本ライブラリ(MML) | 用途 |
+|-----------|----------------------|------------------|------|
+| **PitchShift** | ✅ 対応済み | ⏳ 未対応 | ピッチシフト |
+| **FrequencyShifter** | ✅ 対応済み | ⏳ 未対応 | 周波数シフター |
+
+#### ステレオ処理（Stereo）
+
+| エフェクト | tonejs-json-sequencer | 本ライブラリ(MML) | 用途 |
+|-----------|----------------------|------------------|------|
+| **StereoWidener** | ✅ 対応済み | ⏳ 未対応 | ステレオワイドナー |
+
+### 奏法・パラメータ制御（Performance）
+
+| 機能 | tonejs-json-sequencer | 本ライブラリ(MML) | 用途 |
+|------|----------------------|------------------|------|
+| **ディレイビブラート** | ✅ 対応済み | ⏳ 未対応 | 遅延ビブラート効果 |
+| **depth.rampTo** | ✅ 対応済み | ⏳ 未対応 | パラメータの段階的変更 |
+| **Panpot変更** | 🚧 計画中 | ⏳ 未対応 | パン（定位）のリアルタイム変更 |
+| **Expression変更** | 🚧 計画中 | ⏳ 未対応 | 音量のリアルタイム変更 |
+| **LPF変更** | 🚧 計画中 | ⏳ 未対応 | ローパスフィルターのリアルタイム変更 |
+| **Portamento** | 🚧 計画中 | ⏳ 未対応 | ポルタメント効果 |
+
+### 音源タイプ（Source）- 今後対応予定
+
+| 音源 | tonejs-json-sequencer | 本ライブラリ(MML) | 用途 |
+|------|----------------------|------------------|------|
+| **FatOscillator** | 🚧 計画中 | ⏳ 未対応 | SuperSaw音色、分厚いパッド |
+| **PulseOscillator** | 🚧 計画中 | ⏳ 未対応 | パルス波（12.5%デューティパルスなど） |
+
+### ダイナミクス・フィルター（Dynamics/Filter）- 今後対応予定
+
+| 機能 | tonejs-json-sequencer | 本ライブラリ(MML) | 用途 |
+|------|----------------------|------------------|------|
+| **Compressor** | 🚧 計画中 | ⏳ 未対応 | コンプレッサー |
+| **EQ3** | 🚧 計画中 | ⏳ 未対応 | 3バンドイコライザー |
+
+## 実装の優先順位と計画
+
+### 高優先度（早期実装予定）
+
+1. **音色（Instrument）の拡張**
+   - 現在実装済み: `@` コマンドでTone.jsのクラス名を直接指定（`@Synth`, `@FMSynth`, `@AMSynth`など）
+   - 将来的な拡張案: 省略形や別名のサポート（例: `@fm` → `@FMSynth`）
+
+2. **基本エフェクト**
+   - リバーブ、コーラス、ディレイなどの基本エフェクト
+   - MMLコマンド案: `R` (Reverb), `C` (Chorus), `D` (Delay) など
+
+3. **パラメータ制御**
+   - 音量（Volume/Expression）: `v` コマンド
+   - パン（Panpot）: `p` コマンド
+   - フィルター制御: 新規コマンド検討
+
+### 中優先度
+
+1. **高度なエフェクト**
+   - Phaser, Tremolo, AutoFilter, AutoWah など
+   - ビブラート、ディレイビブラートなどの奏法表現
+
+2. **歪み系エフェクト**
+   - Distortion, BitCrusher, Chebyshev
+
+3. **ピッチ系エフェクト**
+   - PitchShift, FrequencyShifter
+
+### 低優先度（検討中）
+
+1. **高度な音源**
+   - FatOscillator, PulseOscillator などの特殊音源
+   - Sampler によるサンプルベース音源
+
+2. **ダイナミクス処理**
+   - Compressor, EQ などのマスタリング系
+
+3. **リアルタイムパラメータ変更**
+   - パラメータの段階的変更（rampTo）
+   - エンベロープ制御
+
+## 実装方針
+
+### 基本方針
+
+1. **既存MML構文との互換性維持**
+   - 既存の実装を壊さない
+   - 段階的な機能追加
+
+2. **シンプルさの重視**
+   - MMLの簡潔さを損なわない
+   - 学習コストを最小限に
+
+3. **Tone.jsの機能を最大限活用**
+   - tonejs-json-sequencer で実装済みの機能を活用
+   - JSON出力フォーマットの拡張で対応
+
+### 実装アプローチ
+
+1. **段階的実装**
+   - 高優先度の機能から順次実装
+   - 各機能のプロトタイプを作成してフィードバック収集
+
+2. **テスト駆動開発**
+   - 各機能に対するテストケースを作成
+   - 既存機能の退行テストも実施
+
+3. **ドキュメント更新**
+   - 実装完了時にREADMEとサンプルコードを更新
+   - 使用例を充実させる
+
+## 参考資料
+
+- [tonejs-json-sequencer リポジトリ](https://github.com/cat2151/tonejs-json-sequencer)
+- [tonejs-json-sequencer README](https://github.com/cat2151/tonejs-json-sequencer/blob/main/README.ja.md)
+- [Tone.js コンポーネント JSON対応ロードマップ](https://github.com/cat2151/tonejs-json-sequencer/blob/main/docs/tonejs-components-roadmap.ja.md)
+- [Tone.js 公式ドキュメント](https://tonejs.github.io/)
+
+## 更新履歴
+
+- 2026-01-12: tonejs-json-sequencer の調査結果を初版作成
 
 # notes
 - MML（Music Macro Language）で音楽を書くメリットは？
@@ -183,7 +549,6 @@ console.log(json);
   "devDependencies": {
     "@types/node": "^25.0.3",
     "http-server": "^14.1.1",
-    "peggy": "^5.0.5",
     "tonejs-json-sequencer": "github:cat2151/tonejs-json-sequencer",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
@@ -198,16 +563,12 @@ console.log(json);
       📊 my.json
 📄 .gitignore
 📄 .nojekyll
-📖 CONSOLIDATION.md
-📖 IMPLEMENTATION_ISSUE_24.md
 📖 IMPLEMENTATION_SUMMARY.md
 📖 LIBRARY_USAGE.md
 📄 LICENSE
-📖 MULTI_TRACK_INVESTIGATION.md
 📖 QUICKSTART.md
 📖 README.ja.md
 📖 README.md
-📖 TYPESCRIPT_MIGRATION.md
 📄 _config.yml
 📁 dev-setup/
   📖 README.md
@@ -252,38 +613,10 @@ console.log(json);
 🌐 googled947dc864c270e07.html
 🌐 index.html
 📁 issue-notes/
-  📖 1.md
-  📖 10.md
-  📖 11.md
-  📖 12.md
-  📖 13.md
-  📖 14.md
-  📖 15.md
-  📖 16.md
-  📖 17.md
-  📖 18.md
-  📖 2.md
-  📖 20.md
-  📖 21.md
-  📖 23.md
-  📖 24.md
-  📖 26.md
-  📖 27.md
-  📖 28.md
-  📖 3.md
-  📖 31.md
-  📖 33.md
-  📖 37.md
-  📖 39.md
-  📖 4.md
-  📖 40.md
-  📖 41.md
-  📖 45.md
-  📖 5.md
-  📖 6.md
-  📖 7.md
-  📖 8.md
-  📖 9.md
+  📖 61.md
+  📖 63.md
+  📖 65.md
+  📖 67.md
 🌐 library-usage-example.html
 📊 package-lock.json
 📊 package.json
@@ -300,26 +633,26 @@ console.log(json);
   📄 Cargo.toml
   📖 IMPLEMENTATION.md
   📖 README.md
+  📄 build.rs
   📁 examples/
     📄 basic_usage.rs
   📁 src/
     📄 ast.rs
     📄 ast2json.rs
+    📄 cst_to_ast.rs
     📄 lib.rs
     📄 mml2ast.rs
+    📄 mml2ast_manual.rs
 📁 scripts/
   📜 copy-libs.js
 📁 src/
   📘 ast2json.ts
   📘 demos.ts
-  📜 grammar.js
-  📝 grammar.pegjs
   🌐 index.html
   📘 index.ts
   📘 main.ts
   📘 mml2ast.ts
   📘 mml2json-wasm.ts
-  📜 mml2json.js
   📘 play.ts
 📁 test/
   📜 ast2json.test.js
@@ -327,7 +660,6 @@ console.log(json);
   📜 integration.test.js
   📜 library-entry.test.js
   📜 mml2ast.test.js
-  📜 parser.test.js
   📜 setup.js
   📄 wasm-init-test.mjs
   📄 wasm-integration-test.mjs
@@ -352,7 +684,7 @@ console.log(json);
   - 関数: なし
   - インポート: なし
 
-**dist/demos.js** (22行, 570バイト)
+**dist/demos.js** (76行, 2338バイト)
   - 関数: なし
   - インポート: なし
 
@@ -376,7 +708,7 @@ console.log(json);
   - 関数: initializeDemoDropdown, if
   - インポート: ./play.js, ./demos.js
 
-**dist/mml2ast.d.ts** (60行, 1738バイト)
+**dist/mml2ast.d.ts** (71行, 1966バイト)
   - 関数: mml2ast
   - インポート: なし
 
@@ -428,15 +760,15 @@ console.log(json);
   - 関数: なし
   - インポート: なし
 
-**pkg/tonejs_mml_to_json.d.ts** (54行, 1929バイト)
-  - 関数: ast2json_wasm, mml2ast_wasm, mml_to_json_wasm, initSync, __wbg_init
+**pkg/tonejs_mml_to_json.d.ts** (57行, 2229バイト)
+  - 関数: ast2json_wasm, cst_to_ast_wasm, cst_to_json_wasm, initSync, __wbg_init
   - インポート: なし
 
-**pkg/tonejs_mml_to_json.js** (248行, 7611バイト)
-  - 関数: getStringFromWasm0, getUint8ArrayMemory0, passStringToWasm0, decodeText, ast2json_wasm, mml2ast_wasm, mml_to_json_wasm, __wbg_load, __wbg_get_imports, __wbg_finalize_init, initSync, __wbg_init, if, for, function, catch
+**pkg/tonejs_mml_to_json.js** (251行, 7931バイト)
+  - 関数: getStringFromWasm0, getUint8ArrayMemory0, passStringToWasm0, decodeText, ast2json_wasm, cst_to_ast_wasm, cst_to_json_wasm, __wbg_load, __wbg_get_imports, __wbg_finalize_init, initSync, __wbg_init, if, for, function, catch
   - インポート: なし
 
-**pkg/tonejs_mml_to_json_bg.wasm.d.ts** (12行, 627バイト)
+**pkg/tonejs_mml_to_json_bg.wasm.d.ts** (12行, 630バイト)
   - 関数: なし
   - インポート: なし
 
@@ -448,16 +780,8 @@ console.log(json);
   - 関数: ast2json, if
   - インポート: ../pkg/tonejs_mml_to_json.js, ./mml2ast
 
-**src/demos.ts** (30行, 601バイト)
+**src/demos.ts** (84行, 2189バイト)
   - 関数: なし
-  - インポート: なし
-
-**src/grammar.js** (414行, 10439バイト)
-  - 関数: hex, unicodeEscape, literalEscape, classEscape, describeExpectation, describeExpected, describeFound, peg$parse, peg$f0, text, offset, range, location, expected, error, peg$getUnicode, peg$literalExpectation, peg$classExpectation, peg$anyExpectation, peg$endExpectation, peg$otherExpectation, peg$computePosDetails, peg$computeLocation, peg$fail, peg$buildSimpleError, peg$buildStructuredError, peg$parsestart, peg$parsenote, peg$throw, constructor, format, if, buildMessage, literal, class, any, end, other, for, switch, while
-  - インポート: なし
-
-**src/grammar.pegjs** (8行, 108バイト)
-  - 関数: start, note
   - インポート: なし
 
 **src/index.html** (25行, 735バイト)
@@ -472,7 +796,7 @@ console.log(json);
   - 関数: initializeDemoDropdown, if
   - インポート: ./play.js, ./demos.js
 
-**src/mml2ast.ts** (89行, 2016バイト)
+**src/mml2ast.ts** (103行, 2234バイト)
   - 関数: mml2ast, if
   - インポート: ../pkg/tonejs_mml_to_json.js
 
@@ -480,19 +804,15 @@ console.log(json);
   - 関数: initWasm, if
   - インポート: ../pkg/tonejs_mml_to_json.js
 
-**src/mml2json.js** (157行, 4296バイト)
-  - 関数: mml2json, compileMmlToCommands, getMmlCommands, calcAttackToReleaseTicks, repeat, toInt, calcDuration, calcStartTick, increaseStartTick, calcLtick, getNodeId, if, sort, function, switch, for
-  - インポート: なし
-
 **src/play.ts** (58行, 1830バイト)
   - 関数: toSequenceEvent, play, if, catch
   - インポート: ./ast2json, tonejs-json-sequencer
 
-**test/ast2json.test.js** (414行, 15527バイト)
+**test/ast2json.test.js** (710行, 25309バイト)
   - 関数: なし
   - インポート: vitest, ../src/ast2json
 
-**test/integration.test.js** (347行, 12418バイト)
+**test/integration.test.js** (460行, 16437バイト)
   - 関数: for, if
   - インポート: vitest, ../src/mml2ast, ../src/ast2json
 
@@ -500,13 +820,9 @@ console.log(json);
   - 関数: なし
   - インポート: vitest, ../src/index.js
 
-**test/mml2ast.test.js** (315行, 10172バイト)
+**test/mml2ast.test.js** (432行, 15334バイト)
   - 関数: なし
   - インポート: vitest, ../src/mml2ast
-
-**test/parser.test.js** (11行, 275バイト)
-  - 関数: なし
-  - インポート: vitest, ../src/grammar.js
 
 **test/setup.js** (18行, 551バイト)
   - 関数: なし
@@ -544,8 +860,8 @@ console.log(json);
       - ready ()
       - addListener ()
     - ast2json_wasm ()
-      - mml2ast_wasm ()
-      - mml_to_json_wasm ()
+      - cst_to_ast_wasm ()
+      - cst_to_json_wasm ()
       - initSync ()
       - __wbg_init (pkg/tonejs_mml_to_json.d.ts)
       - getStringFromWasm0 (pkg/tonejs_mml_to_json.js)
@@ -555,72 +871,25 @@ console.log(json);
       - __wbg_load ()
       - __wbg_get_imports ()
       - __wbg_finalize_init ()
-      - start ()
     - initWasm (dist/index.d.ts)
       - mml2json ()
       - mml2ast ()
       - catch (dev-setup/setup.js)
-      - error ()
   - initializeDemoDropdown (dist/main.js)
     - play ()
       - playSequence ()
       - toSequenceEvent (dist/play.js)
-  - compileMmlToCommands ()
-    - getMmlCommands ()
-      - calcAttackToReleaseTicks ()
-      - repeat ()
-      - toInt ()
-      - calcDuration ()
-      - calcStartTick ()
-      - increaseStartTick ()
-      - calcLtick ()
-      - getNodeId ()
-      - sort ()
 - switch (generated-docs/callgraph.js)
 - for (generated-docs/callgraph.js)
-- hex (src/grammar.js)
-  - unicodeEscape ()
-  - literalEscape ()
-  - classEscape ()
-  - describeExpectation ()
-  - describeExpected ()
-  - describeFound ()
-  - peg$parse ()
-  - peg$f0 ()
-  - text ()
-  - offset ()
-  - range ()
-  - location ()
-  - expected ()
-  - peg$getUnicode ()
-  - peg$literalExpectation ()
-  - peg$classExpectation ()
-  - peg$anyExpectation ()
-  - peg$endExpectation ()
-  - peg$otherExpectation ()
-  - peg$computePosDetails ()
-  - peg$computeLocation ()
-  - peg$fail ()
-  - peg$buildSimpleError ()
-  - peg$buildStructuredError ()
-  - peg$parsestart ()
-  - peg$parsenote ()
-  - peg$throw ()
-  - constructor (undefined)
-- note (src/grammar.pegjs)
 
 
 ## プロジェクト構造（ファイル一覧）
 .github_automation/callgraph/config/my.json
-CONSOLIDATION.md
-IMPLEMENTATION_ISSUE_24.md
 IMPLEMENTATION_SUMMARY.md
 LIBRARY_USAGE.md
-MULTI_TRACK_INVESTIGATION.md
 QUICKSTART.md
 README.ja.md
 README.md
-TYPESCRIPT_MIGRATION.md
 dev-setup/README.md
 dev-setup/setup.js
 dist/ast2json.d.ts
@@ -641,7 +910,11 @@ dist/play.js
 generated-docs/callgraph-enhanced.html
 generated-docs/callgraph.html
 generated-docs/callgraph.js
+generated-docs/style.css
 googled947dc864c270e07.html
+index.html
+issue-notes/61.md
+library-usage-example.html
 
 上記の情報を基に、プロンプトで指定された形式でプロジェクト概要を生成してください。
 特に以下の点を重視してください：
@@ -653,4 +926,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-01-11 07:05:09 JST
+Generated at: 2026-01-13 07:05:23 JST
