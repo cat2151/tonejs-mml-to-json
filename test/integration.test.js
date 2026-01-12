@@ -359,7 +359,7 @@ describe('Integration: mml2ast + ast2json', () => {
       // Chord event
       const chordEvent = json[2];
       expect(chordEvent.eventType).toBe('triggerAttackRelease');
-      const notes = JSON.parse(chordEvent.args[0]);
+      const notes = chordEvent.args[0];
       expect(notes).toEqual(['c4', 'e4', 'g4']);
     });
 
@@ -390,9 +390,9 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(events[4].args[0]).toBe('e4');
       
       // Chords
-      let notes = JSON.parse(events[1].args[0]);
+      let notes = events[1].args[0];
       expect(notes).toEqual(['e4', 'g4']);
-      notes = JSON.parse(events[3].args[0]);
+      notes = events[3].args[0];
       expect(notes).toEqual(['f4', 'a4', 'c4']);
     });
 
@@ -405,11 +405,11 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(events).toHaveLength(2);
       
       // First chord in octave 4
-      let notes = JSON.parse(events[0].args[0]);
+      let notes = events[0].args[0];
       expect(notes).toEqual(['c4', 'e4', 'g4']);
       
       // Second chord in octave 5
-      notes = JSON.parse(events[1].args[0]);
+      notes = events[1].args[0];
       expect(notes).toEqual(['c5', 'e5', 'g5']);
     });
 
@@ -442,17 +442,17 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(events).toHaveLength(3);
       
       // First chord: C# E Gb, eighth note (8 inside quotes)
-      let notes = JSON.parse(events[0].args[0]);
+      let notes = events[0].args[0];
       expect(notes).toEqual(['c#4', 'e4', 'gb4']);
       expect(events[0].args[1]).toBe('86i'); // 96 - 10
       
       // Second chord: D# F# A, quarter note (from default l4)
-      notes = JSON.parse(events[1].args[0]);
+      notes = events[1].args[0];
       expect(notes).toEqual(['d#4', 'f#4', 'a4']);
       expect(events[1].args[1]).toBe('182i'); // 192 - 10
       
       // Third chord: E G# B, quarter note
-      notes = JSON.parse(events[2].args[0]);
+      notes = events[2].args[0];
       expect(notes).toEqual(['e4', 'g#4', 'b4']);
     });
   });

@@ -206,6 +206,33 @@ describe('mml2ast', () => {
         { type: 'instrument', value: null, length: 1 }
       ]);
     });
+
+    it('should parse @Sampler with JSON args', () => {
+      const result = mml2ast('@Sampler{"urls":{"C4":"test.mp3"},"release":1}');
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('instrument');
+      expect(result[0].value).toBe('Sampler');
+      expect(result[0].args).toBeDefined();
+      expect(result[0].args).toContain('urls');
+      expect(result[0].args).toContain('C4');
+      expect(result[0].args).toContain('test.mp3');
+    });
+
+    it('should parse @Sampler with nested JSON', () => {
+      const result = mml2ast('@Sampler{"urls":{"C4":"a.mp3","D4":"b.mp3"}}');
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('instrument');
+      expect(result[0].value).toBe('Sampler');
+      expect(result[0].args).toBeDefined();
+    });
+
+    it('should parse regular @Synth without args', () => {
+      const result = mml2ast('@Synth');
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('instrument');
+      expect(result[0].value).toBe('Synth');
+      expect(result[0].args).toBeUndefined();
+    });
   });
 
   describe('Complex MML sequences', () => {
