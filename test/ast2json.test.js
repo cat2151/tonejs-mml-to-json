@@ -368,7 +368,7 @@ describe('ast2json', () => {
       });
       
       // Second instrument change should also create PolySynth (not MonoSynth)
-      // Index: 0=createNode, 1=connect, 2=createNode(@1), 3=connect, 4=chord, 5=createNode(@3), 6=connect, 7=chord
+      // Result structure: [0]=createNode(PolySynth), [1]=connect, [2]=createNode(@1), [3]=connect, [4]=chord, [5]=createNode(@3), [6]=connect, [7]=chord
       expect(result[5].eventType).toBe("createNode");
       expect(result[5].nodeType).toBe("PolySynth");
     });
