@@ -131,17 +131,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 let ticks = calc_ticks(note.duration, note.dots, default_length, meas_tick);
                 
                 // Convert accidental to sharp/flat notation
-                let accidental = if !note.accidental.is_empty() {
-                    if note.accidental.starts_with('+') {
-                        "#".repeat(note.accidental.len())
-                    } else if note.accidental.starts_with('-') {
-                        "b".repeat(note.accidental.len())
-                    } else {
-                        String::new()
-                    }
-                } else {
-                    String::new()
-                };
+                let accidental = convert_accidental(&note.accidental);
 
                 let note_name = format!("{}{}{}", note.note, accidental, octave);
                 let duration = calc_duration(ticks);
@@ -165,17 +155,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 let mut note_names = Vec::new();
                 for chord_note in &chord.notes {
                     // Convert accidental to sharp/flat notation
-                    let accidental = if !chord_note.accidental.is_empty() {
-                        if chord_note.accidental.starts_with('+') {
-                            "#".repeat(chord_note.accidental.len())
-                        } else if chord_note.accidental.starts_with('-') {
-                            "b".repeat(chord_note.accidental.len())
-                        } else {
-                            String::new()
-                        }
-                    } else {
-                        String::new()
-                    };
+                    let accidental = convert_accidental(&chord_note.accidental);
                     
                     let note_name = format!("{}{}{}", chord_note.note, accidental, octave);
                     note_names.push(note_name);
@@ -316,6 +296,19 @@ fn calc_duration(ticks: u32) -> String {
 
 fn calc_start_tick(start_tick: u32) -> String {
     format!("+{}i", start_tick)
+}
+
+/// Convert accidental notation from +/- to sharp/flat
+fn convert_accidental(accidental: &str) -> String {
+    if accidental.is_empty() {
+        String::new()
+    } else if accidental.starts_with('+') {
+        "#".repeat(accidental.len())
+    } else if accidental.starts_with('-') {
+        "b".repeat(accidental.len())
+    } else {
+        String::new()
+    }
 }
 
 #[cfg(test)]

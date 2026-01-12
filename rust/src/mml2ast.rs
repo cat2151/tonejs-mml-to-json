@@ -277,7 +277,14 @@ fn parse_chord(chars: &[char], start_index: usize) -> Result<(ChordToken, usize)
             
             notes.push(ChordNote { note, accidental });
         } else {
-            // Skip non-note characters within the chord (whitespace, etc.)
+            // Skip non-note characters within the chord, but warn on unexpected ones
+            if !ch.is_whitespace() {
+                eprintln!(
+                    "mml2ast: Unexpected character '{}' in chord at position {}. This character will be ignored.",
+                    ch,
+                    index
+                );
+            }
             index += 1;
         }
     }
@@ -285,6 +292,11 @@ fn parse_chord(chars: &[char], start_index: usize) -> Result<(ChordToken, usize)
     // Check if we found a closing quote
     if index >= chars.len() || chars[index] != '\'' {
         return Err(format!("Unclosed chord at position {}: missing closing single quote", start_index));
+    }
+    
+    // Validate that the chord is not empty
+    if notes.is_empty() {
+        return Err(format!("Empty chord at position {}: chord must contain at least one note", start_index));
     }
     
     index += 1; // Skip closing single quote
@@ -472,6 +484,58 @@ mod tests {
             AstToken::Chord(c) => {
                 assert_eq!(c.duration, Some(4));
                 assert_eq!(c.dots, 2);
+            }
+            _ => panic!("Expected Chord token"),
+        }
+    }
+
+    #[test]
+    fn test_parse_single_note_chord() {
+        let result = mml2ast("'c'").unwrap();
+        assert_eq!(result.len(), 1);
+        match &result[0] {
+            AstToken::Chord(c) => {
+                assert_eq!(c.notes.len(), 1);
+                assert_eq!(c.notes[0].note, 'c');
+                assert_eq!(c.notes[0].accidental, "");
+            }
+            _ => panic!("Expected Chord token"),
+        }
+    }
+
+    #[test]
+    fn test_parse_chord_with_whitespace() {
+        let result = mml2ast("'c e g'").unwrap();
+        assert_eq!(result.len(), 1);
+        match &result[0] {
+            AstToken::Chord(c) => {
+                assert_eq!(c.notes.len(), 3);
+                assert_eq!(c.notes[0].note, 'c');
+                assert_eq!(c.notes[1].note, 'e');
+                assert_eq!(c.notes[2].note, 'g');
+            }
+            _ => panic!("Expected Chord token"),
+        }
+    }
+
+    #[test]
+    fn test_parse_empty_chord_returns_error() {
+        let result = mml2ast("''");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Empty chord"));
+    }
+
+    #[test]
+    fn test_parse_chord_with_invalid_characters() {
+        // Invalid characters should be ignored (with warnings)
+        let result = mml2ast("'c1e2g'").unwrap();
+        assert_eq!(result.len(), 1);
+        match &result[0] {
+            AstToken::Chord(c) => {
+                assert_eq!(c.notes.len(), 3);
+                assert_eq!(c.notes[0].note, 'c');
+                assert_eq!(c.notes[1].note, 'e');
+                assert_eq!(c.notes[2].note, 'g');
             }
             _ => panic!("Expected Chord token"),
         }

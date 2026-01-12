@@ -363,5 +363,38 @@ describe('mml2ast', () => {
       expect(result[0].notes[0]).toEqual({ note: 'c', accidental: '++' });
       expect(result[0].notes[1]).toEqual({ note: 'e', accidental: '--' });
     });
+
+    it('should handle single-note chord', () => {
+      const result = mml2ast("'c'");
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('chord');
+      expect(result[0].notes).toHaveLength(1);
+      expect(result[0].notes[0]).toEqual({ note: 'c', accidental: '' });
+    });
+
+    it('should handle chord with whitespace', () => {
+      const result = mml2ast("'c e g'");
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('chord');
+      expect(result[0].notes).toHaveLength(3);
+      expect(result[0].notes[0]).toEqual({ note: 'c', accidental: '' });
+      expect(result[0].notes[1]).toEqual({ note: 'e', accidental: '' });
+      expect(result[0].notes[2]).toEqual({ note: 'g', accidental: '' });
+    });
+
+    it('should reject empty chord', () => {
+      expect(() => mml2ast("''")).toThrow(/Empty chord.*must contain at least one note/);
+    });
+
+    it('should ignore invalid characters within chord', () => {
+      // This test verifies that invalid characters are skipped (with warnings)
+      const result = mml2ast("'c1e2g'");
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('chord');
+      expect(result[0].notes).toHaveLength(3);
+      expect(result[0].notes[0]).toEqual({ note: 'c', accidental: '' });
+      expect(result[0].notes[1]).toEqual({ note: 'e', accidental: '' });
+      expect(result[0].notes[2]).toEqual({ note: 'g', accidental: '' });
+    });
   });
 });
