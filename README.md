@@ -20,9 +20,13 @@
 
 # Overview
 - Converts music written in MML (Music Macro Language) into a JSON format playable in a browser.
-- Create music with simple text and play it on a website.
-- Available as an npm package and via CDN, making integration into projects easy.
-- This tool specializes in the music conversion part, with actual playback handled by a separate project (`tonejs-json-sequencer`).
+- Allows you to create music with simple text and play it on a website.
+- Available via npm package and CDN for easy integration into your projects.
+- A specialized tool for music conversion; actual playback is handled by a separate project (`tonejs-json-sequencer`).
+
+# Status
+- This document still includes AI-generated content, so it might contain inaccuracies regarding future implementation plans.
+- Will be revised in the future.
 
 # Usage
 
@@ -35,7 +39,7 @@ npm install tonejs-mml-to-json
 ```javascript
 import { initWasm, mml2json } from 'tonejs-mml-to-json';
 
-// Initialize the WASM module
+// Initialize WASM module
 await initWasm();
 
 // Convert MML to JSON
@@ -64,33 +68,33 @@ For detailed usage, please refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 
 ### Notes and Rests
 | Command | Description | Example |
-|---------|-------------|---------|
+|---------|------|-----|
 | `c d e f g a b` | Notes (C, D, E, F, G, A, B) | `cdefgab` |
-| `+` `-` | Accidentals (Sharp/Flat)<br>※Placed immediately after the note (cannot be placed before the note) | `c+` `e-` `c++` `e--` |
-| `Number` | Note duration (4=quarter note, 8=eighth note, 16=sixteenth note)<br>Placed immediately after a note or rest | `c4` `e8` `c16` |
-| `.` | Dot (multiplies note duration by 1.5)<br>Can be specified consecutively (`..`=1.75x) | `c4.` `e8..` |
-| `r` | Rest<br>Duration and dots can be specified similar to notes | `r` `r4` `r8.` |
+| `+` `-` | Accidentals (sharp/flat)<br>※Must be placed immediately after the note (cannot precede the note) | `c+` `e-` `c++` `e--` |
+| `数字` | Note length (4=quarter note, 8=eighth note, 16=sixteenth note)<br>Must be placed immediately after the note or rest | `c4` `e8` `c16` |
+| `.` | Dot (increases note length by 1.5 times)<br>Can be specified consecutively (``..``=1.75 times) | `c4.` `e8..` |
+| `r` | Rest<br>Can specify length and dot like notes | `r` `r4` `r8.` |
 
 ### Octave Control
 | Command | Description | Example |
-|---------|-------------|---------|
-| `oNumber` | Specify octave (default: `o4`) | `o4` `o5` `o3` |
-| `<` | Raise octave by one | `<` |
-| `>` | Lower octave by one | `>` |
+|---------|------|-----|
+| `o数字` | Specifies octave (default: `o4`) | `o4` `o5` `o3` |
+| `<` | Raises octave by one | `<` |
+| `>` | Lowers octave by one | `>` |
 
 ### Default Settings
 | Command | Description | Example |
-|---------|-------------|---------|
-| `lNumber` | Set default note duration<br>(Applied to subsequent notes without explicit duration) | `l8` `l16` `l4` |
+|---------|------|-----|
+| `l数字` | Sets default note length<br>(Applies to subsequent notes if no length is specified) | `l8` `l16` `l4` |
 
 ### Timbre Control
 | Command | Description | Example |
-|---------|-------------|---------|
-| `@Number` | Change timbre (synthesizer)<br>Currently creates a new Synth node<br>(See "About Timbre Specification" below for details) | `@0` `@1` `@2` |
+|---------|------|-----|
+| `@数字` | Changes timbre (synthesizer)<br>Currently creates a new Synth node<br>(See "About Timbre Specification" below for details) | `@0` `@1` `@2` |
 
 ### Multitrack
 | Command | Description | Example |
-|---------|-------------|---------|
+|---------|------|-----|
 | `;` | Track separator<br>Plays multiple parts simultaneously | `cde;efg;abc` |
 
 ### Usage Examples
@@ -107,113 +111,113 @@ o4 l8 c4. d e8. f16 g4
 // Octave change
 o4 c d e < f g a > b < c
 
-// Multitrack (chords)
+// Multitrack (chord)
 o4 l8 ceg;dfb;ace
 
 // Timbre change
 @0 cde @1 efg @2 abc
 ```
 
-## Unimplemented Commands (Planned for Future Implementation)
+## Unimplemented Commands (Planned for Future)
 
 The following commands are commonly used in standard MML but are not yet implemented in this library. They may be implemented in future versions.
 
 | Command | Description | Standard Example |
-|---------|-------------|------------------|
+|---------|------|-----------|
 | `t` `T` | Tempo setting (BPM) | `t120` `T140` |
 | `v` `V` | Volume setting (0-127) | `v100` `V80` |
 | `&` `^` | Tie (connects notes of the same pitch) | `c4&c4` `c4^c4` |
-| `q` `Q` | Gate time (note duration ratio, staccato control) | `q60` `Q80` |
-| `p` `P` | Pan (spatial position) setting | `p64` `P0` |
-| `u` `U` | Velocity (attack strength) | `u120` |
-| `[` `]` | Loop (repeat) | `[cde]4` |
+| `q` `Q` | Gate time (ratio of note length, staccato control) | `q60` `Q80` |
+| `p` `P` | Pan (stereo position) setting | `p64` `P0` |
+| `u` `U` | Velocity (attack intensity) | `u120` |
+| `[` `]` | Loop (repetition) | `[cde]4` |
 
-**⚠️ Important Note**: 
-- The implementation timeline and specifications for these commands are undecided.
-- Specifications may change if they are implemented.
+**⚠️ Important Notes**: 
+- The implementation timing and specifications of these commands are undecided.
+- If implemented, specifications may change.
 - Breaking changes may occur frequently during the prototyping phase.
 
-## About Timbre Specification (`@` Command)
+## About Timbre Specification (``@`` Command)
 
-The current `@` command implements basic timbre switching, but it is planned to support a variety of Tone.js synthesizer types in the future.
+The current `@` command implements basic timbre switching, but it is planned to support various Tone.js synthesizer types in the future.
 
 ### Candidate Tone.js Synthesizer Types
 
 Below are potential Tone.js synthesizer types that could be specified with the `@` command in the future:
 
-| Type | Characteristics | Suitable Timbres |
-|--------|-----------------------------|---------------------------|
-| `Synth` | Basic subtractive synthesis<br>Single oscillator + envelope | Leads, pads, basic sounds |
-| `AMSynth` | Amplitude modulation synthesis<br>Modulates amplitude with two oscillators | Bells, metallic sounds, tremolo effects |
-| `FMSynth` | Frequency modulation synthesis<br>Modulates frequency with two oscillators | Electric pianos, bells, metallic sounds |
-| `MonoSynth` | Monophonic subtractive synthesis<br>With filter envelope | Basses, mono leads, analog synth-like |
+| Type | Characteristics | Suitable Timbre |
+|--------|------|-----------|
+| `Synth` | Basic subtractive synthesis<br>Single oscillator + envelope | Lead, pad, basic timbres |
+| `AMSynth` | Amplitude modulation synthesis<br>2 oscillators modulate amplitude | Bell, metallic sounds, tremolo effects |
+| `FMSynth` | Frequency modulation synthesis<br>2 oscillators modulate frequency | Electric piano, bell, metallic sounds |
+| `MonoSynth` | Monophonic subtractive synthesis<br>With filter envelope | Bass, mono lead, analog synth-like |
 | `DuoSynth` | Dual-voice polyphonic<br>Combines two MonoSynths | Rich textures, chorus effects, complex timbres |
-| `PluckSynth` | Karplus-Strong algorithm<br>Plucked string instrument simulation | Guitars, harps, kotos, plucked instruments |
+| `PluckSynth` | Karplus-Strong algorithm<br>Plucked string instrument simulation | Guitar, harp, koto, plucked strings |
 | `MembraneSynth` | Membrane vibration simulation | Drums, percussion |
 | `MetalSynth` | Metallic sound simulation | Cymbals, metallic percussion |
 
 ### Current Implementation Status
 
 - **Currently**: The `@` command creates a new `Synth` node.
-- **Future**: Considering mappings like `@0`=Synth, `@1`=AMSynth, `@2`=FMSynth.
+- **Future**: Considering support like `@0`=Synth, `@1`=AMSynth, `@2`=FMSynth.
 
-### Regarding Potential Specification Changes
+### About Potential Specification Changes
 
 ⚠️ **Important**: The timbre specification feature is currently in the prototyping phase.
 
-- This is a provisional specification for validating Tone.js's default timbre representations.
-- It is implemented to allow easy verification of each variation.
+- This is a temporary specification for validating Tone.js's default timbre representation.
+- Implemented to allow easy verification of various variations.
 - Specifications are subject to frequent breaking changes.
-- If used in a production environment, it is recommended to pin the version.
-- If you have any feedback or requests, please share them via GitHub Issues.
+- If using in a production environment, it is recommended to pin the version.
+- If you have feedback or requests, please share them via GitHub Issues.
 
-# notes
-- What are the advantages of writing music with MML (Music Macro Language)?
+# Notes
+- What are the benefits of writing music with MML (Music Macro Language)?
   - **Conciseness and Portability**: Text-based and lightweight, platform-independent for the web.
-  - **Programmer-Friendliness**: Code-like notation, easy Git management, easy generation.
-  - **Web Development Affinity**: Direct playback in browsers, real-time editing, lightweight distribution.
-  - **Low Learning Curve**: Simple grammar, enables gradual learning.
-  - **Modular Design**: Conversion and playback are separated, allowing independent evolution of each.
-  - **Fosters an Ecosystem**: High reusability, easy to share and accumulate knowledge.
-  - **Adaptability to Dialects**: It is assumed that system-specific MML dialects can also be easily handled by creating simple converters with PEG.
+  - **Developer-Friendly**: Code-like notation, easy Git management and generation.
+  - **Web Development Affinity**: Direct playback in browsers, real-time editing, lightweight delivery.
+  - **Low Learning Curve**: Simple grammar, gradual learning possible.
+  - **Modular Design**: Conversion and playback are separated, allowing independent evolution.
+  - **Fosters an Ecosystem**: High reusability, easy sharing and accumulation of knowledge.
+  - **Adaptability to Dialects**: Assumed to easily support system-specific MML dialects by enabling straightforward PEG-based conversion by individual developers.
 
 - Why are `tonejs-json-sequencer` and `tonejs-mml-to-json` separate projects?
-  - **Because we prioritize development independence and speed.**
-    - Allows focused development on the MML parser.
-    - Enables rapid evolution without being constrained by dependencies between parser and playback features.
+  - **Due to an emphasis on independent development and speed:**
+    - Can focus on MML parser development.
+    - Can evolve quickly without being constrained by the dependencies between parser and playback functionalities.
   - For more details, please also refer to [tonejs-json-sequencer](https://github.com/cat2151/tonejs-json-sequencer).
 
-# Notes Under Consideration
+# Notes on Consideration
 ## About Rust Implementation
-- **Added Rust + WASM implementation.**
+- **Added Rust + WASM implementation**
   - Available as a Rust library crate.
-  - Works in browsers via WASM compilation.
+  - Operates in browsers via WASM compilation.
   - 100% compatible with JavaScript implementation.
   - See [rust/README.md](rust/README.md) for details.
 
 ## Architecture
-- **mml2ast**: Parser to convert MML string to AST.
-- **ast**: AST (Abstract Syntax Tree) data structure.
+- **mml2ast**: A parser that converts MML strings into an AST.
+- **ast**: Data structure for AST (Abstract Syntax Tree).
 - **ast2json**: Converts AST to Tone.js compatible JSON.
 
 ## Input/Output Definition
-- ※ Visualize the image with examples.
+- *Illustrative examples to visualize the concept.
 - Input example
   - `o4 l16 e`
-- Example of intermediate format
-  - ※ Design as loosely coupled, thin layers to facilitate changes to each.
-  - json (AST)
-  - json (pre-processing)
+- Intermediate format example
+  - *As a loosely coupled thin layer, allowing easy modification of each part.
+  - JSON (AST)
+  - JSON (pre-processing)
     - What is "processing"?
       - Node ID assignment, etc.
 - Output example
-  - json (post-processing)
-    - Format recognized by tonejs-json-sequencer.
-    - Details omitted; TDD test cases will serve as the detailed specification.
-## TDD Approach
-- Test targets are mml2ast, ast2ast, and ast2json, respectively.
-  - Refer to TDD for mml2abc / chord2mml.
-- I recall using Vitest for TDD in this project.
-  - I plan to organize the testing procedure later.
+  - JSON (post-processing)
+    - Format recognized by tonejs-json-sequencer
+    - Details omitted, with TDD test cases serving as the detailed specification.
+## TDD Policy
+- The test targets are mml2ast, ast2ast, and ast2json, individually.
+  - Refer to the TDD for mml2abc / chord2mml.
+- I recall doing TDD with vitest in this project.
+- I plan to organize the test procedures later.
 
-※ This `README.md` is automatically generated from `README.ja.md` via Gemini translation using GitHub Actions.
+※README.md is automatically generated from README.ja.md using Gemini translation via GitHub Actions.
