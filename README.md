@@ -19,14 +19,14 @@
 | 📊 Development Status | [generated-docs/development-status.md](generated-docs/development-status.md) |
 
 # Overview
-- Converts music written in MML (Music Macro Language) into a JSON format playable in a browser.
+- Converts music written in MML (Music Macro Language) into a JSON format that can be played in a browser.
 - Allows you to create music with simple text and play it on a website.
-- Available via npm package and CDN for easy integration into your projects.
-- A specialized tool for music conversion; actual playback is handled by a separate project (`tonejs-json-sequencer`).
+- Available as an npm package and via CDN for easy integration into your projects.
+- This tool specializes in music conversion; actual playback is handled by a separate project (`tonejs-json-sequencer`).
 
 # Status
-- This document still includes AI-generated content, so it might contain inaccuracies regarding future implementation plans.
-- Will be revised in the future.
+- This document still includes AI-generated content, so it may contain inaccuracies regarding future implementation plans.
+- It will be revised in the future.
 
 # Usage
 
@@ -60,7 +60,7 @@ console.log(json);
 </script>
 ```
 
-For detailed usage, please refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
+For detailed usage, refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 
 # MML Command Reference
 
@@ -69,30 +69,30 @@ For detailed usage, please refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 ### Notes and Rests
 | Command | Description | Example |
 |---------|------|-----|
-| `c d e f g a b` | Notes (C, D, E, F, G, A, B) | `cdefgab` |
-| `+` `-` | Accidentals (sharp/flat)<br>※Must be placed immediately after the note (cannot precede the note) | `c+` `e-` `c++` `e--` |
-| `数字` | Note length (4=quarter note, 8=eighth note, 16=sixteenth note)<br>Must be placed immediately after the note or rest | `c4` `e8` `c16` |
-| `.` | Dot (increases note length by 1.5 times)<br>Can be specified consecutively (``..``=1.75 times) | `c4.` `e8..` |
-| `r` | Rest<br>Can specify length and dot like notes | `r` `r4` `r8.` |
+| `c d e f g a b` | Notes (C D E F G A B) | `cdefgab` |
+| `+` `-` | Accidentals (sharp/flat)<br>※Placed immediately after the note (cannot be placed before the note) | `c+` `e-` `c++` `e--` |
+| `Number` | Note length (4=quarter note, 8=eighth note, 16=sixteenth note)<br>Placed immediately after the note or rest | `c4` `e8` `c16` |
+| `.` | Dotted note (multiplies note length by 1.5)<br>Can be specified consecutively (e.g., `..` = 1.75x) | `c4.` `e8..` |
+| `r` | Rest<br>Length and dot can be specified just like notes | `r` `r4` `r8.` |
 
 ### Octave Control
 | Command | Description | Example |
 |---------|------|-----|
-| `o数字` | Specifies octave (default: `o4`) | `o4` `o5` `o3` |
-| `<` | Raises octave by one | `<` |
-| `>` | Lowers octave by one | `>` |
+| `oNumber` | Specifies the octave (default: `o4`) | `o4` `o5` `o3` |
+| `<` | Raises the octave by one | `<` |
+| `>` | Lowers the octave by one | `>` |
 
 ### Default Settings
 | Command | Description | Example |
 |---------|------|-----|
-| `l数字` | Sets default note length<br>(Applies to subsequent notes if no length is specified) | `l8` `l16` `l4` |
+| `lNumber` | Sets the default note length<br>(Applies to subsequent notes if no length is specified) | `l8` `l16` `l4` |
 
 ### Timbre Control
 | Command | Description | Example |
 |---------|------|-----|
-| `@数字` | Changes timbre (synthesizer)<br>Currently creates a new Synth node<br>(See "About Timbre Specification" below for details) | `@0` `@1` `@2` |
+| `@Number` | Changes the timbre (synthesizer)<br>Currently creates a new Synth node<br>(See "Timbre Specification" below for details) | `@0` `@1` `@2` |
 
-### Multitrack
+### Multi-track
 | Command | Description | Example |
 |---------|------|-----|
 | `;` | Track separator<br>Plays multiple parts simultaneously | `cde;efg;abc` |
@@ -100,7 +100,7 @@ For detailed usage, please refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 ### Chords
 | Command | Description | Example |
 |---------|------|-----|
-| `'notes'` | Chord (notes enclosed in single quotes play simultaneously)<br>Can include accidentals, duration, and dots | `'ceg'` `'c+eg-'4` `'dfac'8.` |
+| `'Notes'` | Chord (notes enclosed in single quotes are played simultaneously)<br>Accidentals, length, and dots can be specified | `'ceg'` `'c+eg-'4` `'dfac'8.` |
 
 ### Usage Examples
 ```mml
@@ -116,23 +116,23 @@ o4 l8 c4. d e8. f16 g4
 // Octave change
 o4 c d e < f g a > b < c
 
-// Multitrack (separate parts)
+// Multi-track (separate parts)
 o4 l8 ceg;dfb;ace
 
-// Chords (notes played together)
+// Chords (notes played simultaneously)
 o4 l4 'ceg' 'dfb' 'ace'
 
-// Mixed single notes and chords
+// Mix of single notes and chords
 o4 c 'eg' d 'fac' e
 
-// Chord with accidentals and duration
+// Chords with accidentals and length
 o4 'c+eg-'4 'd+f+a'8 'eg+b'4.
 
 // Timbre change
 @0 cde @1 efg @2 abc
 ```
 
-## Unimplemented Commands (Planned for Future)
+## Unimplemented Commands (Planned for Future Implementation)
 
 The following commands are commonly used in standard MML but are not yet implemented in this library. They may be implemented in future versions.
 
@@ -141,124 +141,124 @@ The following commands are commonly used in standard MML but are not yet impleme
 | `t` `T` | Tempo setting (BPM) | `t120` `T140` |
 | `v` `V` | Volume setting (0-127) | `v100` `V80` |
 | `&` `^` | Tie (connects notes of the same pitch) | `c4&c4` `c4^c4` |
-| `q` `Q` | Gate time (ratio of note length, staccato control) | `q60` `Q80` |
-| `p` `P` | Pan (stereo position) setting | `p64` `P0` |
+| `q` `Q` | Gate time (proportion of note length, staccato control) | `q60` `Q80` |
+| `p` `P` | Pan (position) setting | `p64` `P0` |
 | `u` `U` | Velocity (attack intensity) | `u120` |
 | `[` `]` | Loop (repetition) | `[cde]4` |
 
-**⚠️ Important Notes**: 
-- The implementation timing and specifications of these commands are undecided.
+**⚠️ Important Note**: 
+- The implementation timeline and specifications for these commands are TBD.
 - If implemented, specifications may change.
 - Breaking changes may occur frequently during the prototyping phase.
 
 ## About Chord Implementation
 
-Chords are implemented using Tone.js's `PolySynth`, which manages multiple synth voices to play notes simultaneously.
+Chords are implemented using Tone.js's `PolySynth`, managing multiple synthesizer voices to play notes simultaneously.
 
 ### Technical Details
 
-- **Syntax**: Notes enclosed in single quotes (e.g., `'ceg'`) are treated as chords
-- **PolySynth**: Tracks containing chords automatically use `PolySynth` instead of regular `Synth`
+- **Syntax**: Notes enclosed in single quotes (e.g., `'ceg'`) are treated as chords.
+- **PolySynth**: Tracks containing chords automatically use `PolySynth` instead of the regular `Synth`.
 - **Features**:
-  - Supports accidentals within chords: `'c+eg-'` = C# E Gb
-  - Supports duration and dots: `'ceg'4.` = C-E-G chord as dotted quarter note
-  - Works with octave commands: `o5 'ceg'` = C5-E5-G5 chord
-  - Compatible with multi-track: one track can have chords while others don't
+  - Support for accidentals within chords: `'c+eg-'` = C# E Gb
+  - Support for length and dots: `'ceg'4.` = Dotted quarter note C-E-G chord
+  - Integration with octave commands: `o5 'ceg'` = C5-E5-G5 chord
+  - Multi-track compatibility: Chords can be used in some tracks while not in others.
 - **Difference from Multi-track**:
-  - Multi-track (`;`): Separate tracks that can play different melodies/parts simultaneously
-  - Chord (`'...'`): Multiple notes played together at the exact same time
+  - Multi-track (`;`): Separate tracks that play different melodies/parts simultaneously.
+  - Chord (`'...'`): Multiple notes played together at exactly the same time.
 
-### Example Comparison
+### Comparison Example
 
 ```mml
-// Multi-track: C, E, G play as separate parts (melody lines)
+// Multi-track: C, E, and G are played as separate parts (melody lines)
 c;e;g
 
-// Chord: C, E, G play together as a single chord
+// Chord: C, E, and G are played together as a single chord
 'ceg'
 ```
 
-## About Timbre Specification (``@`` Command)
+## About Timbre Specification (`@` Command)
 
 The current `@` command implements basic timbre switching, but it is planned to support various Tone.js synthesizer types in the future.
 
 ### Candidate Tone.js Synthesizer Types
 
-Below are potential Tone.js synthesizer types that could be specified with the `@` command in the future:
+Below are Tone.js synthesizer types that may be specifiable with the `@` command in the future:
 
 | Type | Characteristics | Suitable Timbre |
 |--------|------|-----------|
-| `Synth` | Basic subtractive synthesis<br>Single oscillator + envelope | Lead, pad, basic timbres |
-| `AMSynth` | Amplitude modulation synthesis<br>2 oscillators modulate amplitude | Bell, metallic sounds, tremolo effects |
-| `FMSynth` | Frequency modulation synthesis<br>2 oscillators modulate frequency | Electric piano, bell, metallic sounds |
-| `MonoSynth` | Monophonic subtractive synthesis<br>With filter envelope | Bass, mono lead, analog synth-like |
+| `Synth` | Basic subtractive synthesis<br>Single oscillator + envelope | Leads, pads, basic timbres |
+| `AMSynth` | Amplitude modulation synthesis<br>Two oscillators modulate amplitude | Bells, metallic sounds, tremolo effects |
+| `FMSynth` | Frequency modulation synthesis<br>Two oscillators modulate frequency | Electric piano, bells, metallic sounds |
+| `MonoSynth` | Monophonic subtractive synthesis<br>With filter envelope | Bass, mono leads, analog synth style |
 | `DuoSynth` | Dual-voice polyphonic<br>Combines two MonoSynths | Rich textures, chorus effects, complex timbres |
-| `PluckSynth` | Karplus-Strong algorithm<br>Plucked string instrument simulation | Guitar, harp, koto, plucked strings |
+| `PluckSynth` | Karplus-Strong algorithm<br>Plucked string instrument simulation | Guitar, harp, koto, plucked string instruments |
 | `MembraneSynth` | Membrane vibration simulation | Drums, percussion |
 | `MetalSynth` | Metallic sound simulation | Cymbals, metallic percussion |
 
 ### Current Implementation Status
 
-- **Currently**: The `@` command creates a new `Synth` node.
-- **Future**: Considering support like `@0`=Synth, `@1`=AMSynth, `@2`=FMSynth.
+- **Current**: The `@` command creates a new `Synth` node.
+- **Future**: Considering a mapping like `@0`=Synth, `@1`=AMSynth, `@2`=FMSynth.
 
-### About Potential Specification Changes
+### Potential for Specification Changes
 
 ⚠️ **Important**: The timbre specification feature is currently in the prototyping phase.
 
-- This is a temporary specification for validating Tone.js's default timbre representation.
-- Implemented to allow easy verification of various variations.
-- Specifications are subject to frequent breaking changes.
+- This is a provisional specification to validate Tone.js's default timbre representation.
+- It is implemented to allow easy confirmation of each variation.
+- Specifications may undergo frequent breaking changes.
 - If using in a production environment, it is recommended to pin the version.
 - If you have feedback or requests, please share them via GitHub Issues.
 
 # Notes
-- What are the benefits of writing music with MML (Music Macro Language)?
-  - **Conciseness and Portability**: Text-based and lightweight, platform-independent for the web.
-  - **Developer-Friendly**: Code-like notation, easy Git management and generation.
+- What are the benefits of writing music in MML (Music Macro Language)?
+  - **Conciseness and Portability**: Text-based, lightweight, and platform-independent for the web.
+  - **Programmer Friendliness**: Code-like notation, easy Git management and generation.
   - **Web Development Affinity**: Direct playback in browsers, real-time editing, lightweight delivery.
-  - **Low Learning Curve**: Simple grammar, gradual learning possible.
+  - **Low Learning Curve**: Simple syntax, allows for gradual learning.
   - **Modular Design**: Conversion and playback are separated, allowing independent evolution.
-  - **Fosters an Ecosystem**: High reusability, easy sharing and accumulation of knowledge.
-  - **Adaptability to Dialects**: Assumed to easily support system-specific MML dialects by enabling straightforward PEG-based conversion by individual developers.
+  - **Fosters an Ecosystem**: Highly reusable, easy to share and accumulate knowledge.
+  - **Adaptability to Dialects**: Assumes that specific MML dialects for various systems can be easily created and supported by individuals using PEG for simple conversions.
 
 - Why are `tonejs-json-sequencer` and `tonejs-mml-to-json` separate projects?
-  - **Due to an emphasis on independent development and speed:**
-    - Can focus on MML parser development.
-    - Can evolve quickly without being constrained by the dependencies between parser and playback functionalities.
+  - **Prioritizing development independence and speed**.
+    - Allows focusing on MML parser development.
+    - Enables rapid evolution without being constrained by the dependencies between parser and playback functionalities.
   - For more details, please also refer to [tonejs-json-sequencer](https://github.com/cat2151/tonejs-json-sequencer).
 
 # Notes on Consideration
 ## About Rust Implementation
-- **Added Rust + WASM implementation**
+- **Added Rust + WASM implementation**.
   - Available as a Rust library crate.
-  - Operates in browsers via WASM compilation.
+  - Works in browsers with WASM compilation.
   - 100% compatible with JavaScript implementation.
   - See [rust/README.md](rust/README.md) for details.
 
 ## Architecture
-- **mml2ast**: A parser that converts MML strings into an AST.
-- **ast**: Data structure for AST (Abstract Syntax Tree).
+- **mml2ast**: Parser that converts MML strings to AST.
+- **ast**: AST (Abstract Syntax Tree) data structure.
 - **ast2json**: Converts AST to Tone.js compatible JSON.
 
 ## Input/Output Definition
 - *Illustrative examples to visualize the concept.
-- Input example
+- Input Example
   - `o4 l16 e`
-- Intermediate format example
-  - *As a loosely coupled thin layer, allowing easy modification of each part.
-  - JSON (AST)
-  - JSON (pre-processing)
+- Intermediate Format Example
+  - *Designed with loosely coupled, thin layers for easy modification.
+  - json (AST)
+  - json (pre-processed)
     - What is "processing"?
       - Node ID assignment, etc.
-- Output example
-  - JSON (post-processing)
-    - Format recognized by tonejs-json-sequencer
-    - Details omitted, with TDD test cases serving as the detailed specification.
+- Output Example
+  - json (post-processed)
+    - Format recognized by `tonejs-json-sequencer`.
+    - Details omitted; test cases in TDD serve as the detailed specification.
 ## TDD Policy
-- The test targets are mml2ast, ast2ast, and ast2json, individually.
-  - Refer to the TDD for mml2abc / chord2mml.
-- I recall doing TDD with vitest in this project.
-- I plan to organize the test procedures later.
+- The test targets are `mml2ast`, `ast2ast`, and `ast2json` respectively.
+  - Refer to the TDD for `mml2abc / chord2mml`.
+- I believe this project was using Vitest for TDD.
+  - I plan to organize the test procedures later.
 
-※README.md is automatically generated from README.ja.md using Gemini translation via GitHub Actions.
+*README.md is automatically generated by GitHub Actions based on README.ja.md translated by Gemini.
