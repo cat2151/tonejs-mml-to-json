@@ -320,7 +320,7 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
 1. **音色（Instrument）の拡張**
    - MMLコマンド `@` の拡張で、各種シンセサイザータイプを指定可能に
    - 例: `@synth`, `@fm`, `@am`, `@pluck`, `@membrane`, `@metal` など
-   - または数値指定: `@0`=Synth, `@1`=FMSynth, `@2`=AMSynth など
+   - または数値指定: `@0`=Synth, `@1`=AMSynth, `@2`=FMSynth など
 
 2. **基本エフェクト**
    - リバーブ、コーラス、ディレイなどの基本エフェクト
