@@ -201,7 +201,7 @@ describe('Integration: mml2ast + ast2json', () => {
     });
 
     it('should handle MML with only commands, no notes', () => {
-      const mml = 'o4 l8 @0';
+      const mml = 'o4 l8 @Synth';
       const ast = mml2ast(mml);
       const json = ast2json(ast);
       

@@ -9,30 +9,13 @@ const DOUBLE_DOT_MULTIPLIER: f64 = 1.75;
 const EVENT_TYPE_CREATE_NODE: &str = "createNode";
 const EVENT_TYPE_CONNECT: &str = "connect";
 
-/// Map instrument number to Tone.js synth type
-/// @0 = Synth (default)
-/// @1 = FMSynth (FM synthesis - electric piano, bells)
-/// @2 = AMSynth (AM synthesis - bells, metallic sounds)
-/// @3 = MonoSynth (monophonic - bass, leads)
-/// @4 = PluckSynth (plucked strings - guitar, harp)
-/// @5 = MembraneSynth (drums, percussion)
-/// @6 = MetalSynth (cymbals, metallic percussion)
-/// @7+ = DuoSynth (rich textures)
-fn get_synth_type_for_instrument(instrument_num: u32, needs_polysynth: bool) -> &'static str {
-    // If the track has chords, use PolySynth regardless of instrument number
+/// Get the synth type to use, considering chords
+/// If the track has chords, always use PolySynth regardless of instrument name
+fn get_synth_type_for_track(instrument_name: &str, needs_polysynth: bool) -> &str {
     if needs_polysynth {
-        return "PolySynth";
-    }
-    
-    match instrument_num {
-        0 => "Synth",
-        1 => "FMSynth",
-        2 => "AMSynth",
-        3 => "MonoSynth",
-        4 => "PluckSynth",
-        5 => "MembraneSynth",
-        6 => "MetalSynth",
-        _ => "DuoSynth",
+        "PolySynth"
+    } else {
+        instrument_name
     }
 }
 
@@ -130,11 +113,11 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
     let mut default_length = 8; // default note length (eighth note)
     let mut octave = 4; // default octave 4
     let mut node_id = track_node_id; // Start with track's base node_id
-    let mut current_instrument = 0; // default instrument number (Synth)
+    let mut current_instrument = "Synth"; // default instrument (Synth)
 
     // Determine if this track needs PolySynth (has chords)
     let needs_polysynth = has_chords(ast);
-    let synth_type = get_synth_type_for_instrument(current_instrument, needs_polysynth);
+    let synth_type = get_synth_type_for_track(current_instrument, needs_polysynth);
 
     // Add initial setup commands
     commands.push(Command {
@@ -235,15 +218,15 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
             }
 
             AstToken::Instrument(instr) => {
-                // Update current instrument number if provided
-                if let Some(num) = instr.value {
-                    current_instrument = num;
+                // Update current instrument name if provided
+                if let Some(ref name) = instr.value {
+                    current_instrument = name.as_str();
                 }
                 
                 node_id += 1;
                 // Both createNode and connect use the same nodeId (the new one)
-                // Get the synth type based on the instrument number
-                let new_synth_type = get_synth_type_for_instrument(current_instrument, needs_polysynth);
+                // Get the synth type based on the instrument name
+                let new_synth_type = get_synth_type_for_track(current_instrument, needs_polysynth);
                 commands.push(Command {
                     event_type: EVENT_TYPE_CREATE_NODE.to_string(),
                     node_id,

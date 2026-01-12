@@ -28,56 +28,56 @@ export const demos: Demo[] = [
   },
   {
     id: 'instrument-synth',
-    name: '@0 Synth (Default)',
+    name: '@Synth (Default)',
     description: 'Basic subtractive synthesis - default sound',
-    mml: '@0 o4 l8 cdefgab>c'
+    mml: '@Synth o4 l8 cdefgab>c'
   },
   {
     id: 'instrument-fm',
-    name: '@1 FMSynth',
+    name: '@FMSynth',
     description: 'FM synthesis - electric piano, bell-like sounds',
-    mml: '@1 o4 l8 cdefgab>c'
+    mml: '@FMSynth o4 l8 cdefgab>c'
   },
   {
     id: 'instrument-am',
-    name: '@2 AMSynth',
+    name: '@AMSynth',
     description: 'AM synthesis - bells, metallic sounds, tremolo effects',
-    mml: '@2 o4 l8 cdefgab>c'
+    mml: '@AMSynth o4 l8 cdefgab>c'
   },
   {
     id: 'instrument-mono',
-    name: '@3 MonoSynth',
+    name: '@MonoSynth',
     description: 'Monophonic synthesis - bass, leads, analog synth style',
-    mml: '@3 o3 l8 c c c c d d d d e e e e'
+    mml: '@MonoSynth o3 l8 c c c c d d d d e e e e'
   },
   {
     id: 'instrument-pluck',
-    name: '@4 PluckSynth',
+    name: '@PluckSynth',
     description: 'Plucked string simulation - guitar, harp, koto',
-    mml: '@4 o4 l8 cdefgab>c'
+    mml: '@PluckSynth o4 l8 cdefgab>c'
   },
   {
     id: 'instrument-membrane',
-    name: '@5 MembraneSynth',
+    name: '@MembraneSynth',
     description: 'Membrane vibration - drums, percussion',
-    mml: '@5 o3 l8 c c c c e e e e g g g g'
+    mml: '@MembraneSynth o3 l8 c c c c e e e e g g g g'
   },
   {
     id: 'instrument-metal',
-    name: '@6 MetalSynth',
+    name: '@MetalSynth',
     description: 'Metallic sounds - cymbals, metallic percussion',
-    mml: '@6 o4 l8 c c c c e e e e g g g g'
+    mml: '@MetalSynth o4 l8 c c c c e e e e g g g g'
   },
   {
     id: 'instrument-duo',
-    name: '@7 DuoSynth',
+    name: '@DuoSynth',
     description: 'Dual-voice synthesis - rich textures, chorus effects',
-    mml: '@7 o4 l8 cdefgab>c'
+    mml: '@DuoSynth o4 l8 cdefgab>c'
   },
   {
     id: 'instrument-switch',
     name: 'Instrument Switching',
     description: 'Switch between different instruments in one track',
-    mml: '@0 o4 cde @1 fga @2 gab @3 agf'
+    mml: '@Synth o4 cde @FMSynth fga @AMSynth gab @MonoSynth agf'
   }
 ];

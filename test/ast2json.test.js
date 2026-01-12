@@ -239,7 +239,7 @@ describe('ast2json', () => {
   describe('Instrument command', () => {
     it('should create new node for instrument change', () => {
       const ast = [
-        { type: 'instrument', value: 0, length: 2 },
+        { type: 'instrument', value: "Synth", length: 6 },
         { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
       ];
       const result = ast2json(ast);
@@ -257,9 +257,9 @@ describe('ast2json', () => {
       });
     });
 
-    it('should create FMSynth for instrument 1', () => {
+    it('should create FMSynth for @FMSynth', () => {
       const ast = [
-        { type: 'instrument', value: 1, length: 2 },
+        { type: 'instrument', value: "FMSynth", length: 8 },
         { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
       ];
       const result = ast2json(ast);
@@ -272,9 +272,9 @@ describe('ast2json', () => {
       });
     });
 
-    it('should create AMSynth for instrument 2', () => {
+    it('should create AMSynth for @AMSynth', () => {
       const ast = [
-        { type: 'instrument', value: 2, length: 2 },
+        { type: 'instrument', value: "AMSynth", length: 8 },
         { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
       ];
       const result = ast2json(ast);
@@ -282,9 +282,9 @@ describe('ast2json', () => {
       expect(result[2].nodeType).toBe("AMSynth");
     });
 
-    it('should create MonoSynth for instrument 3', () => {
+    it('should create MonoSynth for @MonoSynth', () => {
       const ast = [
-        { type: 'instrument', value: 3, length: 2 },
+        { type: 'instrument', value: "MonoSynth", length: 10 },
         { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
       ];
       const result = ast2json(ast);
@@ -292,9 +292,9 @@ describe('ast2json', () => {
       expect(result[2].nodeType).toBe("MonoSynth");
     });
 
-    it('should create PluckSynth for instrument 4', () => {
+    it('should create PluckSynth for @PluckSynth', () => {
       const ast = [
-        { type: 'instrument', value: 4, length: 2 },
+        { type: 'instrument', value: "PluckSynth", length: 11 },
         { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
       ];
       const result = ast2json(ast);
@@ -302,9 +302,9 @@ describe('ast2json', () => {
       expect(result[2].nodeType).toBe("PluckSynth");
     });
 
-    it('should create MembraneSynth for instrument 5', () => {
+    it('should create MembraneSynth for @MembraneSynth', () => {
       const ast = [
-        { type: 'instrument', value: 5, length: 2 },
+        { type: 'instrument', value: "MembraneSynth", length: 14 },
         { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
       ];
       const result = ast2json(ast);
@@ -312,9 +312,9 @@ describe('ast2json', () => {
       expect(result[2].nodeType).toBe("MembraneSynth");
     });
 
-    it('should create MetalSynth for instrument 6', () => {
+    it('should create MetalSynth for @MetalSynth', () => {
       const ast = [
-        { type: 'instrument', value: 6, length: 2 },
+        { type: 'instrument', value: "MetalSynth", length: 11 },
         { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
       ];
       const result = ast2json(ast);
@@ -322,9 +322,9 @@ describe('ast2json', () => {
       expect(result[2].nodeType).toBe("MetalSynth");
     });
 
-    it('should create DuoSynth for instrument 7 and higher', () => {
+    it('should create DuoSynth for @DuoSynth', () => {
       const ast = [
-        { type: 'instrument', value: 7, length: 2 },
+        { type: 'instrument', value: "DuoSynth", length: 9 },
         { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
       ];
       const result = ast2json(ast);
@@ -332,9 +332,9 @@ describe('ast2json', () => {
       expect(result[2].nodeType).toBe("DuoSynth");
     });
 
-    it('should use PolySynth for tracks with chords regardless of instrument number', () => {
+    it('should use PolySynth for tracks with chords regardless of instrument name', () => {
       const ast = [
-        { type: 'instrument', value: 1, length: 2 }, // FMSynth request
+        { type: 'instrument', value: "FMSynth", length: 8 }, // FMSynth request
         { 
           type: 'chord', 
           notes: [
@@ -346,7 +346,7 @@ describe('ast2json', () => {
           dots: 0, 
           length: 5 
         },
-        { type: 'instrument', value: 3, length: 2 }, // MonoSynth request
+        { type: 'instrument', value: "MonoSynth", length: 10 }, // MonoSynth request
         { 
           type: 'chord', 
           notes: [
@@ -368,7 +368,7 @@ describe('ast2json', () => {
       });
       
       // Second instrument change should also create PolySynth (not MonoSynth)
-      // Result structure: [0]=createNode(PolySynth), [1]=connect, [2]=createNode(@1), [3]=connect, [4]=chord, [5]=createNode(@3), [6]=connect, [7]=chord
+      // Result structure: [0]=createNode(PolySynth), [1]=connect, [2]=createNode(@FMSynth), [3]=connect, [4]=chord, [5]=createNode(@MonoSynth), [6]=connect, [7]=chord
       expect(result[5].eventType).toBe("createNode");
       expect(result[5].nodeType).toBe("PolySynth");
     });
