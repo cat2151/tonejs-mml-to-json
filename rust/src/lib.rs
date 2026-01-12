@@ -2,7 +2,19 @@ use wasm_bindgen::prelude::*;
 use serde::Serialize;
 
 pub mod ast;
+
+// Conditional compilation for parser modules
+#[cfg(feature = "tree-sitter")]
 pub mod mml2ast;
+
+#[cfg(not(feature = "tree-sitter"))]
+pub mod mml2ast_manual;
+
+#[cfg(not(feature = "tree-sitter"))]
+pub mod mml2ast {
+    pub use crate::mml2ast_manual::mml2ast;
+}
+
 pub mod ast2json;
 
 pub use ast::{AstToken, NoteToken, RestToken, LengthToken, OctaveToken, InstrumentToken, TrackSeparatorToken};

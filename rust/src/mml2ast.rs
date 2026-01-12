@@ -1,3 +1,8 @@
+//! MML parser module - Tree-sitter implementation
+//! 
+//! This module provides Tree-sitter-based MML parsing functionality.
+//! This is the default parser used for native builds.
+
 use crate::ast::*;
 use tree_sitter::{Parser, Node};
 
