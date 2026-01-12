@@ -44,7 +44,18 @@ export interface InstrumentToken {
     value: number | null;
     length: number;
 }
-export type ASTToken = NoteToken | RestToken | LengthToken | OctaveToken | OctaveUpToken | OctaveDownToken | InstrumentToken;
+export interface ChordNote {
+    note: string;
+    accidental: string;
+}
+export interface ChordToken {
+    type: 'chord';
+    notes: ChordNote[];
+    duration: number | null;
+    dots: number;
+    length: number;
+}
+export type ASTToken = NoteToken | ChordToken | RestToken | LengthToken | OctaveToken | OctaveUpToken | OctaveDownToken | InstrumentToken;
 /**
  * Converts MML string into an Abstract Syntax Tree using Rust WASM
  *
