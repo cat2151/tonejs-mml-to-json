@@ -646,7 +646,8 @@ describe('ast2json', () => {
       expect(events[2].args[0]).toBe('d4');
       
       // Middle is chord
-      const chordNotes = JSON.parse(events[1].args[0]);
+      const chordNotes = events[1].args[0]; // Now directly an array
+      expect(Array.isArray(chordNotes)).toBe(true);
       expect(chordNotes).toEqual(['e4', 'g4']);
     });
 
