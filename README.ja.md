@@ -124,7 +124,7 @@ o4 l4 'ceg' 'dfb' 'ace'
 o4 c 'eg' d 'fac' e
 
 // 臨時記号と長さを含む和音
-o4 'c4+eg-' 'd8+f+a' 'e4g+b'.
+o4 'c+4eg-' 'd+8f+a' 'e4g+b'.
 
 // 楽器変更（音色）
 @Synth cde @FMSynth efg @AMSynth abc
