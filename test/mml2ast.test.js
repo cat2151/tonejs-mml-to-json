@@ -325,8 +325,9 @@ describe('mml2ast', () => {
       expect(result[0].dots).toBe(0);
     });
 
-    it('should parse chord with duration', () => {
-      const result = mml2ast("'ceg'4");
+    it('should parse chord with duration inside quotes', () => {
+      // Duration should be inside quotes in mml2abc format
+      const result = mml2ast("'c4eg'");
       expect(result).toHaveLength(1);
       expect(result[0].type).toBe('chord');
       expect(result[0].duration).toBe(4);
@@ -341,8 +342,9 @@ describe('mml2ast', () => {
       expect(result[0].notes[2]).toEqual({ note: 'g', accidental: '-' });
     });
 
-    it('should parse chord with dots', () => {
-      const result = mml2ast("'ceg'4..");
+    it('should parse chord with dots (duration inside quotes)', () => {
+      // Duration should be inside quotes, dots after closing quote
+      const result = mml2ast("'c4eg'..");
       expect(result).toHaveLength(1);
       expect(result[0].type).toBe('chord');
       expect(result[0].duration).toBe(4);
@@ -386,15 +388,44 @@ describe('mml2ast', () => {
       expect(() => mml2ast("''")).toThrow(/Empty chord.*must contain at least one note/);
     });
 
-    it('should ignore invalid characters within chord', () => {
-      // This test verifies that invalid characters are skipped (with warnings)
-      const result = mml2ast("'c1e2g'");
+    it('should use first number inside chord as duration and ignore subsequent numbers', () => {
+      // Following mml2abc format: first number becomes duration, others ignored
+      const result = mml2ast("'c4e8g'");
       expect(result).toHaveLength(1);
       expect(result[0].type).toBe('chord');
       expect(result[0].notes).toHaveLength(3);
       expect(result[0].notes[0]).toEqual({ note: 'c', accidental: '' });
       expect(result[0].notes[1]).toEqual({ note: 'e', accidental: '' });
       expect(result[0].notes[2]).toEqual({ note: 'g', accidental: '' });
+      expect(result[0].duration).toBe(4); // First number (4) is used as duration
+    });
+
+    it('should ignore numbers after closing single quote', () => {
+      // Following mml2abc format: numbers after closing quote are ignored
+      const result = mml2ast("'ceg'8");
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('chord');
+      expect(result[0].duration).toBeNull(); // No duration inside quotes, so null
+    });
+
+    it('should use first number inside chord and ignore number after closing quote', () => {
+      // First number inside is duration, number after closing quote is ignored
+      const result = mml2ast("'c4eg'16");
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('chord');
+      expect(result[0].duration).toBe(4); // First number (4) inside quotes is used
+    });
+
+    it('should handle complex chord with multiple numbers', () => {
+      // Multiple numbers inside: first is duration, rest ignored
+      const result = mml2ast("'c+4e8g-16'");
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('chord');
+      expect(result[0].notes).toHaveLength(3);
+      expect(result[0].notes[0]).toEqual({ note: 'c', accidental: '+' });
+      expect(result[0].notes[1]).toEqual({ note: 'e', accidental: '' });
+      expect(result[0].notes[2]).toEqual({ note: 'g', accidental: '-' });
+      expect(result[0].duration).toBe(4); // First number (4)
     });
   });
 });

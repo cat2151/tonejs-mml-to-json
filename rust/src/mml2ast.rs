@@ -258,6 +258,8 @@ fn parse_instrument(chars: &[char], start_index: usize) -> Result<(InstrumentTok
 fn parse_chord(chars: &[char], start_index: usize) -> Result<(ChordToken, usize), String> {
     let mut index = start_index + 1; // Skip opening single quote
     let mut notes = Vec::new();
+    let mut duration: Option<u32> = None;
+    let mut found_first_duration = false;
 
     // Find the closing single quote
     while index < chars.len() && chars[index] != '\'' {
@@ -276,6 +278,21 @@ fn parse_chord(chars: &[char], start_index: usize) -> Result<(ChordToken, usize)
             }
             
             notes.push(ChordNote { note, accidental });
+        } else if ch.is_ascii_digit() {
+            // Parse numeric representation within the chord
+            // First number becomes the duration, subsequent numbers are ignored
+            if !found_first_duration {
+                let (parsed_duration, digit_len) = parse_digits(chars, index);
+                if let Some(d) = parsed_duration {
+                    duration = Some(d);
+                    found_first_duration = true;
+                }
+                index += digit_len;
+            } else {
+                // Ignore subsequent numbers - just skip digits
+                let (_, digit_len) = parse_digits(chars, index);
+                index += digit_len;
+            }
         } else {
             // Skip non-note characters within the chord, but warn on unexpected ones
             if !ch.is_whitespace() {
@@ -301,11 +318,11 @@ fn parse_chord(chars: &[char], start_index: usize) -> Result<(ChordToken, usize)
     
     index += 1; // Skip closing single quote
 
-    // Parse duration (number) after the closing quote
-    let (duration, digit_len) = parse_digits(chars, index);
+    // Ignore numbers immediately after the closing quote (mml2abc format)
+    let (_, digit_len) = parse_digits(chars, index);
     index += digit_len;
 
-    // Validate duration
+    // Validate duration if one was found inside the chord
     if let Some(d) = duration {
         if !is_valid_duration(d) {
             eprintln!("mml2ast: Invalid duration '{}' for chord at position {}. {}", d, start_index, INVALID_DURATION_MSG);

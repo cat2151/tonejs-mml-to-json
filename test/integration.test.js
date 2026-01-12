@@ -363,7 +363,8 @@ describe('Integration: mml2ast + ast2json', () => {
     });
 
     it('should convert chord with duration and dots', () => {
-      const mml = "'ceg'4.";
+      // Duration inside quotes, dots after closing quote (mml2abc format)
+      const mml = "'c4eg'.";
       const ast = mml2ast(mml);
       const json = ast2json(ast);
       
@@ -429,7 +430,8 @@ describe('Integration: mml2ast + ast2json', () => {
     });
 
     it('should handle complex chord example', () => {
-      const mml = "o4 l4 'c+eg-'8 'd+f+a' r4 'eg+b'";
+      // mml2abc format: duration inside quotes, numbers after closing quote ignored
+      const mml = "o4 l4 'c+8eg-' 'd+f+a' r4 'eg+b'";
       const ast = mml2ast(mml);
       const json = ast2json(ast);
       
@@ -438,7 +440,7 @@ describe('Integration: mml2ast + ast2json', () => {
       const events = json.filter(e => e.eventType === 'triggerAttackRelease');
       expect(events).toHaveLength(3);
       
-      // First chord: C# E Gb, eighth note
+      // First chord: C# E Gb, eighth note (8 inside quotes)
       let notes = JSON.parse(events[0].args[0]);
       expect(notes).toEqual(['c#4', 'e4', 'gb4']);
       expect(events[0].args[1]).toBe('86i'); // 96 - 10
