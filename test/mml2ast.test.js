@@ -311,4 +311,57 @@ describe('mml2ast', () => {
       expect(result[1].type).toBe('trackSeparator');
     });
   });
+
+  describe('Chord commands', () => {
+    it('should parse simple chord', () => {
+      const result = mml2ast("'ceg'");
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('chord');
+      expect(result[0].notes).toHaveLength(3);
+      expect(result[0].notes[0]).toEqual({ note: 'c', accidental: '' });
+      expect(result[0].notes[1]).toEqual({ note: 'e', accidental: '' });
+      expect(result[0].notes[2]).toEqual({ note: 'g', accidental: '' });
+      expect(result[0].duration).toBeNull();
+      expect(result[0].dots).toBe(0);
+    });
+
+    it('should parse chord with duration', () => {
+      const result = mml2ast("'ceg'4");
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('chord');
+      expect(result[0].duration).toBe(4);
+    });
+
+    it('should parse chord with accidentals', () => {
+      const result = mml2ast("'c+eg-'");
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('chord');
+      expect(result[0].notes[0]).toEqual({ note: 'c', accidental: '+' });
+      expect(result[0].notes[1]).toEqual({ note: 'e', accidental: '' });
+      expect(result[0].notes[2]).toEqual({ note: 'g', accidental: '-' });
+    });
+
+    it('should parse chord with dots', () => {
+      const result = mml2ast("'ceg'4..");
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('chord');
+      expect(result[0].duration).toBe(4);
+      expect(result[0].dots).toBe(2);
+    });
+
+    it('should parse mixed notes and chords', () => {
+      const result = mml2ast("c 'eg' d");
+      expect(result).toHaveLength(3);
+      expect(result[0].type).toBe('note');
+      expect(result[1].type).toBe('chord');
+      expect(result[2].type).toBe('note');
+    });
+
+    it('should parse chord with double accidentals', () => {
+      const result = mml2ast("'c++e--'");
+      expect(result).toHaveLength(1);
+      expect(result[0].notes[0]).toEqual({ note: 'c', accidental: '++' });
+      expect(result[0].notes[1]).toEqual({ note: 'e', accidental: '--' });
+    });
+  });
 });

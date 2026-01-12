@@ -410,4 +410,162 @@ describe('ast2json', () => {
       expect(createNodes[2].nodeId).toBe(200); // Track 2 starts at 200
     });
   });
+
+  describe('Chord commands', () => {
+    it('should convert simple chord to JSON', () => {
+      const ast = [
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'c', accidental: '' },
+            { note: 'e', accidental: '' },
+            { note: 'g', accidental: '' }
+          ],
+          duration: null, 
+          dots: 0, 
+          length: 5 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result).toHaveLength(3); // setup + chord
+      
+      // Should create PolySynth
+      expect(result[0].nodeType).toBe('PolySynth');
+      
+      // Chord command
+      expect(result[2].eventType).toBe('triggerAttackRelease');
+      const notes = JSON.parse(result[2].args[0]);
+      expect(notes).toEqual(['c4', 'e4', 'g4']);
+    });
+
+    it('should convert chord with accidentals', () => {
+      const ast = [
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'c', accidental: '+' },
+            { note: 'e', accidental: '' },
+            { note: 'g', accidental: '-' }
+          ],
+          duration: null, 
+          dots: 0, 
+          length: 7 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      const notes = JSON.parse(result[2].args[0]);
+      expect(notes).toEqual(['c#4', 'e4', 'gb4']);
+    });
+
+    it('should convert chord with duration', () => {
+      const ast = [
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'c', accidental: '' },
+            { note: 'e', accidental: '' },
+            { note: 'g', accidental: '' }
+          ],
+          duration: 4, 
+          dots: 0, 
+          length: 6 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result[2].args[1]).toBe('182i'); // 192 - 10
+    });
+
+    it('should convert mixed notes and chords', () => {
+      const ast = [
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 },
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'e', accidental: '' },
+            { note: 'g', accidental: '' }
+          ],
+          duration: null, 
+          dots: 0, 
+          length: 4 
+        },
+        { type: 'note', note: 'd', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      // Should use PolySynth for track with chords
+      expect(result[0].nodeType).toBe('PolySynth');
+      
+      const events = result.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(events).toHaveLength(3);
+      
+      // First and last are single notes
+      expect(events[0].args[0]).toBe('c4');
+      expect(events[2].args[0]).toBe('d4');
+      
+      // Middle is chord
+      const chordNotes = JSON.parse(events[1].args[0]);
+      expect(chordNotes).toEqual(['e4', 'g4']);
+    });
+
+    it('should use Synth for tracks without chords', () => {
+      const ast = [
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 },
+        { type: 'note', note: 'd', accidental: '', duration: null, dots: 0, length: 1 },
+        { type: 'note', note: 'e', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      // Should use regular Synth (no chords)
+      expect(result[0].nodeType).toBe('Synth');
+    });
+
+    it('should handle chord with dots', () => {
+      const ast = [
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'c', accidental: '' },
+            { note: 'e', accidental: '' },
+            { note: 'g', accidental: '' }
+          ],
+          duration: 4, 
+          dots: 1, 
+          length: 7 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      // Duration with dot: 192 * 1.5 = 288, minus gate time 10 = 278
+      expect(result[2].args[1]).toBe('278i');
+    });
+
+    it('should handle multi-track with chords in one track', () => {
+      const ast = [
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 },
+        { type: 'trackSeparator', length: 1 },
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'e', accidental: '' },
+            { note: 'g', accidental: '' }
+          ],
+          duration: null, 
+          dots: 0, 
+          length: 4 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      const createNodes = result.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      
+      // First track without chords uses Synth
+      expect(createNodes[0].nodeType).toBe('Synth');
+      // Second track with chords uses PolySynth
+      expect(createNodes[1].nodeType).toBe('PolySynth');
+    });
+  });
 });

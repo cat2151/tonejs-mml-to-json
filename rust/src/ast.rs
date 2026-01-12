@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum AstToken {
     Note(NoteToken),
+    Chord(ChordToken),
     Rest(RestToken),
     Length(LengthToken),
     Octave(OctaveToken),
@@ -22,6 +23,22 @@ pub struct NoteToken {
     pub duration: Option<u32>,
     pub dots: u32,
     pub length: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChordToken {
+    pub notes: Vec<ChordNote>,
+    pub duration: Option<u32>,
+    pub dots: u32,
+    pub length: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChordNote {
+    pub note: char,
+    pub accidental: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -75,6 +92,7 @@ impl AstToken {
     pub fn length(&self) -> usize {
         match self {
             AstToken::Note(t) => t.length,
+            AstToken::Chord(t) => t.length,
             AstToken::Rest(t) => t.length,
             AstToken::Length(t) => t.length,
             AstToken::Octave(t) => t.length,

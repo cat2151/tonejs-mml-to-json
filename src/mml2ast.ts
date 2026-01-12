@@ -55,8 +55,22 @@ export interface InstrumentToken {
   length: number;
 }
 
+export interface ChordNote {
+  note: string;
+  accidental: string;
+}
+
+export interface ChordToken {
+  type: 'chord';
+  notes: ChordNote[];
+  duration: number | null;
+  dots: number;
+  length: number;
+}
+
 export type ASTToken = 
   | NoteToken 
+  | ChordToken
   | RestToken 
   | LengthToken 
   | OctaveToken 

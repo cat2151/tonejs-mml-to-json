@@ -89,6 +89,11 @@ fn split_into_tracks(ast: &[AstToken]) -> Vec<Vec<AstToken>> {
     tracks
 }
 
+/// Check if a track contains any chord tokens
+fn has_chords(ast: &[AstToken]) -> bool {
+    ast.iter().any(|token| matches!(token, AstToken::Chord(_)))
+}
+
 /// Process a single track and generate commands with the specified node_id
 fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Command>, String> {
     let mut commands = Vec::new();
@@ -99,11 +104,15 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
     let mut octave = 4; // default octave 4
     let mut node_id = track_node_id; // Start with track's base node_id
 
+    // Determine if this track needs PolySynth (has chords)
+    let needs_polysynth = has_chords(ast);
+    let synth_type = if needs_polysynth { "PolySynth" } else { "Synth" };
+
     // Add initial setup commands
     commands.push(Command {
         event_type: EVENT_TYPE_CREATE_NODE.to_string(),
         node_id,
-        node_type: Some("Synth".to_string()),
+        node_type: Some(synth_type.to_string()),
         connect_to: None,
         args: None,
     });
@@ -149,6 +158,47 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 start_tick += ticks;
             }
 
+            AstToken::Chord(chord) => {
+                let ticks = calc_ticks(chord.duration, chord.dots, default_length, meas_tick);
+                
+                // Build note names for all notes in the chord
+                let mut note_names = Vec::new();
+                for chord_note in &chord.notes {
+                    // Convert accidental to sharp/flat notation
+                    let accidental = if !chord_note.accidental.is_empty() {
+                        if chord_note.accidental.starts_with('+') {
+                            "#".repeat(chord_note.accidental.len())
+                        } else if chord_note.accidental.starts_with('-') {
+                            "b".repeat(chord_note.accidental.len())
+                        } else {
+                            String::new()
+                        }
+                    } else {
+                        String::new()
+                    };
+                    
+                    let note_name = format!("{}{}{}", chord_note.note, accidental, octave);
+                    note_names.push(note_name);
+                }
+                
+                // For PolySynth, the first arg is a JSON array of notes
+                // We need to serialize it as a JSON array string
+                let notes_json = serde_json::to_string(&note_names)
+                    .map_err(|e| format!("Failed to serialize chord notes: {}", e))?;
+                let duration = calc_duration(ticks);
+                let start = calc_start_tick(start_tick);
+
+                commands.push(Command {
+                    event_type: "triggerAttackRelease".to_string(),
+                    node_id,
+                    node_type: None,
+                    connect_to: None,
+                    args: Some(vec![notes_json, duration, start]),
+                });
+
+                start_tick += ticks;
+            }
+
             AstToken::Rest(rest) => {
                 let ticks = calc_ticks(rest.duration, rest.dots, default_length, meas_tick);
                 start_tick += ticks;
@@ -179,10 +229,11 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
             AstToken::Instrument(_) => {
                 node_id += 1;
                 // Both createNode and connect use the same nodeId (the new one)
+                // Use the same synth type as the initial node (PolySynth if track has chords)
                 commands.push(Command {
                     event_type: EVENT_TYPE_CREATE_NODE.to_string(),
                     node_id,
-                    node_type: Some("Synth".to_string()),
+                    node_type: Some(synth_type.to_string()),
                     connect_to: None,
                     args: None,
                 });
@@ -376,5 +427,91 @@ mod tests {
         
         // Check that both tracks have notes at +0i
         assert!(notes.iter().filter(|n| n.args.as_ref().unwrap()[2] == "+0i").count() >= 2);
+    }
+
+    #[test]
+    fn test_simple_chord_conversion() {
+        let ast = mml2ast("'ceg'").unwrap();
+        let result = ast2json(&ast).unwrap();
+        
+        // Should have: 1 createNode (PolySynth) + 1 connect + 1 chord = 3 commands
+        assert_eq!(result.len(), 3);
+        
+        // Check that we have a PolySynth node
+        let create_nodes: Vec<_> = result.iter()
+            .filter(|c| c.event_type == "createNode")
+            .collect();
+        assert_eq!(create_nodes.len(), 1);
+        assert_eq!(create_nodes[0].node_type.as_ref().unwrap(), "PolySynth");
+        
+        // Check the chord command
+        let chords: Vec<_> = result.iter()
+            .filter(|c| c.event_type == "triggerAttackRelease")
+            .collect();
+        assert_eq!(chords.len(), 1);
+        
+        // First arg should be a JSON array of notes
+        let notes_json = &chords[0].args.as_ref().unwrap()[0];
+        let notes: Vec<String> = serde_json::from_str(notes_json).unwrap();
+        assert_eq!(notes, vec!["c4", "e4", "g4"]);
+    }
+
+    #[test]
+    fn test_chord_with_accidentals() {
+        let ast = mml2ast("'c+eg-'").unwrap();
+        let result = ast2json(&ast).unwrap();
+        
+        let chords: Vec<_> = result.iter()
+            .filter(|c| c.event_type == "triggerAttackRelease")
+            .collect();
+        assert_eq!(chords.len(), 1);
+        
+        let notes_json = &chords[0].args.as_ref().unwrap()[0];
+        let notes: Vec<String> = serde_json::from_str(notes_json).unwrap();
+        assert_eq!(notes, vec!["c#4", "e4", "gb4"]);
+    }
+
+    #[test]
+    fn test_chord_with_duration() {
+        let ast = mml2ast("'ceg'4").unwrap();
+        let result = ast2json(&ast).unwrap();
+        
+        let chords: Vec<_> = result.iter()
+            .filter(|c| c.event_type == "triggerAttackRelease")
+            .collect();
+        assert_eq!(chords.len(), 1);
+        
+        // Check duration is quarter note (192 ticks - 10 gate time = 182i)
+        assert_eq!(chords[0].args.as_ref().unwrap()[1], "182i");
+    }
+
+    #[test]
+    fn test_mixed_notes_and_chords() {
+        let ast = mml2ast("c 'eg' d").unwrap();
+        let result = ast2json(&ast).unwrap();
+        
+        // Should use PolySynth because track has chords
+        let create_nodes: Vec<_> = result.iter()
+            .filter(|c| c.event_type == "createNode")
+            .collect();
+        assert_eq!(create_nodes[0].node_type.as_ref().unwrap(), "PolySynth");
+        
+        // Should have 3 note events (2 single notes + 1 chord)
+        let notes: Vec<_> = result.iter()
+            .filter(|c| c.event_type == "triggerAttackRelease")
+            .collect();
+        assert_eq!(notes.len(), 3);
+    }
+
+    #[test]
+    fn test_track_without_chords_uses_synth() {
+        let ast = mml2ast("c d e").unwrap();
+        let result = ast2json(&ast).unwrap();
+        
+        // Should use regular Synth (no chords)
+        let create_nodes: Vec<_> = result.iter()
+            .filter(|c| c.event_type == "createNode")
+            .collect();
+        assert_eq!(create_nodes[0].node_type.as_ref().unwrap(), "Synth");
     }
 }

@@ -20,6 +20,14 @@ pub fn mml2ast(mml: &str) -> Result<Vec<AstToken>, String> {
             continue;
         }
 
+        // Chord command: 'ceg' (single-quoted notes)
+        if ch == '\'' {
+            let (token, consumed) = parse_chord(&chars, index)?;
+            tokens.push(AstToken::Chord(token));
+            index += consumed;
+            continue;
+        }
+
         // Note commands: c, d, e, f, g, a, b
         if matches!(ch, 'c' | 'd' | 'e' | 'f' | 'g' | 'a' | 'b') {
             let (token, consumed) = parse_note(&chars, index)?;
@@ -247,6 +255,69 @@ fn parse_instrument(chars: &[char], start_index: usize) -> Result<(InstrumentTok
     ))
 }
 
+fn parse_chord(chars: &[char], start_index: usize) -> Result<(ChordToken, usize), String> {
+    let mut index = start_index + 1; // Skip opening single quote
+    let mut notes = Vec::new();
+
+    // Find the closing single quote
+    while index < chars.len() && chars[index] != '\'' {
+        let ch = chars[index];
+        
+        // Parse note within the chord
+        if matches!(ch, 'c' | 'd' | 'e' | 'f' | 'g' | 'a' | 'b') {
+            let note = ch;
+            index += 1;
+            
+            // Parse accidental for this note
+            let mut accidental = String::new();
+            while index < chars.len() && chars[index] != '\'' && matches!(chars[index], '+' | '-') {
+                accidental.push(chars[index]);
+                index += 1;
+            }
+            
+            notes.push(ChordNote { note, accidental });
+        } else {
+            // Skip non-note characters within the chord (whitespace, etc.)
+            index += 1;
+        }
+    }
+
+    // Check if we found a closing quote
+    if index >= chars.len() || chars[index] != '\'' {
+        return Err(format!("Unclosed chord at position {}: missing closing single quote", start_index));
+    }
+    
+    index += 1; // Skip closing single quote
+
+    // Parse duration (number) after the closing quote
+    let (duration, digit_len) = parse_digits(chars, index);
+    index += digit_len;
+
+    // Validate duration
+    if let Some(d) = duration {
+        if !is_valid_duration(d) {
+            eprintln!("mml2ast: Invalid duration '{}' for chord at position {}. {}", d, start_index, INVALID_DURATION_MSG);
+        }
+    }
+
+    // Parse dots
+    let mut dots = 0;
+    while index < chars.len() && chars[index] == '.' {
+        dots += 1;
+        index += 1;
+    }
+
+    Ok((
+        ChordToken {
+            notes,
+            duration,
+            dots,
+            length: index - start_index,
+        },
+        index - start_index,
+    ))
+}
+
 fn is_valid_duration(duration: u32) -> bool {
     // Valid durations are powers of 2: 1, 2, 4, 8, 16, 32, 64, etc.
     duration > 0 && (duration & (duration - 1)) == 0
@@ -340,5 +411,78 @@ mod tests {
         let separator_count = result.iter().filter(|t| matches!(t, AstToken::TrackSeparator(_))).count();
         assert_eq!(separator_count, 1);
         assert!(result.len() > 5); // Should have multiple tokens
+    }
+
+    #[test]
+    fn test_parse_simple_chord() {
+        let result = mml2ast("'ceg'").unwrap();
+        assert_eq!(result.len(), 1);
+        match &result[0] {
+            AstToken::Chord(c) => {
+                assert_eq!(c.notes.len(), 3);
+                assert_eq!(c.notes[0].note, 'c');
+                assert_eq!(c.notes[0].accidental, "");
+                assert_eq!(c.notes[1].note, 'e');
+                assert_eq!(c.notes[1].accidental, "");
+                assert_eq!(c.notes[2].note, 'g');
+                assert_eq!(c.notes[2].accidental, "");
+                assert_eq!(c.duration, None);
+                assert_eq!(c.dots, 0);
+            }
+            _ => panic!("Expected Chord token"),
+        }
+    }
+
+    #[test]
+    fn test_parse_chord_with_duration() {
+        let result = mml2ast("'ceg'4").unwrap();
+        assert_eq!(result.len(), 1);
+        match &result[0] {
+            AstToken::Chord(c) => {
+                assert_eq!(c.notes.len(), 3);
+                assert_eq!(c.duration, Some(4));
+            }
+            _ => panic!("Expected Chord token"),
+        }
+    }
+
+    #[test]
+    fn test_parse_chord_with_accidentals() {
+        let result = mml2ast("'c+eg-'").unwrap();
+        assert_eq!(result.len(), 1);
+        match &result[0] {
+            AstToken::Chord(c) => {
+                assert_eq!(c.notes.len(), 3);
+                assert_eq!(c.notes[0].note, 'c');
+                assert_eq!(c.notes[0].accidental, "+");
+                assert_eq!(c.notes[1].note, 'e');
+                assert_eq!(c.notes[1].accidental, "");
+                assert_eq!(c.notes[2].note, 'g');
+                assert_eq!(c.notes[2].accidental, "-");
+            }
+            _ => panic!("Expected Chord token"),
+        }
+    }
+
+    #[test]
+    fn test_parse_chord_with_dots() {
+        let result = mml2ast("'ceg'4..").unwrap();
+        assert_eq!(result.len(), 1);
+        match &result[0] {
+            AstToken::Chord(c) => {
+                assert_eq!(c.duration, Some(4));
+                assert_eq!(c.dots, 2);
+            }
+            _ => panic!("Expected Chord token"),
+        }
+    }
+
+    #[test]
+    fn test_parse_mixed_notes_and_chords() {
+        let result = mml2ast("c 'eg' d").unwrap();
+        assert_eq!(result.len(), 3);
+        assert!(matches!(result[0], AstToken::Note(_)));
+        assert!(matches!(result[1], AstToken::Chord(_)));
+        assert!(matches!(result[2], AstToken::Note(_)));
     }
 }

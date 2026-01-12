@@ -343,4 +343,114 @@ describe('Integration: mml2ast + ast2json', () => {
       track2Notes.forEach(note => expect(note).toMatch(/5$/));
     });
   });
+
+  describe('Chord integration', () => {
+    it('should convert simple chord through full pipeline', () => {
+      const mml = "'ceg'";
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      expect(json).toHaveLength(3); // setup + 1 chord
+      
+      // Should create PolySynth
+      expect(json[0].nodeType).toBe('PolySynth');
+      
+      // Chord event
+      const chordEvent = json[2];
+      expect(chordEvent.eventType).toBe('triggerAttackRelease');
+      const notes = JSON.parse(chordEvent.args[0]);
+      expect(notes).toEqual(['c4', 'e4', 'g4']);
+    });
+
+    it('should convert chord with duration and dots', () => {
+      const mml = "'ceg'4.";
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      const chordEvent = json[2];
+      expect(chordEvent.args[1]).toBe('278i'); // 192 * 1.5 - 10 = 278
+    });
+
+    it('should convert mixed notes and chords', () => {
+      const mml = "c 'eg' d 'fac' e";
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      // Should use PolySynth
+      expect(json[0].nodeType).toBe('PolySynth');
+      
+      const events = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(events).toHaveLength(5);
+      
+      // Single notes
+      expect(events[0].args[0]).toBe('c4');
+      expect(events[2].args[0]).toBe('d4');
+      expect(events[4].args[0]).toBe('e4');
+      
+      // Chords
+      let notes = JSON.parse(events[1].args[0]);
+      expect(notes).toEqual(['e4', 'g4']);
+      notes = JSON.parse(events[3].args[0]);
+      expect(notes).toEqual(['f4', 'a4', 'c4']);
+    });
+
+    it('should handle chord with octave changes', () => {
+      const mml = "o4 'ceg' < 'ceg'";
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      const events = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(events).toHaveLength(2);
+      
+      // First chord in octave 4
+      let notes = JSON.parse(events[0].args[0]);
+      expect(notes).toEqual(['c4', 'e4', 'g4']);
+      
+      // Second chord in octave 5
+      notes = JSON.parse(events[1].args[0]);
+      expect(notes).toEqual(['c5', 'e5', 'g5']);
+    });
+
+    it('should handle multi-track with chords', () => {
+      const mml = "c d e; 'ceg' 'dfb'";
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      
+      // First track without chords uses Synth
+      expect(createNodes[0].nodeType).toBe('Synth');
+      // Second track with chords uses PolySynth
+      expect(createNodes[1].nodeType).toBe('PolySynth');
+      
+      const events = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(events).toHaveLength(5); // 3 single notes + 2 chords
+    });
+
+    it('should handle complex chord example', () => {
+      const mml = "o4 l4 'c+eg-'8 'd+f+a' r4 'eg+b'";
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      expect(json[0].nodeType).toBe('PolySynth');
+      
+      const events = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(events).toHaveLength(3);
+      
+      // First chord: C# E Gb, eighth note
+      let notes = JSON.parse(events[0].args[0]);
+      expect(notes).toEqual(['c#4', 'e4', 'gb4']);
+      expect(events[0].args[1]).toBe('86i'); // 96 - 10
+      
+      // Second chord: D# F# A, quarter note (from default l4)
+      notes = JSON.parse(events[1].args[0]);
+      expect(notes).toEqual(['d#4', 'f#4', 'a4']);
+      expect(events[1].args[1]).toBe('182i'); // 192 - 10
+      
+      // Third chord: E G# B, quarter note
+      notes = JSON.parse(events[2].args[0]);
+      expect(notes).toEqual(['e4', 'g#4', 'b4']);
+    });
+  });
 });
