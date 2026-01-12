@@ -9,6 +9,16 @@ const DOUBLE_DOT_MULTIPLIER: f64 = 1.75;
 const EVENT_TYPE_CREATE_NODE: &str = "createNode";
 const EVENT_TYPE_CONNECT: &str = "connect";
 
+/// Get the synth type to use, considering chords
+/// If the track has chords, always use PolySynth regardless of instrument name
+fn get_synth_type_for_track(instrument_name: &str, needs_polysynth: bool) -> &str {
+    if needs_polysynth {
+        "PolySynth"
+    } else {
+        instrument_name
+    }
+}
+
 /// JSON command types for Tone.js
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -103,12 +113,29 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
     let mut default_length = 8; // default note length (eighth note)
     let mut octave = 4; // default octave 4
     let mut node_id = track_node_id; // Start with track's base node_id
+    
+    // Check if the first meaningful token (before any notes/chords/rests) is an Instrument command
+    let first_instrument = ast.iter()
+        .take_while(|token| {
+            // Stop when we encounter a note, chord, or rest
+            !matches!(token, AstToken::Note(_) | AstToken::Chord(_) | AstToken::Rest(_))
+        })
+        .find_map(|token| {
+            if let AstToken::Instrument(instr) = token {
+                instr.value.as_deref()
+            } else {
+                None
+            }
+        });
+    
+    let mut current_instrument = first_instrument.unwrap_or("Synth"); // Use first instrument or default to Synth
+    let mut skip_first_instrument = first_instrument.is_some(); // Flag to skip the first @instrument command
 
     // Determine if this track needs PolySynth (has chords)
     let needs_polysynth = has_chords(ast);
-    let synth_type = if needs_polysynth { "PolySynth" } else { "Synth" };
+    let synth_type = get_synth_type_for_track(current_instrument, needs_polysynth);
 
-    // Add initial setup commands
+    // Add initial setup commands with the appropriate instrument
     commands.push(Command {
         event_type: EVENT_TYPE_CREATE_NODE.to_string(),
         node_id,
@@ -206,14 +233,30 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 }
             }
 
-            AstToken::Instrument(_) => {
+            AstToken::Instrument(instr) => {
+                // Skip the first instrument command if it was already used for initialization
+                if skip_first_instrument {
+                    skip_first_instrument = false;
+                    // Update current_instrument even though we're skipping node creation
+                    if let Some(ref name) = instr.value {
+                        current_instrument = name.as_str();
+                    }
+                    continue;
+                }
+                
+                // Update current instrument name if provided
+                if let Some(ref name) = instr.value {
+                    current_instrument = name.as_str();
+                }
+                
                 node_id += 1;
                 // Both createNode and connect use the same nodeId (the new one)
-                // Use the same synth type as the initial node (PolySynth if track has chords)
+                // Get the synth type based on the instrument name
+                let new_synth_type = get_synth_type_for_track(current_instrument, needs_polysynth);
                 commands.push(Command {
                     event_type: EVENT_TYPE_CREATE_NODE.to_string(),
                     node_id,
-                    node_type: Some(synth_type.to_string()),
+                    node_type: Some(new_synth_type.to_string()),
                     connect_to: None,
                     args: None,
                 });

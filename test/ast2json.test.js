@@ -237,24 +237,162 @@ describe('ast2json', () => {
   });
 
   describe('Instrument command', () => {
-    it('should create new node for instrument change', () => {
+    it('should use first instrument for initial setup without creating duplicate', () => {
       const ast = [
-        { type: 'instrument', value: 0, length: 2 },
+        { type: 'instrument', value: "Synth", length: 6 },
         { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(5); // initial setup + instrument node + connect + note
-      expect(result[2]).toEqual({
+      // Should only have initial setup (createNode + connect) + note, no duplicate instrument node
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({
         eventType: "createNode",
-        nodeId: 1,
+        nodeId: 0,
         nodeType: "Synth"
       });
-      expect(result[3]).toEqual({
+      expect(result[1]).toEqual({
         eventType: "connect",
-        nodeId: 1,
+        nodeId: 0,
         connectTo: "toDestination"
       });
+      expect(result[2].eventType).toBe("triggerAttackRelease");
+    });
+
+    it('should create FMSynth for @FMSynth at start', () => {
+      const ast = [
+        { type: 'instrument', value: "FMSynth", length: 8 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      // Should use FMSynth for initial setup, no duplicate
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({
+        eventType: "createNode",
+        nodeId: 0,
+        nodeType: "FMSynth"
+      });
+    });
+
+    it('should create AMSynth for @AMSynth at start', () => {
+      const ast = [
+        { type: 'instrument', value: "AMSynth", length: 8 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result[0].nodeType).toBe("AMSynth");
+    });
+
+    it('should create MonoSynth for @MonoSynth at start', () => {
+      const ast = [
+        { type: 'instrument', value: "MonoSynth", length: 10 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result[0].nodeType).toBe("MonoSynth");
+    });
+
+    it('should create PluckSynth for @PluckSynth at start', () => {
+      const ast = [
+        { type: 'instrument', value: "PluckSynth", length: 11 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result[0].nodeType).toBe("PluckSynth");
+    });
+
+    it('should create MembraneSynth for @MembraneSynth at start', () => {
+      const ast = [
+        { type: 'instrument', value: "MembraneSynth", length: 14 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result[0].nodeType).toBe("MembraneSynth");
+    });
+
+    it('should create MetalSynth for @MetalSynth at start', () => {
+      const ast = [
+        { type: 'instrument', value: "MetalSynth", length: 11 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result[0].nodeType).toBe("MetalSynth");
+    });
+
+    it('should create DuoSynth for @DuoSynth at start', () => {
+      const ast = [
+        { type: 'instrument', value: "DuoSynth", length: 9 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result[0].nodeType).toBe("DuoSynth");
+    });
+
+    it('should create new node when switching instruments mid-track', () => {
+      const ast = [
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 },
+        { type: 'instrument', value: "FMSynth", length: 8 },
+        { type: 'note', note: 'd', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      // Initial Synth setup + note + new FMSynth node + connect + note
+      expect(result).toHaveLength(6);
+      expect(result[0].nodeType).toBe("Synth"); // initial
+      expect(result[2].eventType).toBe("triggerAttackRelease"); // first note
+      expect(result[2].nodeId).toBe(0); // on Synth
+      expect(result[3].eventType).toBe("createNode"); // switched instrument
+      expect(result[3].nodeType).toBe("FMSynth");
+      expect(result[3].nodeId).toBe(1);
+      expect(result[5].nodeId).toBe(1); // second note on FMSynth
+    });
+
+    it('should use PolySynth for tracks with chords regardless of instrument name', () => {
+      const ast = [
+        { type: 'instrument', value: "FMSynth", length: 8 }, // FMSynth request
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'c', accidental: '' },
+            { note: 'e', accidental: '' },
+            { note: 'g', accidental: '' }
+          ],
+          duration: null, 
+          dots: 0, 
+          length: 5 
+        },
+        { type: 'instrument', value: "MonoSynth", length: 10 }, // MonoSynth request
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'd', accidental: '' },
+            { note: 'f', accidental: '' }
+          ],
+          duration: null, 
+          dots: 0, 
+          length: 5 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      // Initial node should be PolySynth (not FMSynth) because track has chords
+      expect(result[0]).toEqual({
+        eventType: "createNode",
+        nodeId: 0,
+        nodeType: "PolySynth"
+      });
+      
+      // Second instrument change should also create PolySynth (not MonoSynth)
+      // Result structure: [0]=createNode(PolySynth), [1]=connect, [2]=chord, [3]=createNode(@MonoSynth->PolySynth), [4]=connect, [5]=chord
+      expect(result[3].eventType).toBe("createNode");
+      expect(result[3].nodeType).toBe("PolySynth");
     });
   });
 

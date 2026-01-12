@@ -186,17 +186,17 @@ describe('mml2ast', () => {
   });
 
   describe('Instrument command', () => {
-    it('should parse instrument command "@0"', () => {
-      const result = mml2ast('@0');
+    it('should parse instrument command "@Synth"', () => {
+      const result = mml2ast('@Synth');
       expect(result).toEqual([
-        { type: 'instrument', value: 0, length: 2 }
+        { type: 'instrument', value: "Synth", length: 6 }
       ]);
     });
 
-    it('should parse instrument command "@1"', () => {
-      const result = mml2ast('@1');
+    it('should parse instrument command "@FMSynth"', () => {
+      const result = mml2ast('@FMSynth');
       expect(result).toEqual([
-        { type: 'instrument', value: 1, length: 2 }
+        { type: 'instrument', value: "FMSynth", length: 8 }
       ]);
     });
 
@@ -247,11 +247,11 @@ describe('mml2ast', () => {
       ]);
     });
 
-    it('should parse MML with instrument change "@0 c d @1 e f"', () => {
-      const result = mml2ast('@0 c d @1 e f');
+    it('should parse MML with instrument change "@Synth c d @FMSynth e f"', () => {
+      const result = mml2ast('@Synth c d @FMSynth e f');
       expect(result).toHaveLength(6);
-      expect(result[0]).toEqual({ type: 'instrument', value: 0, length: 2 });
-      expect(result[3]).toEqual({ type: 'instrument', value: 1, length: 2 });
+      expect(result[0]).toEqual({ type: 'instrument', value: "Synth", length: 6 });
+      expect(result[3]).toEqual({ type: 'instrument', value: "FMSynth", length: 8 });
     });
   });
 

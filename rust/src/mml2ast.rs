@@ -3,7 +3,6 @@ use crate::ast::*;
 // Error message constants
 const INVALID_DURATION_MSG: &str = "Duration should be a power of 2 (1, 2, 4, 8, 16, 32, etc.)";
 const INVALID_OCTAVE_MSG: &str = "Octave should be between 0 and 8.";
-const INVALID_INSTRUMENT_MSG: &str = "Instrument should be a non-negative number.";
 
 /// Parse MML string into AST tokens
 pub fn mml2ast(mml: &str) -> Result<Vec<AstToken>, String> {
@@ -235,16 +234,23 @@ fn parse_octave(chars: &[char], start_index: usize) -> Result<(OctaveToken, usiz
 fn parse_instrument(chars: &[char], start_index: usize) -> Result<(InstrumentToken, usize), String> {
     let mut index = start_index + 1; // Skip '@'
 
-    // Parse instrument number
-    let (value, digit_len) = parse_digits(chars, index);
-    index += digit_len;
-
-    // Validate instrument
-    if let Some(v) = value {
-        if !is_valid_instrument(v) {
-            eprintln!("mml2ast: Invalid instrument '{}' at position {}. {}", v, start_index, INVALID_INSTRUMENT_MSG);
-        }
+    // Parse instrument name (alphanumeric characters)
+    let mut instrument_name = String::new();
+    while index < chars.len() && (chars[index].is_alphanumeric() || chars[index] == '_') {
+        instrument_name.push(chars[index]);
+        index += 1;
     }
+
+    // Validate instrument name
+    let value = if instrument_name.is_empty() {
+        None
+    } else {
+        if !is_valid_instrument(&instrument_name) {
+            eprintln!("mml2ast: Invalid instrument '{}' at position {}. Valid instruments: Synth, FMSynth, AMSynth, MonoSynth, DuoSynth, PluckSynth, MembraneSynth, MetalSynth, PolySynth, NoiseSynth, Sampler", 
+                instrument_name, start_index);
+        }
+        Some(instrument_name)
+    };
 
     Ok((
         InstrumentToken {
@@ -357,9 +363,14 @@ fn is_valid_octave(octave: u32) -> bool {
     octave <= 8
 }
 
-fn is_valid_instrument(_instrument: u32) -> bool {
-    // Instrument should be non-negative (always true for u32)
-    true
+fn is_valid_instrument(instrument: &str) -> bool {
+    // Valid Tone.js synth types
+    matches!(
+        instrument,
+        "Synth" | "FMSynth" | "AMSynth" | "MonoSynth" | "DuoSynth" |
+        "PluckSynth" | "MembraneSynth" | "MetalSynth" | "PolySynth" |
+        "NoiseSynth" | "Sampler"
+    )
 }
 
 #[cfg(test)]

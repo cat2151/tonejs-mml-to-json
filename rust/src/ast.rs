@@ -78,7 +78,7 @@ pub struct OctaveDownToken {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InstrumentToken {
-    pub value: Option<u32>,
+    pub value: Option<String>,
     pub length: usize,
 }
 

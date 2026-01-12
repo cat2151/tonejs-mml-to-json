@@ -90,7 +90,7 @@ For detailed usage, refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 ### Timbre Control
 | Command | Description | Example |
 |---------|------|-----|
-| `@Number` | Changes the timbre (synthesizer)<br>Currently creates a new Synth node<br>(See "Timbre Specification" below for details) | `@0` `@1` `@2` |
+| `@InstrumentName` | Changes the timbre (synthesizer)<br>Use Tone.js synth class names<br>(See "Timbre Specification" below for details) | `@Synth` `@FMSynth` `@AMSynth` |
 
 ### Multi-track
 | Command | Description | Example |
@@ -128,8 +128,16 @@ o4 c 'eg' d 'fac' e
 // Chords with accidentals and length
 o4 'c+eg-'4 'd+f+a'8 'eg+b'4.
 
-// Timbre change
-@0 cde @1 efg @2 abc
+// Instrument change (timbre)
+@Synth cde @FMSynth efg @AMSynth abc
+
+// Different instrument types
+@FMSynth o4 l8 cdefgab>c  // FMSynth - electric piano sound
+@MonoSynth o3 l8 ccccdddd    // MonoSynth - bass sound
+@PluckSynth o4 l8 cdefgab     // PluckSynth - guitar sound
+
+// Instrument switching in one track
+@Synth o4 cde @FMSynth fga @AMSynth b>c
 ```
 
 ## Unimplemented Commands (Planned for Future Implementation)
@@ -199,8 +207,30 @@ Below are Tone.js synthesizer types that may be specifiable with the `@` command
 
 ### Current Implementation Status
 
-- **Current**: The `@` command creates a new `Synth` node.
-- **Future**: Considering a mapping like `@0`=Synth, `@1`=AMSynth, `@2`=FMSynth.
+- **Current**: The `@` command uses Tone.js class names directly:
+  - `@Synth` = Basic subtractive synthesis (default)
+  - `@FMSynth` = FM synthesis (electric piano, bells)
+  - `@AMSynth` = AM synthesis (bells, metallic sounds)
+  - `@MonoSynth` = Monophonic synthesis (bass, leads)
+  - `@PluckSynth` = Plucked strings (guitar, harp)
+  - `@MembraneSynth` = Drums and percussion
+  - `@MetalSynth` = Cymbals and metallic percussion
+  - `@DuoSynth` = Dual-voice synthesis (rich textures)
+  - `@PolySynth` = Polyphonic synthesis
+- **Note**: Tracks with chords automatically use PolySynth regardless of instrument specified.
+
+### Usage Examples
+
+```mml
+// Use FM synthesis for electric piano sound
+@FMSynth o4 l8 cdefgab>c
+
+// Switch instruments mid-track
+@Synth o4 cde @FMSynth fga @AMSynth b>c
+
+// Bass line with MonoSynth
+@MonoSynth o3 l8 c c c c d d d d
+```
 
 ### Potential for Specification Changes
 
