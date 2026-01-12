@@ -100,17 +100,18 @@ export function ast2json_wasm(ast_json) {
 }
 
 /**
- * WASM binding for mml2ast - converts MML string to AST JSON
- * @param {string} mml
+ * WASM binding for cst_to_ast - converts CST JSON to AST JSON
+ * This allows web-tree-sitter CST to be converted to our internal AST format.
+ * @param {string} cst_json
  * @returns {string}
  */
-export function mml2ast_wasm(mml) {
+export function cst_to_ast_wasm(cst_json) {
     let deferred2_0;
     let deferred2_1;
     try {
-        const ptr0 = passStringToWasm0(mml, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(cst_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.mml2ast_wasm(ptr0, len0);
+        const ret = wasm.cst_to_ast_wasm(ptr0, len0);
         deferred2_0 = ret[0];
         deferred2_1 = ret[1];
         return getStringFromWasm0(ret[0], ret[1]);
@@ -120,17 +121,19 @@ export function mml2ast_wasm(mml) {
 }
 
 /**
- * WASM binding for mml_to_json
- * @param {string} mml
+ * WASM binding for CST-based parsing (web-tree-sitter integration)
+ * This is the primary WASM entry point when tree-sitter feature is not enabled.
+ * Accepts a JSON-serialized CST from web-tree-sitter and converts it to Tone.js JSON.
+ * @param {string} cst_json
  * @returns {string}
  */
-export function mml_to_json_wasm(mml) {
+export function cst_to_json_wasm(cst_json) {
     let deferred2_0;
     let deferred2_1;
     try {
-        const ptr0 = passStringToWasm0(mml, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(cst_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.mml_to_json_wasm(ptr0, len0);
+        const ret = wasm.cst_to_json_wasm(ptr0, len0);
         deferred2_0 = ret[0];
         deferred2_1 = ret[1];
         return getStringFromWasm0(ret[0], ret[1]);

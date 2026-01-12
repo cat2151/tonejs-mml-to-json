@@ -2,8 +2,8 @@
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
 export const ast2json_wasm: (a: number, b: number) => [number, number];
-export const mml2ast_wasm: (a: number, b: number) => [number, number];
-export const mml_to_json_wasm: (a: number, b: number) => [number, number];
+export const cst_to_ast_wasm: (a: number, b: number) => [number, number];
+export const cst_to_json_wasm: (a: number, b: number) => [number, number];
 export const __wbindgen_externrefs: WebAssembly.Table;
 export const __wbindgen_malloc: (a: number, b: number) => number;
 export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
