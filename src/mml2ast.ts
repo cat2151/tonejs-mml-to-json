@@ -51,7 +51,8 @@ export interface OctaveDownToken {
 
 export interface InstrumentToken {
   type: 'instrument';
-  value: number | null;
+  value: string | null;
+  args?: string;
   length: number;
 }
 

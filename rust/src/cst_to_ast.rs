@@ -166,6 +166,7 @@ fn parse_instrument(node: &CSTNode) -> Result<InstrumentToken, String> {
     
     Ok(InstrumentToken {
         value,
+        args: None,
         length,
     })
 }

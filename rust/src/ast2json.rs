@@ -30,7 +30,7 @@ pub struct Command {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub connect_to: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub args: Option<Vec<String>>,
+    pub args: Option<serde_json::Value>,
 }
 
 /// Convert AST to Tone.js JSON format
@@ -115,25 +115,34 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
     let mut node_id = track_node_id; // Start with track's base node_id
     
     // Check if the first meaningful token (before any notes/chords/rests) is an Instrument command
-    let first_instrument = ast.iter()
+    let first_instrument_token = ast.iter()
         .take_while(|token| {
             // Stop when we encounter a note, chord, or rest
             !matches!(token, AstToken::Note(_) | AstToken::Chord(_) | AstToken::Rest(_))
         })
         .find_map(|token| {
             if let AstToken::Instrument(instr) = token {
-                instr.value.as_deref()
+                Some(instr.clone())
             } else {
                 None
             }
         });
     
-    let mut current_instrument = first_instrument.unwrap_or("Synth"); // Use first instrument or default to Synth
-    let mut skip_first_instrument = first_instrument.is_some(); // Flag to skip the first @instrument command
+    let mut current_instrument = first_instrument_token.as_ref()
+        .and_then(|t| t.value.as_deref())
+        .unwrap_or("Synth"); // Use first instrument or default to Synth
+    let mut skip_first_instrument = first_instrument_token.is_some(); // Flag to skip the first @instrument command
 
     // Determine if this track needs PolySynth (has chords)
     let needs_polysynth = has_chords(ast);
     let synth_type = get_synth_type_for_track(current_instrument, needs_polysynth);
+
+    // Parse args from the first instrument token if present
+    let initial_args = first_instrument_token.as_ref()
+        .and_then(|t| t.args.as_ref())
+        .and_then(|json_str| {
+            serde_json::from_str(json_str).ok()
+        });
 
     // Add initial setup commands with the appropriate instrument
     commands.push(Command {
@@ -141,7 +150,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
         node_id,
         node_type: Some(synth_type.to_string()),
         connect_to: None,
-        args: None,
+        args: initial_args,
     });
     commands.push(Command {
         event_type: EVENT_TYPE_CONNECT.to_string(),
@@ -169,7 +178,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                     node_id,
                     node_type: None,
                     connect_to: None,
-                    args: Some(vec![note_name, duration, start]),
+                    args: Some(serde_json::json!([note_name, duration, start])),
                 });
 
                 start_tick += ticks;
@@ -188,10 +197,6 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                     note_names.push(note_name);
                 }
                 
-                // For PolySynth, the first arg is a JSON array of notes
-                // We need to serialize it as a JSON array string
-                let notes_json = serde_json::to_string(&note_names)
-                    .map_err(|e| format!("Failed to serialize chord notes: {}", e))?;
                 let duration = calc_duration(ticks);
                 let start = calc_start_tick(start_tick);
 
@@ -200,7 +205,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                     node_id,
                     node_type: None,
                     connect_to: None,
-                    args: Some(vec![notes_json, duration, start]),
+                    args: Some(serde_json::json!([note_names, duration, start])),
                 });
 
                 start_tick += ticks;
@@ -249,6 +254,12 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                     current_instrument = name.as_str();
                 }
                 
+                // Parse args if present
+                let instrument_args = instr.args.as_ref()
+                    .and_then(|json_str| {
+                        serde_json::from_str(json_str).ok()
+                    });
+                
                 node_id += 1;
                 // Both createNode and connect use the same nodeId (the new one)
                 // Get the synth type based on the instrument name
@@ -258,7 +269,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                     node_id,
                     node_type: Some(new_synth_type.to_string()),
                     connect_to: None,
-                    args: None,
+                    args: instrument_args,
                 });
                 commands.push(Command {
                     event_type: EVENT_TYPE_CONNECT.to_string(),
@@ -282,12 +293,15 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
 /// Helper function to extract start tick from a command
 fn get_start_tick(command: &Command) -> u32 {
     if let Some(args) = &command.args {
-        if args.len() >= 3 {
-            // Parse "+123i" format
-            let start_str = &args[2];
-            if start_str.len() > 2 && start_str.starts_with('+') && start_str.ends_with('i') {
-                if let Ok(tick) = start_str[1..start_str.len()-1].parse::<u32>() {
-                    return tick;
+        if let Some(arr) = args.as_array() {
+            if arr.len() >= 3 {
+                if let Some(start_str) = arr[2].as_str() {
+                    // Parse "+123i" format
+                    if start_str.len() > 2 && start_str.starts_with('+') && start_str.ends_with('i') {
+                        if let Ok(tick) = start_str[1..start_str.len()-1].parse::<u32>() {
+                            return tick;
+                        }
+                    }
                 }
             }
         }
@@ -371,35 +385,40 @@ mod tests {
         let result = ast2json(&ast).unwrap();
         assert_eq!(result.len(), 3); // setup (2) + note (1)
         assert_eq!(result[2].event_type, "triggerAttackRelease");
-        assert_eq!(result[2].args.as_ref().unwrap()[0], "c4");
+        let args = result[2].args.as_ref().unwrap().as_array().unwrap();
+        assert_eq!(args[0].as_str().unwrap(), "c4");
     }
 
     #[test]
     fn test_note_with_duration() {
         let ast = mml2ast("c4").unwrap();
         let result = ast2json(&ast).unwrap();
-        assert_eq!(result[2].args.as_ref().unwrap()[1], "182i"); // 192 - 10
+        let args = result[2].args.as_ref().unwrap().as_array().unwrap();
+        assert_eq!(args[1].as_str().unwrap(), "182i"); // 192 - 10
     }
 
     #[test]
     fn test_note_with_accidental() {
         let ast = mml2ast("c+").unwrap();
         let result = ast2json(&ast).unwrap();
-        assert_eq!(result[2].args.as_ref().unwrap()[0], "c#4");
+        let args = result[2].args.as_ref().unwrap().as_array().unwrap();
+        assert_eq!(args[0].as_str().unwrap(), "c#4");
     }
 
     #[test]
     fn test_octave_command() {
         let ast = mml2ast("o5 c").unwrap();
         let result = ast2json(&ast).unwrap();
-        assert_eq!(result[2].args.as_ref().unwrap()[0], "c5");
+        let args = result[2].args.as_ref().unwrap().as_array().unwrap();
+        assert_eq!(args[0].as_str().unwrap(), "c5");
     }
 
     #[test]
     fn test_length_command() {
         let ast = mml2ast("l16 e").unwrap();
         let result = ast2json(&ast).unwrap();
-        assert_eq!(result[2].args.as_ref().unwrap()[1], "38i"); // 48 - 10
+        let args = result[2].args.as_ref().unwrap().as_array().unwrap();
+        assert_eq!(args[1].as_str().unwrap(), "38i"); // 48 - 10
     }
 
     #[test]
@@ -407,9 +426,10 @@ mod tests {
         let ast = mml2ast("o4 l16 e").unwrap();
         let result = ast2json(&ast).unwrap();
         assert_eq!(result.len(), 3); // setup + 1 note
-        assert_eq!(result[2].args.as_ref().unwrap()[0], "e4");
-        assert_eq!(result[2].args.as_ref().unwrap()[1], "38i");
-        assert_eq!(result[2].args.as_ref().unwrap()[2], "+0i");
+        let args = result[2].args.as_ref().unwrap().as_array().unwrap();
+        assert_eq!(args[0].as_str().unwrap(), "e4");
+        assert_eq!(args[1].as_str().unwrap(), "38i");
+        assert_eq!(args[2].as_str().unwrap(), "+0i");
     }
 
     #[test]
@@ -433,8 +453,10 @@ mod tests {
             .filter(|c| c.event_type == "triggerAttackRelease")
             .collect();
         assert_eq!(notes.len(), 2);
-        assert_eq!(notes[0].args.as_ref().unwrap()[0], "c4");
-        assert_eq!(notes[1].args.as_ref().unwrap()[0], "d4");
+        let args0 = notes[0].args.as_ref().unwrap().as_array().unwrap();
+        let args1 = notes[1].args.as_ref().unwrap().as_array().unwrap();
+        assert_eq!(args0[0].as_str().unwrap(), "c4");
+        assert_eq!(args1[0].as_str().unwrap(), "d4");
     }
 
     #[test]
@@ -447,8 +469,10 @@ mod tests {
             .filter(|c| c.event_type == "triggerAttackRelease")
             .collect();
         assert_eq!(notes.len(), 2);
-        assert_eq!(notes[0].args.as_ref().unwrap()[0], "c4");
-        assert_eq!(notes[1].args.as_ref().unwrap()[0], "e5");
+        let args0 = notes[0].args.as_ref().unwrap().as_array().unwrap();
+        let args1 = notes[1].args.as_ref().unwrap().as_array().unwrap();
+        assert_eq!(args0[0].as_str().unwrap(), "c4");
+        assert_eq!(args1[0].as_str().unwrap(), "e5");
     }
 
     #[test]
@@ -468,7 +492,19 @@ mod tests {
         // After sorting: c8(+0i), e8(+0i), d8(+96i), f8(+96i)
         
         // Check that both tracks have notes at +0i
-        assert!(notes.iter().filter(|n| n.args.as_ref().unwrap()[2] == "+0i").count() >= 2);
+        let notes_at_zero: Vec<_> = notes.iter()
+            .filter(|n| {
+                if let Some(args) = &n.args {
+                    if let Some(arr) = args.as_array() {
+                        if arr.len() >= 3 {
+                            return arr[2].as_str() == Some("+0i");
+                        }
+                    }
+                }
+                false
+            })
+            .collect();
+        assert!(notes_at_zero.len() >= 2);
     }
 
     #[test]
@@ -493,8 +529,11 @@ mod tests {
         assert_eq!(chords.len(), 1);
         
         // First arg should be a JSON array of notes
-        let notes_json = &chords[0].args.as_ref().unwrap()[0];
-        let notes: Vec<String> = serde_json::from_str(notes_json).unwrap();
+        let args = chords[0].args.as_ref().unwrap().as_array().unwrap();
+        let notes_arr = args[0].as_array().unwrap();
+        let notes: Vec<String> = notes_arr.iter()
+            .map(|v| v.as_str().unwrap().to_string())
+            .collect();
         assert_eq!(notes, vec!["c4", "e4", "g4"]);
     }
 
@@ -508,8 +547,11 @@ mod tests {
             .collect();
         assert_eq!(chords.len(), 1);
         
-        let notes_json = &chords[0].args.as_ref().unwrap()[0];
-        let notes: Vec<String> = serde_json::from_str(notes_json).unwrap();
+        let args = chords[0].args.as_ref().unwrap().as_array().unwrap();
+        let notes_arr = args[0].as_array().unwrap();
+        let notes: Vec<String> = notes_arr.iter()
+            .map(|v| v.as_str().unwrap().to_string())
+            .collect();
         assert_eq!(notes, vec!["c#4", "e4", "gb4"]);
     }
 
@@ -524,7 +566,8 @@ mod tests {
         assert_eq!(chords.len(), 1);
         
         // Check duration is quarter note (192 ticks - 10 gate time = 182i)
-        assert_eq!(chords[0].args.as_ref().unwrap()[1], "182i");
+        let args = chords[0].args.as_ref().unwrap().as_array().unwrap();
+        assert_eq!(args[1].as_str().unwrap(), "182i");
     }
 
     #[test]
@@ -555,5 +598,24 @@ mod tests {
             .filter(|c| c.event_type == "createNode")
             .collect();
         assert_eq!(create_nodes[0].node_type.as_ref().unwrap(), "Synth");
+    }
+
+    #[test]
+    fn test_sampler_with_json_args() {
+        let ast = mml2ast(r#"@Sampler{"urls":{"C4":"test.mp3"},"release":1} c d"#).unwrap();
+        let result = ast2json(&ast).unwrap();
+        
+        // Check createNode has args
+        let create_nodes: Vec<_> = result.iter()
+            .filter(|c| c.event_type == "createNode")
+            .collect();
+        assert_eq!(create_nodes.len(), 1);
+        assert_eq!(create_nodes[0].node_type.as_ref().unwrap(), "Sampler");
+        
+        // Check that args were passed through
+        assert!(create_nodes[0].args.is_some());
+        let args = create_nodes[0].args.as_ref().unwrap();
+        assert!(args.get("urls").is_some());
+        assert!(args.get("release").is_some());
     }
 }

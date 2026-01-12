@@ -219,17 +219,26 @@ fn parse_octave(node: &Node, source: &str) -> Result<OctaveToken, String> {
 
 fn parse_instrument(node: &Node, source: &str) -> Result<InstrumentToken, String> {
     let mut cursor = node.walk();
+    let mut value: Option<String> = None;
+    let mut args: Option<String> = None;
+    
     if cursor.goto_first_child() {
         loop {
             let child = cursor.node();
-            if cursor.field_name() == Some("name") {
-                let name = get_node_text(&child, source).to_string();
-                let start = node.start_byte();
-                let end = node.end_byte();
-                return Ok(InstrumentToken { 
-                    value: Some(name),
-                    length: end - start,
-                });
+            match cursor.field_name() {
+                Some("name") => {
+                    value = Some(get_node_text(&child, source).to_string());
+                }
+                Some("args") => {
+                    // Extract JSON content from the args node
+                    let args_text = get_node_text(&child, source);
+                    // Remove the curly braces
+                    if args_text.starts_with('{') && args_text.ends_with('}') {
+                        let json_content = &args_text[1..args_text.len()-1];
+                        args = Some(json_content.to_string());
+                    }
+                }
+                _ => {}
             }
             
             if !cursor.goto_next_sibling() {
@@ -238,7 +247,13 @@ fn parse_instrument(node: &Node, source: &str) -> Result<InstrumentToken, String
         }
     }
     
-    Err("Instrument command missing name".to_string())
+    let start = node.start_byte();
+    let end = node.end_byte();
+    Ok(InstrumentToken { 
+        value,
+        args,
+        length: end - start,
+    })
 }
 
 fn parse_chord(node: &Node, source: &str) -> Result<ChordToken, String> {

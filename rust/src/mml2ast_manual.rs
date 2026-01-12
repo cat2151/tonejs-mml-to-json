@@ -252,9 +252,53 @@ fn parse_instrument(chars: &[char], start_index: usize) -> Result<(InstrumentTok
         Some(instrument_name)
     };
 
+    // Check for JSON args in curly braces
+    let mut args: Option<String> = None;
+    if index < chars.len() && chars[index] == '{' {
+        let json_start = index;
+        let mut brace_count = 1;
+        let mut json_content = String::new();
+        json_content.push('{'); // Include the opening brace
+        index += 1; // Skip opening brace
+        
+        // Find matching closing brace
+        while index < chars.len() && brace_count > 0 {
+            let ch = chars[index];
+            if ch == '{' {
+                brace_count += 1;
+                json_content.push(ch);
+            } else if ch == '}' {
+                brace_count -= 1;
+                json_content.push(ch); // Always include the closing brace
+                if brace_count == 0 {
+                    index += 1; // Skip closing brace
+                    break;
+                }
+            } else {
+                json_content.push(ch);
+            }
+            index += 1;
+        }
+        
+        if brace_count != 0 {
+            return Err(format!("Unclosed brace in instrument args at position {}", json_start));
+        }
+        
+        // Validate JSON by attempting to parse it
+        match serde_json::from_str::<serde_json::Value>(&json_content) {
+            Ok(_) => args = Some(json_content),
+            Err(e) => {
+                eprintln!("mml2ast: Invalid JSON in instrument args at position {}: {}", json_start, e);
+                // Still store the invalid JSON, let the consumer handle it
+                args = Some(json_content);
+            }
+        }
+    }
+
     Ok((
         InstrumentToken {
             value,
+            args,
             length: index - start_index,
         },
         index - start_index,
@@ -581,5 +625,58 @@ mod tests {
         assert!(matches!(result[0], AstToken::Note(_)));
         assert!(matches!(result[1], AstToken::Chord(_)));
         assert!(matches!(result[2], AstToken::Note(_)));
+    }
+
+    #[test]
+    fn test_parse_instrument_with_json_args() {
+        let result = mml2ast(r#"@Sampler{"urls":{"C4":"test.mp3"},"release":1}"#).unwrap();
+        assert_eq!(result.len(), 1);
+        match &result[0] {
+            AstToken::Instrument(instr) => {
+                assert_eq!(instr.value.as_deref(), Some("Sampler"));
+                assert!(instr.args.is_some());
+                let args = instr.args.as_ref().unwrap();
+                assert!(args.contains("urls"));
+                assert!(args.contains("C4"));
+                assert!(args.contains("test.mp3"));
+            }
+            _ => panic!("Expected Instrument token"),
+        }
+    }
+
+    #[test]
+    fn test_parse_instrument_with_nested_json() {
+        let result = mml2ast(r#"@Sampler{"urls":{"C4":"a.mp3","D4":"b.mp3"}}"#).unwrap();
+        assert_eq!(result.len(), 1);
+        match &result[0] {
+            AstToken::Instrument(instr) => {
+                assert_eq!(instr.value.as_deref(), Some("Sampler"));
+                assert!(instr.args.is_some());
+            }
+            _ => panic!("Expected Instrument token"),
+        }
+    }
+
+    #[test]
+    fn test_parse_instrument_without_args() {
+        let result = mml2ast("@Synth").unwrap();
+        assert_eq!(result.len(), 1);
+        match &result[0] {
+            AstToken::Instrument(instr) => {
+                assert_eq!(instr.value.as_deref(), Some("Synth"));
+                assert!(instr.args.is_none());
+            }
+            _ => panic!("Expected Instrument token"),
+        }
+    }
+
+    #[test]
+    fn test_parse_instrument_with_args_followed_by_notes() {
+        let result = mml2ast(r#"@Sampler{"release":1} c d e"#).unwrap();
+        assert_eq!(result.len(), 4);
+        assert!(matches!(result[0], AstToken::Instrument(_)));
+        assert!(matches!(result[1], AstToken::Note(_)));
+        assert!(matches!(result[2], AstToken::Note(_)));
+        assert!(matches!(result[3], AstToken::Note(_)));
     }
 }
