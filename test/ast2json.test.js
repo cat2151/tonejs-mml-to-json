@@ -256,6 +256,81 @@ describe('ast2json', () => {
         connectTo: "toDestination"
       });
     });
+
+    it('should create FMSynth for instrument 1', () => {
+      const ast = [
+        { type: 'instrument', value: 1, length: 2 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result).toHaveLength(5); // initial setup + instrument node + connect + note
+      expect(result[2]).toEqual({
+        eventType: "createNode",
+        nodeId: 1,
+        nodeType: "FMSynth"
+      });
+    });
+
+    it('should create AMSynth for instrument 2', () => {
+      const ast = [
+        { type: 'instrument', value: 2, length: 2 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result[2].nodeType).toBe("AMSynth");
+    });
+
+    it('should create MonoSynth for instrument 3', () => {
+      const ast = [
+        { type: 'instrument', value: 3, length: 2 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result[2].nodeType).toBe("MonoSynth");
+    });
+
+    it('should create PluckSynth for instrument 4', () => {
+      const ast = [
+        { type: 'instrument', value: 4, length: 2 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result[2].nodeType).toBe("PluckSynth");
+    });
+
+    it('should create MembraneSynth for instrument 5', () => {
+      const ast = [
+        { type: 'instrument', value: 5, length: 2 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result[2].nodeType).toBe("MembraneSynth");
+    });
+
+    it('should create MetalSynth for instrument 6', () => {
+      const ast = [
+        { type: 'instrument', value: 6, length: 2 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result[2].nodeType).toBe("MetalSynth");
+    });
+
+    it('should create DuoSynth for instrument 7 and higher', () => {
+      const ast = [
+        { type: 'instrument', value: 7, length: 2 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result[2].nodeType).toBe("DuoSynth");
+    });
   });
 
   describe('Complex sequences', () => {
