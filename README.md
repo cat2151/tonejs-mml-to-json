@@ -97,6 +97,11 @@ For detailed usage, please refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 |---------|------|-----|
 | `;` | Track separator<br>Plays multiple parts simultaneously | `cde;efg;abc` |
 
+### Chords
+| Command | Description | Example |
+|---------|------|-----|
+| `'notes'` | Chord (notes enclosed in single quotes play simultaneously)<br>Can include accidentals, duration, and dots | `'ceg'` `'c+eg-'4` `'dfac'8.` |
+
 ### Usage Examples
 ```mml
 // Basic scale
@@ -111,8 +116,17 @@ o4 l8 c4. d e8. f16 g4
 // Octave change
 o4 c d e < f g a > b < c
 
-// Multitrack (chord)
+// Multitrack (separate parts)
 o4 l8 ceg;dfb;ace
+
+// Chords (notes played together)
+o4 l4 'ceg' 'dfb' 'ace'
+
+// Mixed single notes and chords
+o4 c 'eg' d 'fac' e
+
+// Chord with accidentals and duration
+o4 'c+eg-'4 'd+f+a'8 'eg+b'4.
 
 // Timbre change
 @0 cde @1 efg @2 abc
@@ -136,6 +150,33 @@ The following commands are commonly used in standard MML but are not yet impleme
 - The implementation timing and specifications of these commands are undecided.
 - If implemented, specifications may change.
 - Breaking changes may occur frequently during the prototyping phase.
+
+## About Chord Implementation
+
+Chords are implemented using Tone.js's `PolySynth`, which manages multiple synth voices to play notes simultaneously.
+
+### Technical Details
+
+- **Syntax**: Notes enclosed in single quotes (e.g., `'ceg'`) are treated as chords
+- **PolySynth**: Tracks containing chords automatically use `PolySynth` instead of regular `Synth`
+- **Features**:
+  - Supports accidentals within chords: `'c+eg-'` = C# E Gb
+  - Supports duration and dots: `'ceg'4.` = C-E-G chord as dotted quarter note
+  - Works with octave commands: `o5 'ceg'` = C5-E5-G5 chord
+  - Compatible with multi-track: one track can have chords while others don't
+- **Difference from Multi-track**:
+  - Multi-track (`;`): Separate tracks that can play different melodies/parts simultaneously
+  - Chord (`'...'`): Multiple notes played together at the exact same time
+
+### Example Comparison
+
+```mml
+// Multi-track: C, E, G play as separate parts (melody lines)
+c;e;g
+
+// Chord: C, E, G play together as a single chord
+'ceg'
+```
 
 ## About Timbre Specification (``@`` Command)
 
