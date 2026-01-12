@@ -14,7 +14,10 @@ wasm-opt = false
 crate-type = ["cdylib", "rlib"]
 
 [features]
+# Default: no features enabled (uses manual parser for maximum compatibility)
+# This ensures WASM builds work out of the box without C compiler requirements
 default = []
+# Enable Tree-sitter parser (native builds only, requires C compiler)
 tree-sitter = ["dep:tree-sitter", "dep:cc"]
 
 [dependencies]
