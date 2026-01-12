@@ -44,16 +44,12 @@ Last updated: 2026-01-11
       📊 my.json
 📄 .gitignore
 📄 .nojekyll
-📖 CONSOLIDATION.md
-📖 IMPLEMENTATION_ISSUE_24.md
 📖 IMPLEMENTATION_SUMMARY.md
 📖 LIBRARY_USAGE.md
 📄 LICENSE
-📖 MULTI_TRACK_INVESTIGATION.md
 📖 QUICKSTART.md
 📖 README.ja.md
 📖 README.md
-📖 TYPESCRIPT_MIGRATION.md
 📄 _config.yml
 📁 dev-setup/
   📖 README.md
@@ -97,39 +93,6 @@ Last updated: 2026-01-11
   🎨 style.css
 🌐 googled947dc864c270e07.html
 🌐 index.html
-📁 issue-notes/
-  📖 1.md
-  📖 10.md
-  📖 11.md
-  📖 12.md
-  📖 13.md
-  📖 14.md
-  📖 15.md
-  📖 16.md
-  📖 17.md
-  📖 18.md
-  📖 2.md
-  📖 20.md
-  📖 21.md
-  📖 23.md
-  📖 24.md
-  📖 26.md
-  📖 27.md
-  📖 28.md
-  📖 3.md
-  📖 31.md
-  📖 33.md
-  📖 37.md
-  📖 39.md
-  📖 4.md
-  📖 40.md
-  📖 41.md
-  📖 45.md
-  📖 5.md
-  📖 6.md
-  📖 7.md
-  📖 8.md
-  📖 9.md
 🌐 library-usage-example.html
 📊 package-lock.json
 📊 package.json
@@ -187,16 +150,12 @@ Last updated: 2026-01-11
 - **`.github_automation/callgraph/config/my.json`**: GitHub Actionsによって生成される可能性のある、関数呼び出しグラフ自動生成の設定ファイルです。
 - **`.gitignore`**: Gitによるバージョン管理から除外するファイルやディレクトリを指定するファイルです。
 - **`.nojekyll`**: GitHub PagesでJekyll処理を無効にするための空ファイルです。
-- **`CONSOLIDATION.md`**: プロジェクトにおける情報や実装の統合に関する記録や考察をまとめたドキュメントです。
-- **`IMPLEMENTATION_ISSUE_24.md`**: 特定の課題（Issue #24）に関する実装の詳細や検討事項を記したドキュメントです。
 - **`IMPLEMENTATION_SUMMARY.md`**: プロジェクトの実装に関する全体的な概要や重要な点をまとめたドキュメントです。
 - **`LIBRARY_USAGE.md`**: このライブラリをどのようにプロジェクトで使用するかを説明するガイドドキュメントです。
 - **`LICENSE`**: プロジェクトのライセンス情報が記載されています。
-- **`MULTI_TRACK_INVESTIGATION.md`**: 複数トラックの音楽処理に関する調査や検討の結果をまとめたドキュメントです。
 - **`QUICKSTART.md`**: プロジェクトを素早く開始するための手順や最小限の利用方法を説明するドキュメントです。
 - **`README.ja.md`**: プロジェクトの日本語版概要ドキュメントです。
 - **`README.md`**: プロジェクトの英語版概要ドキュメントです。
-- **`TYPESCRIPT_MIGRATION.md`**: TypeScriptへの移行に関する詳細や、移行中の課題と解決策を記録したドキュメントです。
 - **`_config.yml`**: GitHub PagesのJekyll設定ファイルです。
 - **`dev-setup/README.md`**: 開発環境のセットアップに関する説明ドキュメントです。
 - **`dev-setup/setup.js`**: 開発環境のセットアップやテスト準備のためのスクリプトファイルです。
@@ -221,7 +180,6 @@ Last updated: 2026-01-11
 - **`generated-docs/style.css`**: 生成されたドキュメントのスタイルを定義するCSSファイルです。
 - **`googled947dc864c270e07.html`**: Googleサイト認証用のファイルです。
 - **`index.html`**: プロジェクトのデモページまたはトップページとなるHTMLファイルです。
-- **`issue-notes/`**: 開発中の各課題（Issue）に関するメモや詳細が記録されているディレクトリです。
 - **`library-usage-example.html`**: ライブラリの使用方法を示す具体的なコード例を掲載したHTMLファイルです。
 - **`package-lock.json`**: `npm`が使用する依存関係の正確なツリーを記録するファイルです。
 - **`package.json`**: プロジェクトのメタデータ（名前、バージョン、依存関係、スクリプトなど）を定義するファイルです。
