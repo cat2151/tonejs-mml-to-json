@@ -557,7 +557,8 @@ mod tests {
 
     #[test]
     fn test_chord_with_duration() {
-        let ast = mml2ast("'ceg'4").unwrap();
+        // Duration inside quotes
+        let ast = mml2ast("'c4eg'").unwrap();
         let result = ast2json(&ast).unwrap();
         
         let chords: Vec<_> = result.iter()
