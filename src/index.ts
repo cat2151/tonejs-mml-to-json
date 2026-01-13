@@ -6,7 +6,7 @@
  * compatible with tonejs-json-sequencer.
  */
 
-import init, { mml_to_json_wasm } from '../pkg/tonejs_mml_to_json.js';
+import init, { mml2ast_wasm, ast2json_wasm } from '../pkg/tonejs_mml_to_json.js';
 
 // Import types for internal use
 import type { ASTToken } from './mml2ast.js';
@@ -74,11 +74,22 @@ export function mml2json(mml: string): ToneCommand[] {
     throw new Error('WASM module not initialized. Call initWasm() first.');
   }
   
-  const jsonStr = mml_to_json_wasm(mml);
+  // First convert MML to AST
+  const astJson = mml2ast_wasm(mml);
+  const astResult = JSON.parse(astJson);
+  
+  if (astResult.error) {
+    throw new Error(`MML parsing error: ${astResult.error}`);
+  }
+  
+  // Convert AST to Tone.js JSON
+  // Note: We pass astJson (the string) to ast2json_wasm rather than re-serializing astResult
+  // to avoid redundant serialization, even though ast2json_wasm will parse it again internally
+  const jsonStr = ast2json_wasm(astJson);
   const result = JSON.parse(jsonStr);
   
   if (result.error) {
-    throw new Error(`MML conversion error: ${result.error}`);
+    throw new Error(`AST to JSON conversion error: ${result.error}`);
   }
   
   return result;

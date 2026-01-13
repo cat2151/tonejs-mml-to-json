@@ -573,7 +573,8 @@ describe('ast2json', () => {
       
       // Chord command
       expect(result[2].eventType).toBe('triggerAttackRelease');
-      const notes = JSON.parse(result[2].args[0]);
+      const notes = result[2].args[0]; // Now directly an array, not a JSON string
+      expect(Array.isArray(notes)).toBe(true);
       expect(notes).toEqual(['c4', 'e4', 'g4']);
     });
 
@@ -593,7 +594,8 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      const notes = JSON.parse(result[2].args[0]);
+      const notes = result[2].args[0]; // Now directly an array, not a JSON string
+      expect(Array.isArray(notes)).toBe(true);
       expect(notes).toEqual(['c#4', 'e4', 'gb4']);
     });
 
@@ -644,7 +646,8 @@ describe('ast2json', () => {
       expect(events[2].args[0]).toBe('d4');
       
       // Middle is chord
-      const chordNotes = JSON.parse(events[1].args[0]);
+      const chordNotes = events[1].args[0]; // Now directly an array
+      expect(Array.isArray(chordNotes)).toBe(true);
       expect(chordNotes).toEqual(['e4', 'g4']);
     });
 

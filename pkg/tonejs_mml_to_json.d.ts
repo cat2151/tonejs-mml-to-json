@@ -19,6 +19,11 @@ export function cst_to_ast_wasm(cst_json: string): string;
  */
 export function cst_to_json_wasm(cst_json: string): string;
 
+/**
+ * WASM binding for mml2ast - converts MML string to AST JSON (manual parser for WASM)
+ */
+export function mml2ast_wasm(mml: string): string;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
@@ -26,6 +31,7 @@ export interface InitOutput {
   readonly ast2json_wasm: (a: number, b: number) => [number, number];
   readonly cst_to_ast_wasm: (a: number, b: number) => [number, number];
   readonly cst_to_json_wasm: (a: number, b: number) => [number, number];
+  readonly mml2ast_wasm: (a: number, b: number) => [number, number];
   readonly __wbindgen_externrefs: WebAssembly.Table;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
