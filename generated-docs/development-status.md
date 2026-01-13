@@ -1,59 +1,50 @@
-Last updated: 2026-01-13
+Last updated: 2026-01-14
 
 # Development Status
 
 ## 現在のIssues
-- DeepWiki登録に伴い、[Issue #67](../issue-notes/67.md) にてREADME.ja.mdの先頭にDeepWikiバッジをcomドメインで追加する必要があります。
-- [Issue #66](../issue-notes/66.md) と [Issue #65](../issue-notes/65.md) では、tonejs-json-sequencerのデモを参考にSampler機能を実装するため、MMLでの`@Sampler{JSON}`形式の仮仕様検討および実装に着手しています。
-- [Issue #56](../issue-notes/56.md) は、既存のMML機能がRust WASM統合後も全体的に正しく動作することを確認するためのテストが計画されています。
+WASMモジュールに関連する主要機能の追加と変更が行われたため、全体的な動作確認が求められています [Issue #56](../issue-notes/56.md)。
+特に`mml2ast`のWASMエクスポートと新しいJSON引数フォーマットの更新について、既存のテストと合わせて確認が必要です。
+プロジェクトの安定性を確保するため、これらの変更が既存機能に影響を与えていないか広範な検証が必要です。
 
 ## 次の一手候補
-1. [Issue #67](../issue-notes/67.md): DeepWikiバッジのREADME.ja.mdへの追加
-   - 最初の小さな一歩: `README.ja.md`の最新内容を確認し、DeepWikiバッジの適切なURLとMarkdown記述形式を特定する。
+1. WASMモジュール `mml2json` の全体的な動作確認とテストカバレッジの拡充 [Issue #56](../issue-notes/56.md)
+   - 最初の小さな一歩: `test/wasm-integration-test.mjs` を実行し、既存のWASM関連テストが全てパスすることを確認する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `README.ja.md`
+     対象ファイル: `pkg/tonejs_mml_to_json.js`, `pkg/tonejs_mml_to_json_bg.wasm`, `rust/src/lib.rs`, `src/mml2json-wasm.ts`, `test/wasm-integration-test.mjs`, `test/wasm-test.mjs`
 
-     実行内容: `README.ja.md`の先頭のQuick Linksセクションの前にDeepWikiのバッジを追加してください。バッジのURLは`https://deepwiki.com/tonejs-mml-to-json`を使用してください。
+     実行内容: WASMモジュール `tonejs_mml_to_json` のビルドが正しく行われ、JavaScript側から呼び出される際に期待通りに動作しているかをテストコード (`test/wasm-integration-test.mjs` など) を通じて確認してください。特に、`mml2ast` のWASMエクスポートと新しいJSON引数フォーマットが適切に処理されているかを検証してください。
 
-     確認事項: 既存のREADME.ja.mdのフォーマット（特に他のバッジとの整列やQuick Linksセクション前の配置）、DeepWikiの公式ロゴや推奨Markdown形式があればそれに従うこと。
+     確認事項: `package.json` のスクリプト（例: `npm test` または `wasm-pack test` 相当）が正常に実行できること。Rust側のコンパイルが成功していること。
 
-     期待する出力: DeepWikiバッジが追加された`README.ja.md`のファイル内容。
+     期待する出力: WASMモジュールが期待通りに動作していることを示すテスト結果の要約（パス/失敗の数、エラーメッセージなど）をMarkdown形式で報告してください。もし失敗があれば、その原因と修正の方向性も提示してください。
      ```
 
-2. [Issue #65](../issue-notes/65.md) および [Issue #66](../issue-notes/66.md): Sampler機能のMML仕様検討と実装開始
-   - 最初の小さな一歩: `tonejs-json-sequencer`リポジトリ内のSampler関連デモのJSON構造を詳細に分析し、MMLでの表現方法（例：`@Sampler{...}`内のJSON構造）の仮設計を文書化する。
+2. `mml2json-wasm` の TypeScriptラッパーの健全性確認 [Issue #56](../issue-notes/56.md)
+   - 最初の小さな一歩: `src/mml2json-wasm.ts` 内の主要なエクスポート関数がWASMモジュールの対応する関数を正しく呼び出しているか、コードレビューで確認する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `tonejs-json-sequencer`リポジトリ内のSampler関連デモファイル、`README.ja.md`（Samplerセクションの更新検討）、`src/mml2ast.ts`、`src/ast2json.ts`、`rust/src/lib.rs`、`rust/src/mml2ast.rs`、`rust/src/ast2json.rs`
+     対象ファイル: `src/mml2json-wasm.ts`, `pkg/tonejs_mml_to_json.d.ts`, `test/mml2ast.test.js` (関連テストがあれば)
 
-     実行内容: [Issue #65](../issue-notes/65.md) で提案されている`@Sampler{～}`形式のMMLコマンドについて、`tonejs-json-sequencer`のSamplerデモJSON構造を参考に、MMLからAST、そしてJSONへの変換パスでどのようなデータ構造をサポートすべきかを分析してください。具体的には、`@Sampler{ ... }`内の`~`がどのようなJSONを受け入れ、それをAST、そして最終的なTone.js JSONシーケンサーフォーマットにどうマッピングするかを定義し、その実装に必要なコード変更（TypeScriptとRust両方）の概要をmarkdown形式で提示してください。
+     実行内容: `src/mml2json-wasm.ts` が `pkg/tonejs_mml_to_json.d.ts` で定義されているWASMモジュールのインターフェースを正しく利用し、必要な型変換やエラーハンドリングを適切に行っているかを分析してください。特に、WASMモジュールの変更（例：新しいJSON引数フォーマット）がラッパーに正しく反映されているかを確認してください。
 
-     確認事項:
-     1. `tonejs-json-sequencer`のSamplerデモにおけるJSONフォーマットの正確な理解。
-     2. 既存のMMLパーサー（`mml2ast.ts`/`rust/src/mml2ast.rs`）とAST to JSON変換（`ast2json.ts`/`rust/src/ast2json.rs`）の拡張性。
-     3. MML構文として自然で、かつTone.jsのSampler機能をフル活用できるようなパラメータ設計。
-     4. `README.ja.md`のMMLコマンドリファレンスにある「tonejs-json-sequencer との機能対応状況」セクションのSampler行の更新。
+     確認事項: WASMモジュールが最新の変更でビルドされており、その `d.ts` ファイルが正確であること。関連するTypeScriptテストが存在するか、または追加が必要か。
 
-     期待する出力: Sampler機能のMML仕様案（`@Sampler`コマンドの詳細）、ASTの拡張案、およびTone.js JSONへのマッピング定義を記述したmarkdownファイル。可能であれば、TypeScriptおよびRustでの実装における主要な変更点（関数名、データ構造など）のコードスニペットの骨子も含めてください。
+     期待する出力: `src/mml2json-wasm.ts` の現在の実装がWASMモジュールと健全に連携しているかどうかの評価と、もし改善点があれば具体的な修正提案をMarkdown形式で提示してください。
      ```
 
-3. [Issue #56](../issue-notes/56.md): 既存MML機能の全体的な動作確認
-   - 最初の小さな一歩: 既存の`test/`ディレクトリにあるテストファイルをリストアップし、実行可能なテストスイートの構成を把握する。特にRust WASM統合後の回帰テストの観点から、不足しているテストケースがないかを確認する。
+3. ドキュメントの整合性確認と自動翻訳プロセスの健全性検証
+   - 最初の小さな一歩: `README.ja.md` と `README.md` の内容を比較し、最新の変更（例：DeepWikiバッジ）が正しく翻訳・反映されているか目視で確認する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `test/`ディレクトリ内の全テストファイル（例: `test/mml2ast.test.js`, `test/ast2json.test.js`, `test/integration.test.js`, `test/wasm-integration-test.mjs` など）、`package.json`（テストスクリプト）、`src/`ディレクトリ内の各機能実装ファイル、`rust/src/`ディレクトリ内のテスト関連ファイル
+     対象ファイル: `README.ja.md`, `README.md`, `.github/workflows/call-translate-readme.yml`, `.github/actions-tmp/.github_automation/translate/scripts/translate-readme.cjs`
 
-     実行内容: 現在のプロジェクトで定義されている既存のMMLコマンド（音符、休符、オクターブ、長さ、楽器、マルチトラック、和音など）が全て正しく動作していることを確認するためのテスト計画を立案してください。特にRust WASM統合後の回帰テストの観点から、既存のテストカバレッジを評価し、不足しているテストケースがあればそれを具体的にリストアップしてください。
+     実行内容: `README.ja.md` に加えられた最新の変更（例：DeepWikiバッジの追加）が、自動翻訳ワークフロー (`call-translate-readme.yml`) を通じて `README.md` に正確に反映されているかを確認してください。また、翻訳スクリプト `translate-readme.cjs` が意図通りに動作しているか、または改善の余地があるかを評価してください。
 
-     確認事項:
-     1. `package.json`に定義されているテスト実行コマンドとその詳細。
-     2. JavaScript (TypeScript) とRust (WASM) の両実装で同等のテストが実施されているか。
-     3. `README.ja.md`のMMLコマンドリファレンスに記載されている全ての「実装済みコマンド」が網羅的にテストされているか。
-     4. 特に和音やマルチトラックなど、複雑な相互作用がある機能のテスト状況。
+     確認事項: GitHub Actionsのログで `call-translate-readme.yml` の実行履歴を確認し、エラーが発生していないか。翻訳の品質が維持されているか。
 
-     期待する出力: 既存MML機能の動作確認テスト計画を記載したmarkdownファイル。計画には、テスト対象の機能、テストの実行方法、不足しているテストケースのリスト、およびそれらの追加方法（例: 新しいテストファイルまたは既存ファイルへの追記）を含めてください。
-     ```
+     期待する出力: `README.ja.md` と `README.md` の現在の同期状況、自動翻訳プロセスの健全性に関する評価、および必要であれば翻訳の品質向上やワークフローの信頼性向上のための提案をMarkdown形式で提示してください。
 
 ---
-Generated at: 2026-01-13 07:05:44 JST
+Generated at: 2026-01-14 07:05:53 JST

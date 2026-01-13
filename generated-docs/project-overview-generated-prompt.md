@@ -1,4 +1,4 @@
-Last updated: 2026-01-13
+Last updated: 2026-01-14
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -66,6 +66,7 @@ Last updated: 2026-01-13
 **MML to Tone.js JSON Sequencer Format Converter**
 
 <p align="left">
+  <a href="https://deepwiki.com/cat2151/tonejs-mml-to-json"><img src="https://img.shields.io/badge/DeepWiki-Documentation-blue?logo=book" alt="DeepWiki"></a>
   <a href="README.ja.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
   <a href="https://cat2151.github.io/tonejs-mml-to-json/index.html"><img src="https://img.shields.io/badge/🚀-Live%20Demo-brightgreen.svg" alt="Demo"></a>
@@ -760,15 +761,15 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
   - 関数: なし
   - インポート: なし
 
-**pkg/tonejs_mml_to_json.d.ts** (57行, 2229バイト)
-  - 関数: ast2json_wasm, cst_to_ast_wasm, cst_to_json_wasm, initSync, __wbg_init
+**pkg/tonejs_mml_to_json.d.ts** (63行, 2445バイト)
+  - 関数: ast2json_wasm, cst_to_ast_wasm, cst_to_json_wasm, mml2ast_wasm, initSync, __wbg_init
   - インポート: なし
 
-**pkg/tonejs_mml_to_json.js** (251行, 7931バイト)
-  - 関数: getStringFromWasm0, getUint8ArrayMemory0, passStringToWasm0, decodeText, ast2json_wasm, cst_to_ast_wasm, cst_to_json_wasm, __wbg_load, __wbg_get_imports, __wbg_finalize_init, initSync, __wbg_init, if, for, function, catch
+**pkg/tonejs_mml_to_json.js** (271行, 8536バイト)
+  - 関数: getStringFromWasm0, getUint8ArrayMemory0, passStringToWasm0, decodeText, ast2json_wasm, cst_to_ast_wasm, cst_to_json_wasm, mml2ast_wasm, __wbg_load, __wbg_get_imports, __wbg_finalize_init, initSync, __wbg_init, if, for, function, catch
   - インポート: なし
 
-**pkg/tonejs_mml_to_json_bg.wasm.d.ts** (12行, 630バイト)
+**pkg/tonejs_mml_to_json_bg.wasm.d.ts** (13行, 701バイト)
   - 関数: なし
   - インポート: なし
 
@@ -776,11 +777,11 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
   - 関数: なし
   - インポート: fs, path, url
 
-**src/ast2json.ts** (66行, 1983バイト)
+**src/ast2json.ts** (66行, 1990バイト)
   - 関数: ast2json, if
   - インポート: ../pkg/tonejs_mml_to_json.js, ./mml2ast
 
-**src/demos.ts** (84行, 2189バイト)
+**src/demos.ts** (90行, 2653バイト)
   - 関数: なし
   - インポート: なし
 
@@ -788,7 +789,7 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
   - 関数: なし
   - インポート: なし
 
-**src/index.ts** (124行, 3037バイト)
+**src/index.ts** (135行, 3485バイト)
   - 関数: initWasm, mml2json, mml2ast, ast2json, if
   - インポート: ../pkg/tonejs_mml_to_json.js, ./mml2ast.js, ./ast2json.js
 
@@ -796,7 +797,7 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
   - 関数: initializeDemoDropdown, if
   - インポート: ./play.js, ./demos.js
 
-**src/mml2ast.ts** (103行, 2234バイト)
+**src/mml2ast.ts** (104行, 2251バイト)
   - 関数: mml2ast, if
   - インポート: ../pkg/tonejs_mml_to_json.js
 
@@ -808,11 +809,11 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
   - 関数: toSequenceEvent, play, if, catch
   - インポート: ./ast2json, tonejs-json-sequencer
 
-**test/ast2json.test.js** (710行, 25309バイト)
+**test/ast2json.test.js** (713行, 25532バイト)
   - 関数: なし
   - インポート: vitest, ../src/ast2json
 
-**test/integration.test.js** (460行, 16437バイト)
+**test/integration.test.js** (460行, 16341バイト)
   - 関数: for, if
   - インポート: vitest, ../src/mml2ast, ../src/ast2json
 
@@ -820,7 +821,7 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
   - 関数: なし
   - インポート: vitest, ../src/index.js
 
-**test/mml2ast.test.js** (432行, 15334バイト)
+**test/mml2ast.test.js** (462行, 16540バイト)
   - 関数: なし
   - インポート: vitest, ../src/mml2ast
 
@@ -862,6 +863,7 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
     - ast2json_wasm ()
       - cst_to_ast_wasm ()
       - cst_to_json_wasm ()
+      - mml2ast_wasm ()
       - initSync ()
       - __wbg_init (pkg/tonejs_mml_to_json.d.ts)
       - getStringFromWasm0 (pkg/tonejs_mml_to_json.js)
@@ -926,4 +928,4 @@ library-usage-example.html
 
 
 ---
-Generated at: 2026-01-13 07:05:23 JST
+Generated at: 2026-01-14 07:05:33 JST
