@@ -71,6 +71,12 @@ export const demos = [
         name: 'Instrument Switching',
         description: 'Switch between different instruments in one track',
         mml: '@Synth o4 cde @FMSynth fga @AMSynth gab @MonoSynth agf'
+    },
+    {
+        id: 'instrument-sampler',
+        name: '@Sampler (Piano)',
+        description: 'Sample-based synthesis using audio files - realistic piano, drums, or any recorded sound',
+        mml: '@Sampler{"urls":{"C4":"https://tonejs.github.io/audio/salamander/C4.mp3","D#4":"https://tonejs.github.io/audio/salamander/Ds4.mp3","F#4":"https://tonejs.github.io/audio/salamander/Fs4.mp3","A4":"https://tonejs.github.io/audio/salamander/A4.mp3"},"release":1} o4 l8 cdefgab>c'
     }
 ];
 //# sourceMappingURL=demos.js.map

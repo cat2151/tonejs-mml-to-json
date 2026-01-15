@@ -12,7 +12,7 @@ export interface CreateNodeCommand {
     eventType: 'createNode';
     nodeId: number;
     nodeType: string;
-    args?: any[];
+    args?: any;
 }
 export interface ConnectCommand {
     eventType: 'connect';

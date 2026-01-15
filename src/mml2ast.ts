@@ -1,14 +1,12 @@
 /**
- * MML to AST converter using Rust WASM
+ * MML to AST converter using Tree-sitter
  * 
- * This module uses the Rust WASM implementation, consolidating the duplicate
- * TypeScript implementation (issue #26).
- * 
- * The previous pure TypeScript implementation has been removed as part of the
- * consolidation. It can be found in git history (commit d5723ea and earlier).
+ * This module uses web-tree-sitter for parsing in the browser and Node.js.
+ * It follows the Tree-sitter approach where grammar.js is the Single Source of Truth (SSOT).
  */
 
-import { mml2ast_wasm } from '../pkg/tonejs_mml_to_json.js';
+import * as TreeSitter from 'web-tree-sitter';
+import { cst_to_ast_wasm } from '../pkg/tonejs_mml_to_json.js';
 
 // Type definitions for AST tokens
 export interface NoteToken {
@@ -79,20 +77,89 @@ export type ASTToken =
   | OctaveDownToken 
   | InstrumentToken;
 
+let parser: TreeSitter.Parser | null = null;
+let parserInitialized = false;
+
 /**
- * Converts MML string into an Abstract Syntax Tree using Rust WASM
+ * Initialize the Tree-sitter parser
+ * This must be called before using mml2ast
+ * @param wasmPath - Optional custom path to the WASM file (for Node.js/testing)
+ */
+export async function initParser(wasmPath?: string): Promise<void> {
+  if (parserInitialized) {
+    return;
+  }
+
+  await TreeSitter.Parser.init();
+  parser = new TreeSitter.Parser();
+  
+  // Load the MML language from the generated WASM file
+  // Use custom path if provided (for Node.js/testing), otherwise use default path
+  const wasmFile = wasmPath || 'tree-sitter-mml/tree-sitter-mml.wasm';
+  const Lang = await TreeSitter.Language.load(wasmFile);
+  parser.setLanguage(Lang);
+  
+  parserInitialized = true;
+}
+
+/**
+ * Convert Tree-sitter node to CST JSON format
+ */
+function nodeToCSTJson(node: TreeSitter.Node): any {
+  const result: any = {
+    type: node.type,
+    text: node.text,
+    children: [],
+    fields: {}
+  };
+
+  // Process named children
+  for (let i = 0; i < node.namedChildCount; i++) {
+    const child = node.namedChild(i);
+    if (child) {
+      const fieldName = node.fieldNameForChild(i);
+      const childJson = nodeToCSTJson(child);
+      
+      if (fieldName) {
+        if (!result.fields[fieldName]) {
+          result.fields[fieldName] = [];
+        }
+        result.fields[fieldName].push(childJson);
+      } else {
+        result.children.push(childJson);
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Converts MML string into an Abstract Syntax Tree using Tree-sitter
  * 
- * Note: WASM must be initialized before calling this function.
- * In tests, this is handled by test/setup.js
- * In browser, WASM initialization should be done before calling this function
- * (e.g., by importing and awaiting the init function from pkg/tonejs_mml_to_json.js)
+ * Note: Parser must be initialized before calling this function via initParser()
  * 
  * @param mml - MML (Music Macro Language) string to parse
  * @returns Array of AST tokens
  */
 export function mml2ast(mml: string): ASTToken[] {
-  const resultJson = mml2ast_wasm(mml);
-  const result = JSON.parse(resultJson);
+  if (!parser || !parserInitialized) {
+    throw new Error('Parser not initialized. Call initParser() first.');
+  }
+
+  const tree = parser.parse(mml);
+  if (!tree) {
+    throw new Error('Failed to parse MML');
+  }
+  
+  const root = tree.rootNode;
+  
+  // Convert Tree-sitter CST to JSON format
+  const cstJson = nodeToCSTJson(root);
+  
+  // Use Rust WASM function to convert CST to AST
+  const astJson = cst_to_ast_wasm(JSON.stringify(cstJson));
+  const result = JSON.parse(astJson);
   
   // Check for error response
   if (result.error) {
@@ -101,3 +168,4 @@ export function mml2ast(mml: string): ASTToken[] {
   
   return result as ASTToken[];
 }
+

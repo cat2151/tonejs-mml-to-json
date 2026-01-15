@@ -7,10 +7,6 @@ pub mod ast;
 #[cfg(feature = "tree-sitter")]
 pub mod mml2ast;
 
-// Manual parser for tests and WASM builds (without tree-sitter dependency)
-#[cfg(any(test, not(feature = "tree-sitter")))]
-pub mod mml2ast_manual;
-
 // CST to AST converter for WASM builds (using web-tree-sitter)
 pub mod cst_to_ast;
 
@@ -93,25 +89,16 @@ pub fn mml2ast_wasm(mml: &str) -> String {
     }
 }
 
-/// WASM binding for mml2ast - converts MML string to AST JSON (manual parser for WASM)
+/// WASM binding for mml2ast (stub for non-tree-sitter builds)
+/// For WASM builds, use web-tree-sitter in JavaScript and cst_to_json_wasm
 #[cfg(not(feature = "tree-sitter"))]
 #[wasm_bindgen]
-pub fn mml2ast_wasm(mml: &str) -> String {
-    match mml2ast_manual::mml2ast(mml) {
-        Ok(ast) => {
-            serde_json::to_string(&ast)
-                .unwrap_or_else(|e| {
-                    let error_response = ErrorResponse { error: format!("JSON serialization error: {}", e) };
-                    serde_json::to_string(&error_response)
-                        .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
-                })
-        }
-        Err(e) => {
-            let error_response = ErrorResponse { error: e };
-            serde_json::to_string(&error_response)
-                .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
-        }
-    }
+pub fn mml2ast_wasm(_mml: &str) -> String {
+    let error_response = ErrorResponse {
+        error: "This WASM build uses web-tree-sitter. Use cst_to_json_wasm or cst_to_ast_wasm instead.".to_string()
+    };
+    serde_json::to_string(&error_response)
+        .unwrap_or_else(|_| r#"{"error":"Use web-tree-sitter with cst_to_json_wasm"}"#.to_string())
 }
 
 /// WASM binding for cst_to_ast - converts CST JSON to AST JSON

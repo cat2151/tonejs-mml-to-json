@@ -50,6 +50,7 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@octokit/rest": "^22.0.0",
-    "dotenv": "^17.2.0"
+    "dotenv": "^17.2.0",
+    "web-tree-sitter": "^0.26.3"
   }
 }

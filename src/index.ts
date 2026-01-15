@@ -4,9 +4,12 @@
  * This is the main entry point for the library.
  * It exports the core functionality for converting MML to JSON format
  * compatible with tonejs-json-sequencer.
+ * 
+ * This implementation uses Tree-sitter for parsing, with grammar.js as the
+ * Single Source of Truth (SSOT) for the MML syntax.
  */
 
-import init, { mml2ast_wasm, ast2json_wasm } from '../pkg/tonejs_mml_to_json.js';
+import init, { ast2json_wasm } from '../pkg/tonejs_mml_to_json.js';
 
 // Import types for internal use
 import type { ASTToken } from './mml2ast.js';
@@ -33,14 +36,14 @@ export type {
 } from './ast2json.js';
 
 // Import individual conversion functions
-import { mml2ast as mml2astImpl } from './mml2ast.js';
+import { mml2ast as mml2astImpl, initParser } from './mml2ast.js';
 import { ast2json as ast2jsonImpl } from './ast2json.js';
 
 let wasmInitialized = false;
 let wasmInitPromise: Promise<void> | null = null;
 
 /**
- * Initialize the WASM module.
+ * Initialize the WASM module and Tree-sitter parser.
  * This must be called before using any conversion functions.
  * 
  * @returns Promise that resolves when WASM is initialized
@@ -54,7 +57,10 @@ export async function initWasm(): Promise<void> {
     return wasmInitPromise;
   }
   
-  wasmInitPromise = init().then(() => {
+  wasmInitPromise = Promise.all([
+    init(),
+    initParser()
+  ]).then(() => {
     wasmInitialized = true;
   });
   
@@ -74,17 +80,11 @@ export function mml2json(mml: string): ToneCommand[] {
     throw new Error('WASM module not initialized. Call initWasm() first.');
   }
   
-  // First convert MML to AST
-  const astJson = mml2ast_wasm(mml);
-  const astResult = JSON.parse(astJson);
-  
-  if (astResult.error) {
-    throw new Error(`MML parsing error: ${astResult.error}`);
-  }
+  // First convert MML to AST using Tree-sitter
+  const ast = mml2astImpl(mml);
   
   // Convert AST to Tone.js JSON
-  // Note: We pass astJson (the string) to ast2json_wasm rather than re-serializing astResult
-  // to avoid redundant serialization, even though ast2json_wasm will parse it again internally
+  const astJson = JSON.stringify(ast);
   const jsonStr = ast2json_wasm(astJson);
   const result = JSON.parse(jsonStr);
   

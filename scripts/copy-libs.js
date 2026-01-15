@@ -16,3 +16,23 @@ const dest = join(libsDir, 'tonejs-json-sequencer.mjs');
 copyFileSync(source, dest);
 
 console.log('✓ Copied tonejs-json-sequencer to dist/libs');
+
+// Create dist/tree-sitter-mml directory
+const treeSitterDir = join(projectRoot, 'dist', 'tree-sitter-mml');
+mkdirSync(treeSitterDir, { recursive: true });
+
+// Copy tree-sitter-mml WASM
+const treeSitterSource = join(projectRoot, 'tree-sitter-mml', 'tree-sitter-mml.wasm');
+const treeSitterDest = join(treeSitterDir, 'tree-sitter-mml.wasm');
+copyFileSync(treeSitterSource, treeSitterDest);
+
+console.log('✓ Copied tree-sitter-mml.wasm to dist/tree-sitter-mml');
+
+// Copy web-tree-sitter WASM
+const webTreeSitterSource = join(projectRoot, 'node_modules', 'web-tree-sitter', 'web-tree-sitter.wasm');
+const webTreeSitterDest = join(projectRoot, 'dist', 'web-tree-sitter.wasm');
+copyFileSync(webTreeSitterSource, webTreeSitterDest);
+
+console.log('✓ Copied web-tree-sitter.wasm to dist');
+
+

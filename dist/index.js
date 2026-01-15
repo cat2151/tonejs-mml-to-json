@@ -4,15 +4,18 @@
  * This is the main entry point for the library.
  * It exports the core functionality for converting MML to JSON format
  * compatible with tonejs-json-sequencer.
+ *
+ * This implementation uses Tree-sitter for parsing, with grammar.js as the
+ * Single Source of Truth (SSOT) for the MML syntax.
  */
-import init, { mml_to_json_wasm } from '../pkg/tonejs_mml_to_json.js';
+import init, { ast2json_wasm } from '../pkg/tonejs_mml_to_json.js';
 // Import individual conversion functions
-import { mml2ast as mml2astImpl } from './mml2ast.js';
+import { mml2ast as mml2astImpl, initParser } from './mml2ast.js';
 import { ast2json as ast2jsonImpl } from './ast2json.js';
 let wasmInitialized = false;
 let wasmInitPromise = null;
 /**
- * Initialize the WASM module.
+ * Initialize the WASM module and Tree-sitter parser.
  * This must be called before using any conversion functions.
  *
  * @returns Promise that resolves when WASM is initialized
@@ -24,7 +27,10 @@ export async function initWasm() {
     if (wasmInitPromise) {
         return wasmInitPromise;
     }
-    wasmInitPromise = init().then(() => {
+    wasmInitPromise = Promise.all([
+        init(),
+        initParser()
+    ]).then(() => {
         wasmInitialized = true;
     });
     return wasmInitPromise;
@@ -41,10 +47,14 @@ export function mml2json(mml) {
     if (!wasmInitialized) {
         throw new Error('WASM module not initialized. Call initWasm() first.');
     }
-    const jsonStr = mml_to_json_wasm(mml);
+    // First convert MML to AST using Tree-sitter
+    const ast = mml2astImpl(mml);
+    // Convert AST to Tone.js JSON
+    const astJson = JSON.stringify(ast);
+    const jsonStr = ast2json_wasm(astJson);
     const result = JSON.parse(jsonStr);
     if (result.error) {
-        throw new Error(`MML conversion error: ${result.error}`);
+        throw new Error(`AST to JSON conversion error: ${result.error}`);
     }
     return result;
 }
