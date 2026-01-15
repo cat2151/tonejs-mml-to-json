@@ -1,50 +1,52 @@
-Last updated: 2026-01-14
+Last updated: 2026-01-16
 
 # Development Status
 
 ## 現在のIssues
-WASMモジュールに関連する主要機能の追加と変更が行われたため、全体的な動作確認が求められています [Issue #56](../issue-notes/56.md)。
-特に`mml2ast`のWASMエクスポートと新しいJSON引数フォーマットの更新について、既存のテストと合わせて確認が必要です。
-プロジェクトの安定性を確保するため、これらの変更が既存機能に影響を与えていないか広範な検証が必要です。
+- [Issue #74](../issue-notes/74.md)と[Issue #73](../issue-notes/73.md)は、既存の手動パーサーを廃止し、Tree-sitterパーサーを導入することが主要な課題です。
+- [Issue #72](../issue-notes/72.md)と[Issue #71](../issue-notes/71.md)は、未使用コードや陳腐化したドキュメントを整理し、README.ja.mdに情報を集約してプロジェクトの見通しを良くすることを目指しています。
+- また、[Issue #56](../issue-notes/56.md)では主要機能の動作確認が残っており、実装後の品質保証が必要です。
 
 ## 次の一手候補
-1. WASMモジュール `mml2json` の全体的な動作確認とテストカバレッジの拡充 [Issue #56](../issue-notes/56.md)
-   - 最初の小さな一歩: `test/wasm-integration-test.mjs` を実行し、既存のWASM関連テストが全てパスすることを確認する。
-   - Agent実行プロンプト:
+1. [Issue #73](../issue-notes/73.md): Tree-sitter導入のための先行成功リポジトリ調査と実装方針の確立
+   - 最初の小さな一歩: `tree-sitter-mml` の `grammar.js` を作成する前に、GitHub上で既存の成功している `tree-sitter` 言語パーサーリポジトリをいくつか調査し、`grammar.js` の記述方法とRust/WASMとの統合パターンを特定する。
+   - Agent実行プロンプ:
      ```
-     対象ファイル: `pkg/tonejs_mml_to_json.js`, `pkg/tonejs_mml_to_json_bg.wasm`, `rust/src/lib.rs`, `src/mml2json-wasm.ts`, `test/wasm-integration-test.mjs`, `test/wasm-test.mjs`
+     対象ファイル: なし（GitHubリポジトリの調査が主）
 
-     実行内容: WASMモジュール `tonejs_mml_to_json` のビルドが正しく行われ、JavaScript側から呼び出される際に期待通りに動作しているかをテストコード (`test/wasm-integration-test.mjs` など) を通じて確認してください。特に、`mml2ast` のWASMエクスポートと新しいJSON引数フォーマットが適切に処理されているかを検証してください。
+     実行内容: GitHubで「tree-sitter」と「grammar.js」をキーワードに検索し、特に言語パーサーとして機能している人気のあるリポジトリを5つ特定してください。それらのリポジトリについて、`grammar.js` の構成、Rust/WASMとの連携方法、およびテスト戦略（もしあれば）を分析し、調査結果をMarkdown形式でまとめてください。
 
-     確認事項: `package.json` のスクリプト（例: `npm test` または `wasm-pack test` 相当）が正常に実行できること。Rust側のコンパイルが成功していること。
+     確認事項: 既存のMML構文（`README.ja.md`に記載）と照らし合わせ、将来の `tree-sitter-mml` の設計に役立つパターンがあるかを確認してください。ハルシネーションを避け、具体的なファイルパスやコード変更の提案は不要です。
 
-     期待する出力: WASMモジュールが期待通りに動作していることを示すテスト結果の要約（パス/失敗の数、エラーメッセージなど）をMarkdown形式で報告してください。もし失敗があれば、その原因と修正の方向性も提示してください。
-     ```
-
-2. `mml2json-wasm` の TypeScriptラッパーの健全性確認 [Issue #56](../issue-notes/56.md)
-   - 最初の小さな一歩: `src/mml2json-wasm.ts` 内の主要なエクスポート関数がWASMモジュールの対応する関数を正しく呼び出しているか、コードレビューで確認する。
-   - Agent実行プロンプト:
-     ```
-     対象ファイル: `src/mml2json-wasm.ts`, `pkg/tonejs_mml_to_json.d.ts`, `test/mml2ast.test.js` (関連テストがあれば)
-
-     実行内容: `src/mml2json-wasm.ts` が `pkg/tonejs_mml_to_json.d.ts` で定義されているWASMモジュールのインターフェースを正しく利用し、必要な型変換やエラーハンドリングを適切に行っているかを分析してください。特に、WASMモジュールの変更（例：新しいJSON引数フォーマット）がラッパーに正しく反映されているかを確認してください。
-
-     確認事項: WASMモジュールが最新の変更でビルドされており、その `d.ts` ファイルが正確であること。関連するTypeScriptテストが存在するか、または追加が必要か。
-
-     期待する出力: `src/mml2json-wasm.ts` の現在の実装がWASMモジュールと健全に連携しているかどうかの評価と、もし改善点があれば具体的な修正提案をMarkdown形式で提示してください。
+     期待する出力: 調査したリポジトリ名とURL、各リポジトリから得られた `grammar.js` 設計、Rust/WASM連携、テスト戦略に関する知見をまとめたMarkdownリスト。
      ```
 
-3. ドキュメントの整合性確認と自動翻訳プロセスの健全性検証
-   - 最初の小さな一歩: `README.ja.md` と `README.md` の内容を比較し、最新の変更（例：DeepWikiバッジ）が正しく翻訳・反映されているか目視で確認する。
-   - Agent実行プロンプト:
+2. [Issue #72](../issue-notes/72.md): 未使用のソースコードの調査と削除によるコードベースの整理
+   - 最初の小さな一歩: プロジェクト内で現在参照されていない、あるいはビルドプロセスに含まれていないソースファイルやスクリプトを特定する。特に、RustとTypeScript両方の実装パスから確認する。
+   - Agent実行プロンプ:
      ```
-     対象ファイル: `README.ja.md`, `README.md`, `.github/workflows/call-translate-readme.yml`, `.github/actions-tmp/.github_automation/translate/scripts/translate-readme.cjs`
+     対象ファイル: `src/` ディレクトリ内のTypeScriptファイル群、`rust/src/` ディレクトリ内のRustファイル群、および `dist/` ディレクトリ内のファイル。
+                   また、`package.json`、`tsconfig.json`、Rustの`Cargo.toml`、およびGitHub Actionsのワークフロー（`.github/workflows/`）も参照します。
 
-     実行内容: `README.ja.md` に加えられた最新の変更（例：DeepWikiバッジの追加）が、自動翻訳ワークフロー (`call-translate-readme.yml`) を通じて `README.md` に正確に反映されているかを確認してください。また、翻訳スクリプト `translate-readme.cjs` が意図通りに動作しているか、または改善の余地があるかを評価してください。
+     実行内容: `package.json` の `scripts` や `main` / `module` フィールド、`tsconfig.json`、Rustの`Cargo.toml`、およびGitHub Actionsのワークフローで直接参照されていない、未使用のソースコードファイル（`.ts`, `.js`, `.rs`）をリストアップしてください。
 
-     確認事項: GitHub Actionsのログで `call-translate-readme.yml` の実行履歴を確認し、エラーが発生していないか。翻訳の品質が維持されているか。
+     確認事項: 誤って必要なファイルを削除しないよう、複数の参照パス（ビルドスクリプト、テスト、アクション、デモ、外部から呼び出されるAPIエントリーポイントなど）を慎重に確認してください。
 
-     期待する出力: `README.ja.md` と `README.md` の現在の同期状況、自動翻訳プロセスの健全性に関する評価、および必要であれば翻訳の品質向上やワークフローの信頼性向上のための提案をMarkdown形式で提示してください。
+     期待する出力: 未使用と判断されたソースコードファイルのパスをMarkdownのリスト形式で出力してください。
+     ```
+
+3. [Issue #71](../issue-notes/71.md): 陳腐化したドキュメントの調査、削除、README.ja.mdへの情報集約
+   - 最初の小さな一歩: `README.ja.md` 以外の既存のドキュメントファイル (`IMPLEMENTATION_SUMMARY.md`, `LIBRARY_USAGE.md`, `QUICKSTART.md`, `rust/README.md` など) を一覧し、それぞれが `README.ja.md` の内容と重複していないか、または `README.ja.md` に統合可能かを評価する。
+   - Agent実行プロンプ:
+     ```
+     対象ファイル: `README.ja.md`, `IMPLEMENTATION_SUMMARY.md`, `LIBRARY_USAGE.md`, `QUICKSTART.md`, `rust/README.md`, `dev-setup/README.md`, `.github/actions-tmp/README.ja.md` および `docs/` ディレクトリ内のMarkdownファイル。
+
+     実行内容: 上記ファイルの内容を分析し、情報が陳腐化している、あるいは `README.ja.md` の情報と重複しているドキュメントファイルを特定してください。その上で、各ドキュメントの主要な情報が `README.ja.md` に既に含まれているか、または容易に統合できるかを評価し、Markdown形式で報告してください。
+
+     確認事項: `README.ja.md` の「Quick Links」セクションも参照し、リンク先のドキュメントがまだ必要とされているかを考慮してください。ただし、`README.md` は `README.ja.md` から自動生成されるため、分析対象から除外してください。
+
+     期待する出力: 陳腐化または重複が疑われるドキュメントファイルのパスと、そのファイルの内容を `README.ja.md` に統合可能かどうかの簡潔な評価をMarkdownのリスト形式で出力してください。
+     ```
 
 ---
-Generated at: 2026-01-14 07:05:53 JST
+Generated at: 2026-01-16 07:05:51 JST

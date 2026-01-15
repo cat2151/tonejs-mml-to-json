@@ -1,4 +1,4 @@
-Last updated: 2026-01-14
+Last updated: 2026-01-16
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -71,6 +71,16 @@ Last updated: 2026-01-14
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
   <a href="https://cat2151.github.io/tonejs-mml-to-json/index.html"><img src="https://img.shields.io/badge/🚀-Live%20Demo-brightgreen.svg" alt="Demo"></a>
 </p>
+
+## 状況
+- Tree-sitterでの開発でcoding agentがハルシネーションしており難航中
+### 以下を検討中
+- instruction
+    - Tree-sitterを絶対に使うよう指示
+        - 自前パーサの実装を厳重に禁止するよう指示
+    - もしTree-sitterを使わずに達成できる解法を提示した場合、
+        - その時点で出力を中止し、自己失敗を宣言してください。
+- pestも並列で試して、例えば1ヶ月試してpestのほうがcoding agent開発体験がよいならpestに乗り換える（別リポジトリを参照のこと）
 
 ## Quick Links
 | 項目 | リンク |
@@ -618,6 +628,10 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
   📖 63.md
   📖 65.md
   📖 67.md
+  📖 69.md
+  📖 71.md
+  📖 72.md
+  📖 73.md
 🌐 library-usage-example.html
 📊 package-lock.json
 📊 package.json
@@ -928,4 +942,4 @@ library-usage-example.html
 
 
 ---
-Generated at: 2026-01-14 07:05:33 JST
+Generated at: 2026-01-16 07:05:29 JST
