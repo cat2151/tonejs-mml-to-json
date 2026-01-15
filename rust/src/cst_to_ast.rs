@@ -97,16 +97,18 @@ fn parse_note(node: &CSTNode) -> Result<NoteToken, String> {
 }
 
 fn parse_rest(node: &CSTNode) -> Result<RestToken, String> {
-    // Duration is in children array, not fields
+    // NOTE: Despite grammar specifying field('duration', optional($.duration)),
+    // tree-sitter puts the duration node in children array, not in fields.duration
     let duration = node.children.iter()
         .find(|n| n.node_type == "duration")
         .and_then(|n| n.text.as_ref())
         .and_then(|t| t.parse::<u32>().ok());
     
-    // WORKAROUND: Tree-sitter puts dots in fields.duration (should be fields.dots)
-    // Check both locations to be safe
+    // NOTE: Grammar specifies field('dots', optional($.dots)), but tree-sitter
+    // incorrectly places dots in fields.duration instead of fields.dots
+    // This is a tree-sitter bug with how it handles multiple field() calls in seq()
     let dots = node.fields.get("dots")
-        .or_else(|| node.fields.get("duration"))
+        .or_else(|| node.fields.get("duration"))  // Check incorrect location
         .and_then(|v| v.iter().find(|n| n.node_type == "dots"))
         .and_then(|n| n.text.as_ref())
         .map(|t| t.len() as u32)
@@ -122,7 +124,8 @@ fn parse_rest(node: &CSTNode) -> Result<RestToken, String> {
 }
 
 fn parse_length(node: &CSTNode) -> Result<LengthToken, String> {
-    // Value is in children array, not fields
+    // NOTE: Despite grammar specifying field('value', optional($.duration)),
+    // tree-sitter puts the duration node in children array, not in fields.value
     let value = node.children.iter()
         .find(|n| n.node_type == "duration")
         .and_then(|n| n.text.as_ref())
@@ -137,7 +140,9 @@ fn parse_length(node: &CSTNode) -> Result<LengthToken, String> {
 }
 
 fn parse_octave(node: &CSTNode) -> Result<OctaveToken, String> {
-    // Value is in children array, not fields
+    // NOTE: Despite grammar specifying field('value', optional($.duration)),
+    // tree-sitter puts the duration node in children array, not in fields.value
+    // The $.duration rule produces numeric tokens, which are appropriate for octave values
     let value = node.children.iter()
         .find(|n| n.node_type == "duration")
         .and_then(|n| n.text.as_ref())
@@ -162,13 +167,16 @@ fn parse_octave_down(node: &CSTNode) -> Result<OctaveDownToken, String> {
 }
 
 fn parse_instrument(node: &CSTNode) -> Result<InstrumentToken, String> {
-    // Instrument name is in children array
+    // Instrument name is in children array (first child of type instrument_name)
     let value = node.children.iter()
         .find(|n| n.node_type == "instrument_name")
         .and_then(|n| n.text.clone());
     
-    // JSON args are in fields.name (weird, but that's what tree-sitter gives us)
+    // NOTE: Grammar specifies field('args', optional($.json_args)), but tree-sitter
+    // incorrectly places json_args in fields.name instead of fields.args
+    // This appears to be a tree-sitter bug with how it handles multiple field() calls
     let args = node.fields.get("name")
+        .or_else(|| node.fields.get("args"))  // Check correct location as fallback
         .and_then(|v| v.first())
         .and_then(|n| n.text.clone());
     
@@ -186,7 +194,7 @@ fn parse_chord(node: &CSTNode) -> Result<ChordToken, String> {
     let mut duration = None;
     let mut dots_count = 0;
     
-    // First note is in children[0]
+    // First chord_note is in children[0], but dots may also appear in children
     if let Some(first_note) = node.children.first() {
         if first_note.node_type == "chord_note" {
             // Extract duration from first note if present
@@ -214,13 +222,15 @@ fn parse_chord(node: &CSTNode) -> Result<ChordToken, String> {
         }
     }
     
-    // Rest of notes are in fields.notes - but also may include dots nodes
+    // NOTE: Grammar specifies field('notes', repeat1($.chord_note)), but tree-sitter
+    // places the first note in children[0] and remaining notes in fields.notes
+    // Additionally, dots can end up in fields.notes array due to grammar issues
     if let Some(note_nodes) = node.fields.get("notes") {
         for note_node in note_nodes {
             if note_node.node_type == "chord_note" {
                 notes.push(parse_chord_note(note_node)?);
             } else if note_node.node_type == "dots" {
-                // WORKAROUND: Tree-sitter puts dots in fields.notes array
+                // Tree-sitter incorrectly puts dots in fields.notes array
                 if let Some(text) = &note_node.text {
                     dots_count = text.len() as u32;
                 }
@@ -228,7 +238,7 @@ fn parse_chord(node: &CSTNode) -> Result<ChordToken, String> {
         }
     }
     
-    // Also check fields.dots for dots (correct location)
+    // Also check fields.dots (the correct location per grammar)
     if dots_count == 0 {
         dots_count = node.fields.get("dots")
             .and_then(|v| v.first())
