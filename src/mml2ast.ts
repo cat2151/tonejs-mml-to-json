@@ -83,8 +83,9 @@ let parserInitialized = false;
 /**
  * Initialize the Tree-sitter parser
  * This must be called before using mml2ast
+ * @param wasmPath - Optional custom path to the WASM file (for Node.js/testing)
  */
-export async function initParser(): Promise<void> {
+export async function initParser(wasmPath?: string): Promise<void> {
   if (parserInitialized) {
     return;
   }
@@ -93,8 +94,9 @@ export async function initParser(): Promise<void> {
   parser = new TreeSitter.Parser();
   
   // Load the MML language from the generated WASM file
-  // The path is relative to the dist directory
-  const Lang = await TreeSitter.Language.load('tree-sitter-mml/tree-sitter-mml.wasm');
+  // Use custom path if provided (for Node.js/testing), otherwise use default path
+  const wasmFile = wasmPath || 'tree-sitter-mml/tree-sitter-mml.wasm';
+  const Lang = await TreeSitter.Language.load(wasmFile);
   parser.setLanguage(Lang);
   
   parserInitialized = true;

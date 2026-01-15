@@ -57,8 +57,9 @@ export type ASTToken = NoteToken | ChordToken | RestToken | LengthToken | Octave
 /**
  * Initialize the Tree-sitter parser
  * This must be called before using mml2ast
+ * @param wasmPath - Optional custom path to the WASM file (for Node.js/testing)
  */
-export declare function initParser(): Promise<void>;
+export declare function initParser(wasmPath?: string): Promise<void>;
 /**
  * Converts MML string into an Abstract Syntax Tree using Tree-sitter
  *
