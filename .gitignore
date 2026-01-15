@@ -16,15 +16,16 @@ codeql-db
 # secrets
 .secrets
 
-# LLM
-copilot-instructions.md
-
 # Rust
 rust/target/
 rust/Cargo.lock
 
 # WASM pkg is needed for library usage, so not ignored
 
+# Tree-sitter generated files (keep parser.c and .wasm)
+tree-sitter-mml/node_modules/
+tree-sitter-mml/bindings/
+tree-sitter-mml/build/
 
 # Added by cargo
 
