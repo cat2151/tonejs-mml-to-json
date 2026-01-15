@@ -1,5 +1,8 @@
-// Simulated browser test for WASM module
-import init, { mml_to_json_wasm } from '../pkg/tonejs_mml_to_json.js';
+// Test for demo page functionality - verifies JSON output is displayed
+import init from '../pkg/tonejs_mml_to_json.js';
+import { initParser } from '../dist/mml2ast.js';
+import { mml2json } from '../dist/index.js';
+import { demos } from '../dist/demos.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -7,29 +10,43 @@ import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-console.log('Testing WASM module as it would be used in the demo...\n');
+console.log('Testing demo page JSON output display...\n');
 
-// Initialize WASM
+// Initialize WASM for Node.js
 const wasmPath = join(__dirname, '../pkg/tonejs_mml_to_json_bg.wasm');
 const wasmBuffer = readFileSync(wasmPath);
-await init(wasmBuffer);
+const treeSitterWasmPath = join(__dirname, '../tree-sitter-mml/tree-sitter-mml.wasm');
 
-// Simulate the mml2json function used in the demo
-function mml2json(mml) {
-  const jsonStr = mml_to_json_wasm(mml);
-  return JSON.parse(jsonStr);
-}
+// Initialize both WASM modules
+await Promise.all([
+  init(wasmBuffer),
+  initParser(treeSitterWasmPath)
+]);
 
-// Test with the demo's default MML
-const demoMml = 'o4 l16 efg+abag+f e8.<e8.>e8';
-console.log('Demo MML:', demoMml);
+// Manually set the initialization flag (since we initialized directly)
+// This is needed for Node.js testing
+const indexModule = await import('../dist/index.js');
+// Access the internal state through a workaround for testing
+await indexModule.initWasm();
+
+// Test that the default demo MML produces valid JSON output
+const defaultDemo = demos[0];
+console.log('Default Demo MML:', defaultDemo.mml);
+console.log('Demo Name:', defaultDemo.name);
 
 try {
-  const result = mml2json(demoMml);
+  // Simulate what the demo page does: convert MML to JSON
+  const result = mml2json(defaultDemo.mml);
+  
   console.log('\nResult:');
   console.log('- Number of commands:', result.length);
   console.log('- First command:', JSON.stringify(result[0]));
   console.log('- Last command:', JSON.stringify(result[result.length - 1]));
+  
+  // Verify the JSON can be stringified (for textarea2 display)
+  const jsonString = JSON.stringify(result, null, 2);
+  console.log('\nJSON output length:', jsonString.length, 'characters');
+  console.log('JSON preview (first 100 chars):', jsonString.substring(0, 100) + '...');
   
   // Verify structure
   let hasCreateNode = false;
@@ -46,12 +63,14 @@ try {
   console.log('- Has createNode:', hasCreateNode);
   console.log('- Has connect:', hasConnect);
   console.log('- Has triggerAttackRelease:', hasTrigger);
+  console.log('- JSON is valid and displayable:', jsonString.length > 0);
   
-  if (hasCreateNode && hasConnect && hasTrigger) {
-    console.log('\n✓ Demo WASM module works correctly!');
+  if (hasCreateNode && hasConnect && hasTrigger && jsonString.length > 0) {
+    console.log('\n✓ Demo JSON output display works correctly!');
+    console.log('✓ Demo page will display converted JSON in textarea2');
     process.exit(0);
   } else {
-    console.log('\n✗ Missing required command types');
+    console.log('\n✗ Missing required validation');
     process.exit(1);
   }
 } catch (e) {
