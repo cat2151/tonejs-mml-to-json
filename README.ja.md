@@ -495,7 +495,7 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
 3. **実際に使用されているパーサー**
    - **WASMビルド（ブラウザでの利用）**: `rust/src/mml2ast_manual.rs` の手動実装パーサーを使用
    - **デフォルトビルド**: 同じく `mml2ast_manual.rs` を使用
-   - このマニュアルパーサーは約280行のRustコードで実装されており、Tree-sitterなしで完全に動作します
+   - このマニュアルパーサーは約420行のRustコードで実装されており（テストを含めると約680行）、Tree-sitterなしで完全に動作します
 
 4. **代替実装: CST to AST変換**
    - `rust/src/cst_to_ast.rs` というモジュールが存在します
