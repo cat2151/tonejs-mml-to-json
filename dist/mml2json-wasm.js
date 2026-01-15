@@ -8,7 +8,7 @@ async function initWasm() {
     if (!wasmInitialized) {
         await Promise.all([
             init(),
-            initParser()
+            initParser('../dist/tree-sitter-mml/tree-sitter-mml.wasm')
         ]);
         wasmInitialized = true;
     }
