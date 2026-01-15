@@ -474,4 +474,66 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
 - このprojectではvitestによるTDDをしていた気がする
   - あとでtest手順を整理するつもり
 
+## Tree-sitterとgrammar.jsの利用状況
+
+### 調査結果（2026-01-15）
+
+このリポジトリにおいて、**Tree-sitterとgrammar.jsは現在実際には利用されていません**。以下、詳細な調査結果を記載します。
+
+#### 実装の経緯と現状
+
+1. **Tree-sitterの実装は条件付きで存在する**
+   - `rust/src/mml2ast.rs` にTree-sitterを使用したパーサー実装が存在します
+   - ただし、これは `#[cfg(feature = "tree-sitter")]` というフィーチャーフラグでゲートされています
+   - デフォルトビルドでは**このフィーチャーは無効化**されています（`rust/Cargo.toml` の `default = []`）
+
+2. **grammar.jsファイルは存在しない**
+   - リポジトリ内を検索しましたが、`grammar.js` ファイルは見つかりませんでした
+   - `rust/build.rs` は `../tree-sitter-mml/src/parser.c` と `../tree-sitter-mml/grammar.js` を参照していますが、これらのファイルも存在しません
+   - Tree-sitterフィーチャーを有効にしてビルドしようとすると、これらのファイルが見つからずエラーになります
+
+3. **実際に使用されているパーサー**
+   - **WASMビルド（ブラウザでの利用）**: `rust/src/mml2ast_manual.rs` の手動実装パーサーを使用
+   - **デフォルトビルド**: 同じく `mml2ast_manual.rs` を使用
+   - このマニュアルパーサーは約280行のRustコードで実装されており、Tree-sitterなしで完全に動作します
+
+4. **代替実装: CST to AST変換**
+   - `rust/src/cst_to_ast.rs` というモジュールが存在します
+   - これは「web-tree-sitterから得られたCSTをASTに変換する」という説明がありますが、実際には現在のブラウザ実装では使用されていません
+   - WASMビルドは直接 `mml2ast_manual.rs` を使用しています
+
+#### アーキテクチャ上の設計判断
+
+`IMPLEMENTATION_SUMMARY.md` によると、以下の理由でTree-sitterを使わない直接パーサー実装が選択されました：
+
+**Tree-sitterを使わない理由**:
+- ✅ より簡単な実装とメンテナンス
+- ✅ 外部のC依存関係が不要
+- ✅ より小さなWASMバイナリサイズ
+- ✅ 拡張や変更が容易
+- ✅ 同じ機能を実現可能
+
+**現在の実装のメリット**:
+- WASMビルド時にCコンパイラが不要
+- ブラウザで問題なく動作（46KB、最適化なし）
+- すべてのテスト（120テスト）が成功
+- JavaScript実装と100%互換
+
+#### コード構造の整理状況
+
+- **削除済み**: TypeScriptによる純粋なJavaScript実装（issue #26で統合され、コミットd5723ea以前のgit履歴に存在）
+- **残存しているが未使用**: Tree-sitter関連のコード（条件付きコンパイルでゲート）
+- **実際に使用中**: `mml2ast_manual.rs` による手動実装パーサー
+
+#### 今後の可能性
+
+設計上、Tree-sitterは将来的に追加可能な構造になっています：
+- モジュール構造により、パーサー実装を切り替え可能
+- `tree-sitter` フィーチャーフラグを有効にすれば、Tree-sitter版を使用可能（ただし、grammar.jsとparser.cが必要）
+- ただし、現状では手動パーサーで十分な性能と機能を実現しています
+
+#### まとめ
+
+**結論**: このリポジトリでは、Tree-sitterやgrammar.jsは実際には使用されていません。コード中にTree-sitter対応のための実装が存在しますが、それはデフォルトでは無効化されており、必要なgrammar.jsファイルも存在しません。現在の実装は、Rustで書かれた手動パーサー（`mml2ast_manual.rs`）を使用しており、これによってブラウザとネイティブ環境の両方で問題なく動作しています。
+
 ※README.md は README.ja.md を元にGeminiの翻訳でGitHub Actionsで自動生成しています
