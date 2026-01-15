@@ -4,13 +4,16 @@
  * This is the main entry point for the library.
  * It exports the core functionality for converting MML to JSON format
  * compatible with tonejs-json-sequencer.
+ *
+ * This implementation uses Tree-sitter for parsing, with grammar.js as the
+ * Single Source of Truth (SSOT) for the MML syntax.
  */
 import type { ASTToken } from './mml2ast.js';
 import type { ToneCommand } from './ast2json.js';
 export type { ASTToken, NoteToken, RestToken, LengthToken, OctaveToken, OctaveUpToken, OctaveDownToken, InstrumentToken } from './mml2ast.js';
 export type { ToneCommand, CreateNodeCommand, ConnectCommand, TriggerAttackReleaseCommand, DepthRampToCommand } from './ast2json.js';
 /**
- * Initialize the WASM module.
+ * Initialize the WASM module and Tree-sitter parser.
  * This must be called before using any conversion functions.
  *
  * @returns Promise that resolves when WASM is initialized

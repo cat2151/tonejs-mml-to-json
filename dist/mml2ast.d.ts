@@ -1,11 +1,8 @@
 /**
- * MML to AST converter using Rust WASM
+ * MML to AST converter using Tree-sitter
  *
- * This module uses the Rust WASM implementation, consolidating the duplicate
- * TypeScript implementation (issue #26).
- *
- * The previous pure TypeScript implementation has been removed as part of the
- * consolidation. It can be found in git history (commit d5723ea and earlier).
+ * This module uses web-tree-sitter for parsing in the browser and Node.js.
+ * It follows the Tree-sitter approach where grammar.js is the Single Source of Truth (SSOT).
  */
 export interface NoteToken {
     type: 'note';
@@ -41,7 +38,8 @@ export interface OctaveDownToken {
 }
 export interface InstrumentToken {
     type: 'instrument';
-    value: number | null;
+    value: string | null;
+    args?: string;
     length: number;
 }
 export interface ChordNote {
@@ -57,12 +55,14 @@ export interface ChordToken {
 }
 export type ASTToken = NoteToken | ChordToken | RestToken | LengthToken | OctaveToken | OctaveUpToken | OctaveDownToken | InstrumentToken;
 /**
- * Converts MML string into an Abstract Syntax Tree using Rust WASM
+ * Initialize the Tree-sitter parser
+ * This must be called before using mml2ast
+ */
+export declare function initParser(): Promise<void>;
+/**
+ * Converts MML string into an Abstract Syntax Tree using Tree-sitter
  *
- * Note: WASM must be initialized before calling this function.
- * In tests, this is handled by test/setup.js
- * In browser, WASM initialization should be done before calling this function
- * (e.g., by importing and awaiting the init function from pkg/tonejs_mml_to_json.js)
+ * Note: Parser must be initialized before calling this function via initParser()
  *
  * @param mml - MML (Music Macro Language) string to parse
  * @returns Array of AST tokens

@@ -1,12 +1,17 @@
-// WASM-based mml2json implementation
-import init, { mml_to_json_wasm } from '../pkg/tonejs_mml_to_json.js';
+// WASM-based mml2json implementation using Tree-sitter
+import init from '../pkg/tonejs_mml_to_json.js';
+import { initParser, mml2ast } from './mml2ast.js';
+import { ast2json } from './ast2json.js';
 
 let wasmInitialized = false;
 
-// Initialize WASM module
+// Initialize WASM module and Tree-sitter parser
 async function initWasm(): Promise<void> {
   if (!wasmInitialized) {
-    await init();
+    await Promise.all([
+      init(),
+      initParser()
+    ]);
     wasmInitialized = true;
   }
 }
@@ -26,17 +31,18 @@ window.mml2json = function(mml: string): any {
   if (!wasmInitialized) {
     throw new Error('WASM module not initialized. Call initWasm() first.');
   }
-  const jsonStr = mml_to_json_wasm(mml);
-  return JSON.parse(jsonStr);
+  // Use Tree-sitter parser to convert MML to AST, then AST to JSON
+  const ast = mml2ast(mml);
+  return ast2json(ast);
 };
 
 // Initialize on load and dispatch event when ready
 const wasmReadyPromise = initWasm().then(() => {
-  console.log('WASM module initialized successfully');
+  console.log('WASM module and Tree-sitter parser initialized successfully');
   // Dispatch custom event to notify that WASM is ready
   window.dispatchEvent(new CustomEvent('wasmReady'));
 }).catch(err => {
-  console.error('Failed to initialize WASM module:', err);
+  console.error('Failed to initialize WASM module or Tree-sitter parser:', err);
   // Dispatch error event so UI can handle the failure
   window.dispatchEvent(new CustomEvent('wasmError', { detail: err }));
   throw err; // Re-throw to keep promise rejected
