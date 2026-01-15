@@ -101,7 +101,8 @@ module.exports = grammar({
     instrument_name: $ => /[A-Za-z][A-Za-z0-9]*/,
 
     // JSON arguments for instrument (e.g., for Sampler)
-    json_args: $ => /\{[^}]*\}/,
+    // This regex matches balanced braces to handle nested JSON objects
+    json_args: $ => /\{(?:[^{}]|\{[^}]*\})*\}/,
 
     // Chord: 'notes' with optional duration inside quotes and dots outside
     // Example: 'ceg', 'c+eg-', 'c4eg', 'c4eg'.
