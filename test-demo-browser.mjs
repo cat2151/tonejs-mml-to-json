@@ -35,12 +35,42 @@ try {
   console.log('Navigating to demo page...');
   await page.goto('http://localhost:8765/src/index.html');
   
-  // Wait a bit for page to load and any errors to appear
-  await page.waitForTimeout(3000);
+  // Wait for WASM to initialize
+  console.log('Waiting for WASM initialization...');
+  const wasmInitialized = await page.evaluate(() => {
+    return new Promise((resolve) => {
+      // Set a timeout in case initialization never completes
+      const timeout = setTimeout(() => {
+        console.log('WASM initialization timeout');
+        resolve(false);
+      }, 10000);
+      
+      window.addEventListener('wasmReady', () => {
+        console.log('WASM ready event received');
+        clearTimeout(timeout);
+        resolve(true);
+      });
+      
+      window.addEventListener('wasmError', (e) => {
+        console.log('WASM error event received:', e.detail);
+        clearTimeout(timeout);
+        resolve(false);
+      });
+    });
+  });
   
-  console.log('\n=== Summary ===');
-  console.log('Console messages:', consoleMessages.length);
+  console.log('\n=== Test Results ===');
+  console.log('WASM Initialized:', wasmInitialized);
   console.log('Page errors:', pageErrors.length);
+  
+  // Check if web-tree-sitter error is present
+  const hasTreeSitterError = pageErrors.some(err => 
+    err.includes('web-tree-sitter') || err.includes('module specifier')
+  ) || consoleMessages.some(msg => 
+    msg.text.includes('web-tree-sitter') && msg.text.includes('module specifier')
+  );
+  
+  console.log('Has Tree-sitter module error:', hasTreeSitterError);
   
   if (pageErrors.length > 0) {
     console.log('\n=== Page Errors ===');
@@ -49,11 +79,29 @@ try {
     });
   }
   
-  if (consoleMessages.length > 0) {
-    console.log('\n=== Console Messages (first 10) ===');
-    consoleMessages.slice(0, 10).forEach((msg, i) => {
-      console.log(`${i + 1}. [${msg.type}] ${msg.text}`);
+  // Test mml2json function if initialized
+  if (wasmInitialized) {
+    console.log('\n=== Testing mml2json ===');
+    const testResult = await page.evaluate(() => {
+      try {
+        const result = window.mml2json('cde');
+        return {
+          success: true,
+          resultLength: result.length,
+          hasCommands: result.length > 0
+        };
+      } catch (e) {
+        return { success: false, error: e.message };
+      }
     });
+    console.log('mml2json test:', JSON.stringify(testResult, null, 2));
+  }
+  
+  console.log('\n=== Summary ===');
+  if (wasmInitialized && !hasTreeSitterError) {
+    console.log('✓ Demo is working correctly!');
+  } else {
+    console.log('✗ Demo has issues');
   }
   
   await browser.close();

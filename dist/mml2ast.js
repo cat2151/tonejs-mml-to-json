@@ -21,7 +21,8 @@ export async function initParser(wasmPath) {
     parser = new TreeSitter.Parser();
     // Load the MML language from the generated WASM file
     // Use custom path if provided (for Node.js/testing), otherwise use default path
-    const wasmFile = wasmPath || 'tree-sitter-mml/tree-sitter-mml.wasm';
+    // For browser, use path relative to domain root
+    const wasmFile = wasmPath || '/dist/tree-sitter-mml/tree-sitter-mml.wasm';
     const Lang = await TreeSitter.Language.load(wasmFile);
     parser.setLanguage(Lang);
     parserInitialized = true;

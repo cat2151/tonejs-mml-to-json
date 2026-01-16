@@ -107,6 +107,25 @@ If manual parsers exist in the codebase:
 - Update build scripts to generate parsers from grammar.js
 - Ensure all tests pass with Tree-sitter implementation
 
+## Investigation Requirements for Bug Fixes
+
+When fixing bugs, especially those related to browser/demo functionality:
+
+1. **Investigate Before Fixing**
+   - Use headless browser testing to verify the actual error in the demo
+   - Do NOT rely solely on desk analysis of source code (avoid hallucination risk)
+   - Confirm the root cause before implementing a fix
+
+2. **Check Test Status First**
+   - Run tests before making changes to identify pre-existing issues
+   - If tests fail or parsing is broken, report to user before proceeding
+   - Do not fix unrelated test failures unless explicitly asked
+
+3. **Verify Tree-sitter Architecture**
+   - Ensure any fix maintains Tree-sitter as the parsing mechanism
+   - If a solution bypasses Tree-sitter, STOP and report failure
+   - All parsing must go through grammar.js → Tree-sitter → CST → AST
+
 ## Questions?
 
 When in doubt:
