@@ -35,4 +35,11 @@ copyFileSync(webTreeSitterSource, webTreeSitterDest);
 
 console.log('✓ Copied web-tree-sitter.wasm to dist');
 
+// Copy web-tree-sitter JS
+const webTreeSitterJsSource = join(projectRoot, 'node_modules', 'web-tree-sitter', 'web-tree-sitter.js');
+const webTreeSitterJsDest = join(projectRoot, 'dist', 'web-tree-sitter.js');
+copyFileSync(webTreeSitterJsSource, webTreeSitterJsDest);
+
+console.log('✓ Copied web-tree-sitter.js to dist');
+
 

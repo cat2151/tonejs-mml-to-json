@@ -95,7 +95,17 @@ export async function initParser(wasmPath?: string): Promise<void> {
   
   // Load the MML language from the generated WASM file
   // Use custom path if provided (for Node.js/testing), otherwise use default path
-  const wasmFile = wasmPath || 'tree-sitter-mml/tree-sitter-mml.wasm';
+  // For browser, construct path relative to this module's location to support subdirectory deployments
+  let wasmFile = wasmPath;
+  if (!wasmFile) {
+    if (typeof window !== 'undefined' && import.meta?.url) {
+      // Browser with ES modules: resolve relative to this module
+      wasmFile = new URL('./tree-sitter-mml/tree-sitter-mml.wasm', import.meta.url).href;
+    } else {
+      // Node.js or fallback: use relative path
+      wasmFile = 'tree-sitter-mml/tree-sitter-mml.wasm';
+    }
+  }
   const Lang = await TreeSitter.Language.load(wasmFile);
   parser.setLanguage(Lang);
   
