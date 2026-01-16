@@ -9,20 +9,20 @@
   <a href="https://cat2151.github.io/tonejs-mml-to-json/index.html"><img src="https://img.shields.io/badge/🚀-Live%20Demo-brightgreen.svg" alt="Demo"></a>
 </p>
 
-## Implementation Strategy
-This project parses MML using **Tree-sitter**.
-- The parser implementation treats `grammar.js` as the Single Source of Truth (SSOT).
-- For details, refer to [copilot-instructions.md](copilot-instructions.md).
+## Implementation Policy
+This project uses **Tree-sitter** to parse MML.
+- The parser implementation treats [`grammar.js`](tree-sitter-mml/grammar.js) as the Single Source of Truth (SSOT).
+- Refer to [copilot-instructions.md](copilot-instructions.md) for details.
 
 ## Reference Repositories
 This project references the following Tree-sitter implementation repositories:
 
-### Tree-sitter Reference Implementations
+### Tree-sitter Success Stories
 - **[tree-sitter-wasm-c-generate-example](https://github.com/cat2151/tree-sitter-wasm-c-generate-example)**
-  - An implementation example for generating C language and WASM parsers from Tree-sitter's grammar.js.
-  - A design pattern treating grammar.js as the SSOT.
+  - An example implementation of generating a C language parser and a WASM parser from Tree-sitter's grammar.js.
+  - A design pattern that treats grammar.js as the SSOT.
   - How to support both C and WASM generation.
-  - This forms the foundation of the Tree-sitter implementation in this project.
+  - This forms the foundation of this project's Tree-sitter implementation.
 
 ## Quick Links
 | Item | Link |
@@ -35,14 +35,14 @@ This project references the following Tree-sitter implementation repositories:
 | 📊 Development Status | [generated-docs/development-status.md](generated-docs/development-status.md) |
 
 # Overview
-- Converts music written in MML (Music Macro Language) into a browser-playable JSON format.
+- Converts music written in MML (Music Macro Language) into a JSON format playable in a browser.
 - Create music with simple text and play it on your website.
 - Available as an npm package and via CDN, making integration into projects easy.
-- This tool specializes in music conversion; actual playback is handled by a separate project (`tonejs-json-sequencer`).
+- A tool specialized in music conversion, with actual playback handled by a separate project (`tonejs-json-sequencer`).
 
 # Usage
 
-## Using as an npm package
+## As an npm package
 
 ```bash
 npm install tonejs-mml-to-json
@@ -51,7 +51,7 @@ npm install tonejs-mml-to-json
 ```javascript
 import { initWasm, mml2json } from 'tonejs-mml-to-json';
 
-// Initialize WASM module
+// Initialize the WASM module
 await initWasm();
 
 // Convert MML to JSON
@@ -60,7 +60,7 @@ const json = mml2json(mml);
 console.log(json);
 ```
 
-## Using via CDN
+## Via CDN
 
 ```html
 <script type="module">
@@ -81,28 +81,28 @@ For detailed usage, please refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 ### Notes and Rests
 | Command | Description | Example |
 |---------|------|-----|
-| `c d e f g a b` | Notes (C, D, E, F, G, A, B) | `cdefgab` |
-| `+` `-` | Accidentals (Sharp/Flat)<br>*Place immediately after the note (cannot be placed before the note)* | `c+` `e-` `c++` `e--` |
-| `Number` | Note duration (4=quarter note, 8=eighth note, 16=sixteenth note)<br>Place immediately after the note or rest | `c4` `e8` `c16` |
-| `.` | Dot (increases note duration by 1.5 times)<br>Can be specified consecutively (`..`=1.75 times) | `c4.` `e8..` |
-| `r` | Rest<br>Duration and dots can be specified similar to notes | `r` `r4` `r8.` |
+| `c d e f g a b` | Notes (C D E F G A B) | `cdefgab` |
+| `+` `-` | Accidentals (sharp/flat)<br>※Placed immediately after the note (cannot be placed before the note) | `c+` `e-` `c++` `e--` |
+| `number` | Note length (4=quarter note, 8=eighth note, 16=sixteenth note)<br>Placed immediately after the note or rest | `c4` `e8` `c16` |
+| `.` | Dot (increases note length by 1.5 times)<br>Can be specified consecutively (`..`=1.75 times) | `c4.` `e8..` |
+| `r` | Rest<br>Length and dot can be specified similarly to notes | `r` `r4` `r8.` |
 
 ### Octave Control
 | Command | Description | Example |
 |---------|------|-----|
 | `oNumber` | Specify octave (default: `o4`) | `o4` `o5` `o3` |
-| `<` | Increase octave by 1 | `<` |
-| `>` | Decrease octave by 1 | `>` |
+| `<` | Raise octave by 1 | `<` |
+| `>` | Lower octave by 1 | `>` |
 
 ### Default Settings
 | Command | Description | Example |
 |---------|------|-----|
-| `lNumber` | Set default note duration<br>(Applies to subsequent notes if no duration is specified) | `l8` `l16` `l4` |
+| `lNumber` | Set default note length<br>(applies to subsequent notes without explicit length) | `l8` `l16` `l4` |
 
-### Instrument Control
+### Timbre Control
 | Command | Description | Example |
 |---------|------|-----|
-| `@InstrumentName` | Change instrument (synthesizer)<br>Uses Tone.js synth class names<br>(See "About Instrument Specifications" below for details) | `@Synth` `@FMSynth` `@AMSynth` |
+| `@InstrumentName` | Change timbre (synthesizer)<br>Uses Tone.js synth class names<br>(See "About Timbre Specification" below for details) | `@Synth` `@FMSynth` `@AMSynth` |
 
 ### Multi-track
 | Command | Description | Example |
@@ -112,9 +112,9 @@ For detailed usage, please refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 ### Chords
 | Command | Description | Example |
 |---------|------|-----|
-| `'Notes'` | Chord (notes enclosed in single quotes are played simultaneously)<br>Accidentals, duration, and dots can be specified<br>*Duration after the first note (inside quotes), dot outside quotes* | `'ceg'` `'c+eg-'` `'c4eg'` `'c4eg'.` |
+| `'Notes'` | Chord (notes enclosed in single quotes are played simultaneously)<br>Accidentals, length, and dots can be specified<br>※Length after the first note (inside quotes), dot outside quotes | `'ceg'` `'c+eg-'` `'c4eg'` `'c4eg'.` |
 
-### Examples
+### Usage Examples
 ```mml
 // Basic scale
 o4 l16 cdefgab
@@ -125,7 +125,7 @@ o4 l16 c c+ d d+ e f f+ g g+ a a+ b
 // Dotted notes and rhythm
 o4 l8 c4. d e8. f16 g4
 
-// Octave changes
+// Octave change
 o4 c d e < f g a > b < c
 
 // Multi-track (separate parts)
@@ -134,10 +134,10 @@ o4 l8 ceg;dfb;ace
 // Chords (notes played simultaneously)
 o4 l4 'ceg' 'dfb' 'ace'
 
-// Mixed single notes and chords
+// Mix of single notes and chords
 o4 c 'eg' d 'fac' e
 
-// Chords including accidentals and duration
+// Chords including accidentals and length
 o4 'c+4eg-' 'd+8f+a' 'e4g+b'.
 
 // Instrument change (timbre)
@@ -148,11 +148,11 @@ o4 'c+4eg-' 'd+8f+a' 'e4g+b'.
 @MonoSynth o3 l8 ccccdddd    // MonoSynth - Bass sound
 @PluckSynth o4 l8 cdefgab     // PluckSynth - Guitar sound
 
-// Instrument switching within one track
+// Instrument switching within a single track
 @Synth o4 cde @FMSynth fga @AMSynth b>c
 ```
 
-## Unimplemented Commands (Planned for Future)
+## Unimplemented Commands (Planned for Future Implementation)
 
 The following commands are commonly used in standard MML but are not yet implemented in this library. They may be implemented in future versions.
 
@@ -161,14 +161,14 @@ The following commands are commonly used in standard MML but are not yet impleme
 | `t` `T` | Tempo setting (BPM) | `t120` `T140` |
 | `v` `V` | Volume setting (0-127) | `v100` `V80` |
 | `&` `^` | Tie (connects notes of the same pitch) | `c4&c4` `c4^c4` |
-| `q` `Q` | Gate time (note duration ratio, staccato control) | `q60` `Q80` |
+| `q` `Q` | Gate time (percentage of note length, staccato control) | `q60` `Q80` |
 | `p` `P` | Pan (position) setting | `p64` `P0` |
 | `u` `U` | Velocity (attack strength) | `u120` |
-| `[` `]` | Loop (repeat) | `[cde]4` |
+| `[` `]` | Loop (repetition) | `[cde]4` |
 
-**⚠️ Important Notes**: 
-- The implementation timing and specifications for these commands are TBD.
-- Specifications may change if implemented.
+**⚠️ Important Note**: 
+- The implementation timeline and specifications for these commands are TBD.
+- If implemented, specifications may change.
 - Breaking changes may occur frequently during the prototyping phase.
 
 ## About Chord Implementation
@@ -177,43 +177,43 @@ Chords are implemented using Tone.js's `PolySynth`, which manages multiple synth
 
 ### Technical Details
 
-- **Syntax**: Notes enclosed in single quotes (e.g., `'ceg'`) are treated as chords.
-- **PolySynth**: Tracks containing chords automatically use `PolySynth` instead of a regular `Synth`.
+- **Syntax**: Notes enclosed in single quotes (e.g., `'ceg'`) are treated as a chord.
+- **PolySynth**: Tracks containing chords automatically use `PolySynth` instead of the regular `Synth`.
 - **Features**:
   - Support for accidentals within chords: `'c+eg-'` = C# E Gb
-  - Support for duration and dots: `'c4eg'.` = Dotted quarter note C-E-G chord (duration inside quotes, dot outside quotes)
-  - Integration with octave commands: `o5 'ceg'` = C5-E5-G5 chord
-  - Multi-track compatibility: Chords can be used in some tracks and not others.
+  - Support for length and dots: `'c4eg'.` = C-E-G chord as a dotted quarter note (length inside quotes, dot outside quotes).
+  - Integration with octave commands: `o5 'ceg'` = C5-E5-G5 chord.
+  - Multi-track compatibility: Chords can be used in some tracks while others do not.
 - **Difference from Multi-track**:
   - Multi-track (`;`): Separate tracks playing different melodies/parts simultaneously.
-  - Chord (`'...'`): Multiple notes played together at the exact same time.
+  - Chord (`'...'`): Multiple notes played together at exactly the same time.
 
-### Comparison Example
+### Comparison Examples
 
 ```mml
-// Multi-track: C, E, and G are played as separate parts (melody lines)
+// Multi-track: C, E, G are played as separate parts (melody lines)
 c;e;g
 
-// Chord: C, E, and G are played together as a single chord
+// Chord: C, E, G are played together as a single chord
 'ceg'
 ```
 
-## About Instrument Specifications (`@` Command)
+## About Timbre Specification (`@` Command)
 
-The current `@` command implements basic instrument switching, but is planned to support a wider range of Tone.js synthesizer types in the future.
+The current `@` command implements basic timbre switching, but it is planned to support the diverse synthesizer types of Tone.js in the future.
 
-### Candidate Tone.js Synthesizer Types
+### Candidate Tone.js Synthesizer Types Available
 
-Below are Tone.js synthesizer types that may be specifiable with the `@` command in the future:
+The following are Tone.js synthesizer types that may be specified with the `@` command in the future:
 
-| Type | Characteristics | Suitable Timbre |
+| Type | Features | Suitable Timbres |
 |--------|------|-----------|
-| `Synth` | Basic subtractive synthesis<br>Single oscillator + envelope | Leads, pads, basic sounds |
-| `AMSynth` | Amplitude modulation synthesis<br>Two oscillators modulate amplitude | Bells, metallic sounds, tremolo effects |
-| `FMSynth` | Frequency modulation synthesis<br>Two oscillators modulate frequency | Electric piano, bells, metallic sounds |
+| `Synth` | Basic subtractive synthesis<br>Single oscillator + envelope | Leads, pads, basic timbres |
+| `AMSynth` | Amplitude modulation synthesis<br>2 oscillators modulate amplitude | Bells, metallic sounds, tremolo effects |
+| `FMSynth` | Frequency modulation synthesis<br>2 oscillators modulate frequency | Electric piano, bells, metallic sounds |
 | `MonoSynth` | Monophonic subtractive synthesis<br>With filter envelope | Bass, mono leads, analog synth-like |
-| `DuoSynth` | Dual-voice polyphonic<br>Combines two MonoSynths | Rich textures, chorus effects, complex sounds |
-| `PluckSynth` | Karplus-Strong algorithm<br>Plucked string instrument simulation | Guitar, harp, koto, plucked string types |
+| `DuoSynth` | Dual-voice polyphonic<br>Combines two MonoSynths | Rich textures, chorus effects, complex timbres |
+| `PluckSynth` | Karplus-Strong algorithm<br>Plucked string instrument simulation | Guitar, harp, koto, plucked string-like |
 | `MembraneSynth` | Membrane vibration simulation | Drums, percussion |
 | `MetalSynth` | Metallic sound simulation | Cymbals, metallic percussion |
 
@@ -223,15 +223,15 @@ Below are Tone.js synthesizer types that may be specifiable with the `@` command
   - `@Synth` = Basic subtractive synthesis (default)
   - `@FMSynth` = FM synthesis (electric piano, bells)
   - `@AMSynth` = AM synthesis (bells, metallic sounds)
-  - `@MonoSynth` = Monophonic synthesis (bass, leads)
-  - `@PluckSynth` = Plucked string instruments (guitar, harp)
+  - `@MonoSynth` = Monophonic synthesis (bass, lead)
+  - `@PluckSynth` = Plucked instruments (guitar, harp)
   - `@MembraneSynth` = Drums, percussion
   - `@MetalSynth` = Cymbals, metallic percussion
-  - `@DuoSynth` = Dual-voice synthesis (rich timbre)
+  - `@DuoSynth` = Dual-voice synthesis (rich timbres)
   - `@PolySynth` = Polyphonic synthesis
 - **Note**: Tracks containing chords automatically use PolySynth regardless of the specified instrument.
 
-### Examples
+### Usage Examples
 
 ```mml
 // Electric piano sound with FMSynth
@@ -244,247 +244,248 @@ Below are Tone.js synthesizer types that may be specifiable with the `@` command
 @MonoSynth o3 l8 c c c c d d d d
 ```
 
-### Potential for Specification Changes
+### Regarding Potential Specification Changes
 
-⚠️ **Important**: The instrument specification feature is currently in the prototyping phase.
+⚠️ **Important**: The timbre specification feature is currently in the prototyping phase.
 
-- This is a provisional specification for verifying Tone.js's default timbre expression.
+- This is a provisional specification to verify Tone.js's default timbre representation.
 - It is implemented to allow easy checking of each variation.
-- Specifications may be subject to frequent breaking changes.
-- If using in a production environment, it is recommended to pin the version.
-- If you have any feedback or requests, please share them via a GitHub Issue.
+- Specifications may undergo frequent breaking changes.
+- If used in a production environment, it is recommended to pin the version.
+- Please share any feedback or requests via GitHub Issues.
 
 # Feature Compatibility with tonejs-json-sequencer
 
 This section describes the features supported by [tonejs-json-sequencer](https://github.com/cat2151/tonejs-json-sequencer) and their compatibility status with this library (tonejs-mml-to-json).
 
-## Purpose of Investigation
+## Purpose of this Investigation
 
-The aim is to enable the expression of musical elements possible with tonejs-json-sequencer within this library's MML. This will allow for the conversion from MML to complete musical expressions.
+The goal is to enable the expression of musical elements available in tonejs-json-sequencer within this library's MML. This will allow for the conversion of MML into a complete musical expression.
 
 ## Components Supported by tonejs-json-sequencer
 
 ### Instruments - Compatibility Status
 
-| Tone.js Class | tonejs-json-sequencer | This Library (MML) | Notes |
+| Tone.js Class | tonejs-json-sequencer | This Library (MML) | Remarks |
 |---------------|----------------------|------------------|------|
 | **Synth** | ✅ Supported | ✅ Supported | Implemented with `@Synth` (default) |
 | **MonoSynth** | ✅ Supported | ✅ Supported | Implemented with `@MonoSynth` (bass timbre) |
-| **FMSynth** | ✅ Supported | ✅ Supported | Implemented with `@FMSynth` (electric piano, bells) |
-| **AMSynth** | ✅ Supported | ✅ Supported | Implemented with `@AMSynth` (bells, metallic sounds) |
-| **DuoSynth** | ✅ Supported | ✅ Supported | Implemented with `@DuoSynth` (dual voice) |
-| **PluckSynth** | ✅ Supported | ✅ Supported | Implemented with `@PluckSynth` (plucked string instruments) |
-| **MembraneSynth** | ✅ Supported | ✅ Supported | Implemented with `@MembraneSynth` (drums) |
-| **MetalSynth** | ✅ Supported | ✅ Supported | Implemented with `@MetalSynth` (cymbals) |
-| **NoiseSynth** | ✅ Supported | ⏳ Not Supported Yet | Noise-based timbre |
+| **FMSynth** | ✅ Supported | ✅ Supported | Implemented with `@FMSynth` (electric piano, bell) |
+| **AMSynth** | ✅ Supported | ✅ Supported | Implemented with `@AMSynth` (bell, metallic sound) |
+| **DuoSynth** | ✅ Supported | ✅ Supported | Implemented with `@DuoSynth` (dual-voice) |
+| **PluckSynth** | ✅ Supported | ✅ Supported | Implemented with `@PluckSynth` (plucked string instrument) |
+| **MembraneSynth** | ✅ Supported | ✅ Supported | Implemented with `@MembraneSynth` (drum) |
+| **MetalSynth** | ✅ Supported | ✅ Supported | Implemented with `@MetalSynth` (cymbal) |
+| **NoiseSynth** | ✅ Supported | ⏳ Not Supported | Noise-based timbre |
 | **PolySynth** | ✅ Supported | ✅ Supported | Automatically used for chord functionality |
-| **Sampler** | ✅ Supported | ⏳ Not Supported Yet | Sample-based instrument |
+| **Sampler** | ✅ Supported | ⏳ Not Supported | Sample-based instrument |
 
 ### Effects - Compatibility Status
 
-#### Spatial Effects
+#### Spatial
 
 | Effect | tonejs-json-sequencer | This Library (MML) | Purpose |
 |-----------|----------------------|------------------|------|
-| **Reverb** | ✅ Supported | ⏳ Not Supported Yet | Reverb effect |
-| **Freeverb** | ✅ Supported | ⏳ Not Supported Yet | Freeverb algorithm |
-| **JCReverb** | ✅ Supported | ⏳ Not Supported Yet | JCReverb algorithm |
+| **Reverb** | ✅ Supported | ⏳ Not Supported | Reverb effect |
+| **Freeverb** | ✅ Supported | ⏳ Not Supported | Freeverb algorithm |
+| **JCReverb** | ✅ Supported | ⏳ Not Supported | JCReverb algorithm |
 
-#### Modulation Effects
-
-| Effect | tonejs-json-sequencer | This Library (MML) | Purpose |
-|-----------|----------------------|------------------|------|
-| **Chorus** | ✅ Supported | ⏳ Not Supported Yet | Chorus effect |
-| **Phaser** | ✅ Supported | ⏳ Not Supported Yet | Phaser effect |
-| **Tremolo** | ✅ Supported | ⏳ Not Supported Yet | Tremolo effect |
-| **Vibrato** | ✅ Supported | ⏳ Not Supported Yet | Vibrato effect |
-| **AutoFilter** | ✅ Supported | ⏳ Not Supported Yet | Auto Filter |
-| **AutoPanner** | ✅ Supported | ⏳ Not Supported Yet | Auto Panner |
-| **AutoWah** | ✅ Supported | ⏳ Not Supported Yet | Auto Wah |
-
-#### Delay Effects
+#### Modulation
 
 | Effect | tonejs-json-sequencer | This Library (MML) | Purpose |
 |-----------|----------------------|------------------|------|
-| **FeedbackDelay** | ✅ Supported | ⏳ Not Supported Yet | Feedback Delay |
-| **PingPongDelay** | ✅ Supported | ⏳ Not Supported Yet | Ping Pong Delay |
+| **Chorus** | ✅ Supported | ⏳ Not Supported | Chorus effect |
+| **Phaser** | ✅ Supported | ⏳ Not Supported | Phaser effect |
+| **Tremolo** | ✅ Supported | ⏳ Not Supported | Tremolo effect |
+| **Vibrato** | ✅ Supported | ⏳ Not Supported | Vibrato effect |
+| **AutoFilter** | ✅ Supported | ⏳ Not Supported | Auto filter |
+| **AutoPanner** | ✅ Supported | ⏳ Not Supported | Auto panner |
+| **AutoWah** | ✅ Supported | ⏳ Not Supported | Auto wah |
 
-#### Distortion Effects
-
-| Effect | tonejs-json-sequencer | This Library (MML) | Purpose |
-|-----------|----------------------|------------------|------|
-| **Distortion** | ✅ Supported | ⏳ Not Supported Yet | Distortion |
-| **BitCrusher** | ✅ Supported | ⏳ Not Supported Yet | Bit Crusher |
-| **Chebyshev** | ✅ Supported | ⏳ Not Supported Yet | Chebyshev Distortion (harmonic generation) |
-
-#### Pitch Effects
+#### Delay
 
 | Effect | tonejs-json-sequencer | This Library (MML) | Purpose |
 |-----------|----------------------|------------------|------|
-| **PitchShift** | ✅ Supported | ⏳ Not Supported Yet | Pitch Shift |
-| **FrequencyShifter** | ✅ Supported | ⏳ Not Supported Yet | Frequency Shifter |
+| **FeedbackDelay** | ✅ Supported | ⏳ Not Supported | Feedback delay |
+| **PingPongDelay** | ✅ Supported | ⏳ Not Supported | Ping pong delay |
+
+#### Distortion
+
+| Effect | tonejs-json-sequencer | This Library (MML) | Purpose |
+|-----------|----------------------|------------------|------|
+| **Distortion** | ✅ Supported | ⏳ Not Supported | Distortion |
+| **BitCrusher** | ✅ Supported | ⏳ Not Supported | Bit crusher |
+| **Chebyshev** | ✅ Supported | ⏳ Not Supported | Chebyshev distortion (harmonic generation) |
+
+#### Pitch
+
+| Effect | tonejs-json-sequencer | This Library (MML) | Purpose |
+|-----------|----------------------|------------------|------|
+| **PitchShift** | ✅ Supported | ⏳ Not Supported | Pitch shift |
+| **FrequencyShifter** | ✅ Supported | ⏳ Not Supported | Frequency shifter |
 
 #### Stereo Processing
 
 | Effect | tonejs-json-sequencer | This Library (MML) | Purpose |
 |-----------|----------------------|------------------|------|
-| **StereoWidener** | ✅ Supported | ⏳ Not Supported Yet | Stereo Widener |
+| **StereoWidener** | ✅ Supported | ⏳ Not Supported | Stereo widener |
 
-### Performance Techniques & Parameter Control
-
-| Feature | tonejs-json-sequencer | This Library (MML) | Purpose |
-|------|----------------------|------------------|------|
-| **Delayed Vibrato** | ✅ Supported | ⏳ Not Supported Yet | Delayed Vibrato effect |
-| **depth.rampTo** | ✅ Supported | ⏳ Not Supported Yet | Gradual parameter change |
-| **Panpot Change** | 🚧 Planned | ⏳ Not Supported Yet | Real-time pan (position) change |
-| **Expression Change** | 🚧 Planned | ⏳ Not Supported Yet | Real-time volume (expression) change |
-| **LPF Change** | 🚧 Planned | ⏳ Not Supported Yet | Real-time low-pass filter change |
-| **Portamento** | 🚧 Planned | ⏳ Not Supported Yet | Portamento effect |
-
-### Instrument Types (Source) - Planned for Future Support
-
-| Instrument | tonejs-json-sequencer | This Library (MML) | Purpose |
-|------|----------------------|------------------|------|
-| **FatOscillator** | 🚧 Planned | ⏳ Not Supported Yet | SuperSaw timbre, thick pads |
-| **PulseOscillator** | 🚧 Planned | ⏳ Not Supported Yet | Pulse wave (e.g., 12.5% duty pulse) |
-
-### Dynamics & Filters - Planned for Future Support
+### Performance & Parameter Control
 
 | Feature | tonejs-json-sequencer | This Library (MML) | Purpose |
 |------|----------------------|------------------|------|
-| **Compressor** | 🚧 Planned | ⏳ Not Supported Yet | Compressor |
-| **EQ3** | 🚧 Planned | ⏳ Not Supported Yet | 3-band equalizer |
+| **Delay Vibrato** | ✅ Supported | ⏳ Not Supported | Delayed vibrato effect |
+| **depth.rampTo** | ✅ Supported | ⏳ Not Supported | Gradual parameter change |
+| **Panpot Change** | 🚧 Planned | ⏳ Not Supported | Real-time pan (position) change |
+| **Expression Change** | 🚧 Planned | ⏳ Not Supported | Real-time volume change |
+| **LPF Change** | 🚧 Planned | ⏳ Not Supported | Real-time low-pass filter change |
+| **Portamento** | 🚧 Planned | ⏳ Not Supported | Portamento effect |
 
-## Implementation Priorities and Plan
+### Source Types - Future Support Planned
+
+| Source | tonejs-json-sequencer | This Library (MML) | Purpose |
+|------|----------------------|------------------|------|
+| **FatOscillator** | 🚧 Planned | ⏳ Not Supported | SuperSaw timbre, thick pads |
+| **PulseOscillator** | 🚧 Planned | ⏳ Not Supported | Pulse wave (e.g., 12.5% duty pulse) |
+
+### Dynamics/Filter - Future Support Planned
+
+| Feature | tonejs-json-sequencer | This Library (MML) | Purpose |
+|------|----------------------|------------------|------|
+| **Compressor** | 🚧 Planned | ⏳ Not Supported | Compressor |
+| **EQ3** | 🚧 Planned | ⏳ Not Supported | 3-band equalizer |
+
+## Implementation Priority and Plan
 
 ### High Priority (Planned for Early Implementation)
 
-1. **Instrument Expansion**
-   - Currently implemented: Direct specification of Tone.js class names with the `@` command (e.g., `@Synth`, `@FMSynth`, `@AMSynth`).
-   - Future expansion idea: Support for abbreviations and aliases (e.g., `@fm` → `@FMSynth`).
+1.  **Instrument Extension**
+    - Currently implemented: `@` command directly specifies Tone.js class names (`@Synth`, `@FMSynth`, `@AMSynth`, etc.)
+    - Future extension proposal: Support for abbreviations or aliases (e.g., `@fm` → `@FMSynth`)
 
-2. **Basic Effects**
-   - Basic effects such as reverb, chorus, and delay.
-   - Proposed MML commands: `R` (Reverb), `C` (Chorus), `D` (Delay), etc.
+2.  **Basic Effects**
+    - Basic effects such as reverb, chorus, delay.
+    - Proposed MML commands: `R` (Reverb), `C` (Chorus), `D` (Delay), etc.
 
-3. **Parameter Control**
-   - Volume/Expression: `v` command.
-   - Pan (Panpot): `p` command.
-   - Filter control: New command under consideration.
+3.  **Parameter Control**
+    - Volume (Volume/Expression): `v` command
+    - Pan (Panpot): `p` command
+    - Filter control: New command under consideration
 
 ### Medium Priority
 
-1. **Advanced Effects**
-   - Phaser, Tremolo, AutoFilter, AutoWah, etc.
-   - Performance expressions like vibrato, delayed vibrato.
+1.  **Advanced Effects**
+    - Phaser, Tremolo, AutoFilter, AutoWah, etc.
+    - Performance expressions such as vibrato, delay vibrato.
 
-2. **Distortion Effects**
-   - Distortion, BitCrusher, Chebyshev
+2.  **Distortion Effects**
+    - Distortion, BitCrusher, Chebyshev
 
-3. **Pitch Effects**
-   - PitchShift, FrequencyShifter
+3.  **Pitch Effects**
+    - PitchShift, FrequencyShifter
 
 ### Low Priority (Under Consideration)
 
-1. **Advanced Instruments**
-   - Special instruments like FatOscillator, PulseOscillator.
-   - Sample-based instruments using Sampler.
+1.  **Advanced Instruments**
+    - Special instruments like FatOscillator, PulseOscillator.
+    - Sampler for sample-based instruments.
 
-2. **Dynamics Processing**
-   - Mastering effects like Compressor, EQ.
+2.  **Dynamics Processing**
+    - Mastering effects such as Compressor, EQ.
 
-3. **Real-time Parameter Changes**
-   - Gradual parameter changes (rampTo).
-   - Envelope control.
+3.  **Real-time Parameter Changes**
+    - Gradual parameter changes (rampTo).
+    - Envelope control.
 
-## Implementation Approach
+## Implementation Policy
 
 ### Basic Policy
 
-1. **Maintain compatibility with existing MML syntax**
-   - Do not break existing implementations.
-   - Gradual feature additions.
+1.  **Maintain Compatibility with Existing MML Syntax**
+    - Do not break existing implementations.
+    - Gradual addition of features.
 
-2. **Emphasize simplicity**
-   - Do not compromise MML's conciseness.
-   - Minimize learning curve.
+2.  **Emphasize Simplicity**
+    - Do not compromise the conciseness of MML.
+    - Minimize learning curve.
 
-3. **Maximize utilization of Tone.js features**
-   - Utilize features already implemented in tonejs-json-sequencer.
-   - Support through extension of the JSON output format.
+3.  **Maximize Use of Tone.js Features**
+    - Leverage features already implemented in tonejs-json-sequencer.
+    - Extend JSON output format to accommodate new features.
 
-### Implementation Strategy
+### Implementation Approach
 
-1. **Phased Implementation**
-   - Implement high-priority features sequentially.
-   - Create prototypes for each feature to gather feedback.
+1.  **Phased Implementation**
+    - Implement high-priority features sequentially.
+    - Create prototypes for each feature to gather feedback.
 
-2. **Test-Driven Development**
-   - Create test cases for each feature.
-   - Conduct regression testing for existing features.
+2.  **Test-Driven Development (TDD)**
+    - Create test cases for each feature.
+    - Conduct regression tests for existing features.
 
-3. **Documentation Updates**
-   - Update README and sample code upon implementation completion.
-   - Enhance usage examples.
+3.  **Documentation Updates**
+    - Update README and sample code upon completion of implementation.
+    - Enrich usage examples.
 
 ## References
 
-- [tonejs-json-sequencer repository](https://github.com/cat2151/tonejs-json-sequencer)
+- [tonejs-json-sequencer Repository](https://github.com/cat2151/tonejs-json-sequencer)
 - [tonejs-json-sequencer README](https://github.com/cat2151/tonejs-json-sequencer/blob/main/README.ja.md)
 - [Tone.js Component JSON Compatibility Roadmap](https://github.com/cat2151/tonejs-json-sequencer/blob/main/docs/tonejs-components-roadmap.ja.md)
 - [Tone.js Official Documentation](https://tonejs.github.io/)
 
-## Changelog
+## Update History
 
-- 2026-01-12: Initial draft of tonejs-json-sequencer investigation results created.
+- 2026-01-12: First draft of tonejs-json-sequencer investigation results created.
 
-# Notes
-- What are the benefits of writing music with MML (Music Macro Language)?
+# notes
+- What are the advantages of writing music in MML (Music Macro Language)?
   - **Conciseness and Portability**: Text-based and lightweight, platform-independent for the web.
-  - **Programmer-Friendliness**: Code-like notation, Git management, easy to generate.
-  - **Web Development Affinity**: Direct playback in browsers, real-time editing, lightweight distribution.
+  - **Programmer-Friendly**: Code-like notation, Git-manageable, easy to generate.
+  - **Web Development Affinity**: Direct playback in browsers, real-time editing, lightweight delivery.
   - **Low Learning Curve**: Simple grammar, gradual learning possible.
-  - **Modular Design**: Conversion and playback are separated, allowing independent evolution of each.
-  - **Fosters an Ecosystem**: High reusability, easy to share and accumulate know-how.
-  - **Adaptability to Dialects**: Assumed to be easy to adapt to system-specific MML dialects, with individuals able to create simple converters using PEG.
+  - **Modular Design**: Conversion and playback are separated, allowing independent evolution.
+  - **Forms a Foundation for an Ecosystem**: High reusability, easy to share and accumulate knowledge.
+  - **Adaptability to Dialects**: Easily supports system-specific MML dialects with simple PEG conversion.
 
 - Why are tonejs-json-sequencer and tonejs-mml-to-json separate projects?
-  - **To prioritize development independence and speed**.
+  - **To prioritize independent development and speed.**
     - Allows focusing on MML parser development.
-    - Enables rapid evolution without being constrained by the dependencies between parser and playback functionalities.
-  - For more details, please also refer to [tonejs-json-sequencer](https://github.com/cat2151/tonejs-json-sequencer).
+    - Enables rapid evolution without being constrained by dependencies between parser and playback functions.
+  - For more details, please refer to [tonejs-json-sequencer](https://github.com/cat2151/tonejs-json-sequencer).
 
-# Memo for Consideration
+# Notes under Consideration
 ## About Rust Implementation
-- **Rust + WASM implementation added**
+- **Rust + WASM implementation added.**
   - Available as a Rust library crate.
-  - Runs in browsers via WASM compilation.
-  - 100% compatible with the JavaScript implementation.
-  - For details, refer to [rust/README.md](rust/README.md).
+  - Works in browsers via WASM compilation.
+  - 100% compatible with JavaScript implementation.
+  - Refer to [rust/README.md](rust/README.md) for details.
 
 ## Architecture
-- **mml2ast**: A parser that converts MML strings into an AST.
+- **mml2ast**: Parser that converts MML string to AST.
 - **ast**: Data structure for AST (Abstract Syntax Tree).
-- **ast2json**: Converts AST to Tone.js-compatible JSON.
+- **ast2json**: Converts AST to Tone.js compatible JSON.
 
 ## Input/Output Definition
-- *Example to visualize the concept*
+- ※Example to visualize the image.
 - Input example
   - `o4 l16 e`
 - Intermediate format example
-  - *Designed as loosely coupled, thin layers for easy modification of each.*
+  - ※Keep layers loosely coupled for easy modification.
   - json (AST)
-  - json (Pre-processed)
+  - json (pre-processing)
     - What is processing?
-      - Node ID assignment, etc.
+      - Node ID numbering, etc.
 - Output example
-  - json (Post-processed)
-    - Format recognized by tonejs-json-sequencer
-    - Details omitted; TDD test cases serve as the definitive specification.
-## TDD Policy
-- The test targets are mml2ast, ast2ast, and ast2json, respectively.
-  - Refer to TDD for mml2abc / chord2mml.
-- I believe this project used Vitest for TDD.
-  - I intend to organize the testing procedures later.
+  - json (post-processing)
+    - Format recognized by tonejs-json-sequencer.
+    - Details omitted, TDD test cases will serve as detailed specifications.
 
-*README.md is automatically generated from README.ja.md using Gemini's translation via GitHub Actions.*
+## TDD Policy
+- The test targets are mml2ast, ast2ast, and ast2json respectively.
+  - Refer to TDD for mml2abc / chord2mml.
+- I believe this project was using vitest for TDD.
+  - I plan to organize the test procedures later.
+
+※README.md is automatically generated from README.ja.md via Gemini translation on GitHub Actions.
