@@ -98,7 +98,7 @@ export async function initParser(wasmPath?: string): Promise<void> {
   // For browser, construct path relative to this module's location to support subdirectory deployments
   let wasmFile = wasmPath;
   if (!wasmFile) {
-    if (typeof window !== 'undefined' && typeof import.meta !== 'undefined' && import.meta.url) {
+    if (typeof window !== 'undefined' && import.meta?.url) {
       // Browser with ES modules: resolve relative to this module
       wasmFile = new URL('./tree-sitter-mml/tree-sitter-mml.wasm', import.meta.url).href;
     } else {
