@@ -318,7 +318,7 @@
     },
     "json_args": {
       "type": "PATTERN",
-      "value": "\\{[^}]*\\}"
+      "value": "\\{(?:[^{}]|\\{[^}]*\\})*\\}"
     },
     "chord": {
       "type": "SEQ",

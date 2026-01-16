@@ -66,12 +66,10 @@ fn parse_note(node: &CSTNode) -> Result<NoteToken, String> {
     let note = pitch_text.chars().next()
         .ok_or_else(|| "Pitch text is empty".to_string())?;
     
-    let accidentals = node.fields.get("accidentals")
-        .map(|acc_nodes| {
-            acc_nodes.iter()
-                .filter_map(|n| n.text.as_ref().map(|s| s.as_str()))
-                .collect::<String>()
-        })
+    // Fixed: field is "accidental" not "accidentals"
+    let accidental = node.fields.get("accidental")
+        .and_then(|v| v.first())
+        .and_then(|n| n.text.clone())
         .unwrap_or_default();
     
     let duration = node.fields.get("duration")
@@ -79,8 +77,11 @@ fn parse_note(node: &CSTNode) -> Result<NoteToken, String> {
         .and_then(|n| n.text.as_ref())
         .and_then(|t| t.parse::<u32>().ok());
     
+    // Count dots by checking for dots field
     let dots = node.fields.get("dots")
-        .map(|v| v.len() as u32)
+        .and_then(|v| v.first())
+        .and_then(|n| n.text.as_ref())
+        .map(|t| t.len() as u32)
         .unwrap_or(0);
     
     // Calculate length from node text if available
@@ -88,7 +89,7 @@ fn parse_note(node: &CSTNode) -> Result<NoteToken, String> {
     
     Ok(NoteToken {
         note,
-        accidental: accidentals,
+        accidental,
         duration,
         dots,
         length,
@@ -96,13 +97,21 @@ fn parse_note(node: &CSTNode) -> Result<NoteToken, String> {
 }
 
 fn parse_rest(node: &CSTNode) -> Result<RestToken, String> {
-    let duration = node.fields.get("duration")
-        .and_then(|v| v.first())
+    // NOTE: Despite grammar specifying field('duration', optional($.duration)),
+    // tree-sitter puts the duration node in children array, not in fields.duration
+    let duration = node.children.iter()
+        .find(|n| n.node_type == "duration")
         .and_then(|n| n.text.as_ref())
         .and_then(|t| t.parse::<u32>().ok());
     
+    // NOTE: Grammar specifies field('dots', optional($.dots)), but tree-sitter
+    // incorrectly places dots in fields.duration instead of fields.dots
+    // This is a tree-sitter bug with how it handles multiple field() calls in seq()
     let dots = node.fields.get("dots")
-        .map(|v| v.len() as u32)
+        .or_else(|| node.fields.get("duration"))  // Check incorrect location
+        .and_then(|v| v.iter().find(|n| n.node_type == "dots"))
+        .and_then(|n| n.text.as_ref())
+        .map(|t| t.len() as u32)
         .unwrap_or(0);
     
     let length = node.text.as_ref().map(|t| t.len()).unwrap_or(1);
@@ -115,11 +124,11 @@ fn parse_rest(node: &CSTNode) -> Result<RestToken, String> {
 }
 
 fn parse_length(node: &CSTNode) -> Result<LengthToken, String> {
-    let value_node = node.fields.get("value")
-        .and_then(|v| v.first())
-        .ok_or_else(|| "Length command missing value field".to_string())?;
-    
-    let value = value_node.text.as_ref()
+    // NOTE: Despite grammar specifying field('value', optional($.duration)),
+    // tree-sitter puts the duration node in children array, not in fields.value
+    let value = node.children.iter()
+        .find(|n| n.node_type == "duration")
+        .and_then(|n| n.text.as_ref())
         .and_then(|t| t.parse::<u32>().ok());
     
     let length = node.text.as_ref().map(|t| t.len()).unwrap_or(2);
@@ -131,11 +140,12 @@ fn parse_length(node: &CSTNode) -> Result<LengthToken, String> {
 }
 
 fn parse_octave(node: &CSTNode) -> Result<OctaveToken, String> {
-    let value_node = node.fields.get("value")
-        .and_then(|v| v.first())
-        .ok_or_else(|| "Octave command missing value field".to_string())?;
-    
-    let value = value_node.text.as_ref()
+    // NOTE: Despite grammar specifying field('value', optional($.duration)),
+    // tree-sitter puts the duration node in children array, not in fields.value
+    // The $.duration rule produces numeric tokens, which are appropriate for octave values
+    let value = node.children.iter()
+        .find(|n| n.node_type == "duration")
+        .and_then(|n| n.text.as_ref())
         .and_then(|t| t.parse::<u32>().ok());
     
     let length = node.text.as_ref().map(|t| t.len()).unwrap_or(2);
@@ -157,44 +167,96 @@ fn parse_octave_down(node: &CSTNode) -> Result<OctaveDownToken, String> {
 }
 
 fn parse_instrument(node: &CSTNode) -> Result<InstrumentToken, String> {
-    let name_node = node.fields.get("name")
-        .and_then(|v| v.first())
-        .ok_or_else(|| "Instrument command missing name field".to_string())?;
+    // Instrument name is in children array (first child of type instrument_name)
+    let value = node.children.iter()
+        .find(|n| n.node_type == "instrument_name")
+        .and_then(|n| n.text.clone());
     
-    let value = name_node.text.clone();
+    // NOTE: Grammar specifies field('args', optional($.json_args)), but tree-sitter
+    // incorrectly places json_args in fields.name instead of fields.args
+    // This appears to be a tree-sitter bug with how it handles multiple field() calls
+    let args = node.fields.get("name")
+        .or_else(|| node.fields.get("args"))  // Check correct location as fallback
+        .and_then(|v| v.first())
+        .and_then(|n| n.text.clone());
+    
     let length = node.text.as_ref().map(|t| t.len()).unwrap_or(2);
     
     Ok(InstrumentToken {
         value,
-        args: None,
+        args,
         length,
     })
 }
 
 fn parse_chord(node: &CSTNode) -> Result<ChordToken, String> {
-    let note_nodes = node.fields.get("notes")
-        .ok_or_else(|| "Chord missing notes field".to_string())?;
-    
     let mut notes = Vec::new();
-    for note_node in note_nodes {
-        notes.push(parse_chord_note(note_node)?);
+    let mut duration = None;
+    let mut dots_count = 0;
+    
+    // First chord_note is in children[0], but dots may also appear in children
+    if let Some(first_note) = node.children.first() {
+        if first_note.node_type == "chord_note" {
+            // Extract duration from first note if present
+            if duration.is_none() {
+                duration = first_note.fields.get("duration")
+                    .and_then(|v| v.first())
+                    .and_then(|n| n.text.as_ref())
+                    .and_then(|t| t.parse::<u32>().ok());
+            }
+            notes.push(parse_chord_note(first_note)?);
+        } else if first_note.node_type == "dots" {
+            // Dots might be in children
+            if let Some(text) = &first_note.text {
+                dots_count = text.len() as u32;
+            }
+        }
     }
     
-    let duration = node.fields.get("duration")
-        .and_then(|v| v.first())
-        .and_then(|n| n.text.as_ref())
-        .and_then(|t| t.parse::<u32>().ok());
+    // Process remaining children for dots
+    for child in &node.children[1..] {
+        if child.node_type == "dots" {
+            if let Some(text) = &child.text {
+                dots_count = text.len() as u32;
+            }
+        }
+    }
     
-    let dots = node.fields.get("dots")
-        .map(|v| v.len() as u32)
-        .unwrap_or(0);
+    // NOTE: Grammar specifies field('notes', repeat1($.chord_note)), but tree-sitter
+    // places the first note in children[0] and remaining notes in fields.notes
+    // Additionally, dots can end up in fields.notes array due to grammar issues
+    if let Some(note_nodes) = node.fields.get("notes") {
+        for note_node in note_nodes {
+            if note_node.node_type == "chord_note" {
+                notes.push(parse_chord_note(note_node)?);
+            } else if note_node.node_type == "dots" {
+                // Tree-sitter incorrectly puts dots in fields.notes array
+                if let Some(text) = &note_node.text {
+                    dots_count = text.len() as u32;
+                }
+            }
+        }
+    }
+    
+    // Also check fields.dots (the correct location per grammar)
+    if dots_count == 0 {
+        dots_count = node.fields.get("dots")
+            .and_then(|v| v.first())
+            .and_then(|n| n.text.as_ref())
+            .map(|t| t.len() as u32)
+            .unwrap_or(0);
+    }
+    
+    if notes.is_empty() {
+        return Err("Empty chord - must contain at least one note".to_string());
+    }
     
     let length = node.text.as_ref().map(|t| t.len()).unwrap_or(2);
     
     Ok(ChordToken {
         notes,
         duration,
-        dots,
+        dots: dots_count,
         length,
     })
 }
@@ -207,15 +269,17 @@ fn parse_chord_note(node: &CSTNode) -> Result<ChordNote, String> {
     let pitch_text = pitch_node.text.as_ref()
         .ok_or_else(|| "Pitch node missing text".to_string())?;
     
-    let note = pitch_text.chars().next()
-        .ok_or_else(|| "Pitch text is empty".to_string())?;
+    // Check for empty pitch text (empty chord case)
+    if pitch_text.is_empty() {
+        return Err("Empty chord - must contain at least one note".to_string());
+    }
     
-    let accidental = node.fields.get("accidentals")
-        .map(|acc_nodes| {
-            acc_nodes.iter()
-                .filter_map(|n| n.text.as_ref().map(|s| s.as_str()))
-                .collect::<String>()
-        })
+    let note = pitch_text.chars().next().unwrap();
+    
+    // Fixed: field is "accidental" not "accidentals"
+    let accidental = node.fields.get("accidental")
+        .and_then(|v| v.first())
+        .and_then(|n| n.text.clone())
         .unwrap_or_default();
     
     Ok(ChordNote {
