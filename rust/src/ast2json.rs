@@ -10,10 +10,10 @@ const EVENT_TYPE_CREATE_NODE: &str = "createNode";
 const EVENT_TYPE_CONNECT: &str = "connect";
 
 /// Get the synth type to use, considering chords
-/// If the track has chords and it's not a Sampler, use PolySynth
-/// Sampler handles chords differently by creating separate triggerAttackRelease for each note
+/// Sampler and PolySynth are polyphonic instruments that can handle chords with array format
+/// Other instruments are converted to PolySynth when chords are present
 fn get_synth_type_for_track(instrument_name: &str, needs_polysynth: bool) -> &str {
-    if needs_polysynth && instrument_name != "Sampler" {
+    if needs_polysynth && instrument_name != "Sampler" && instrument_name != "PolySynth" {
         "PolySynth"
     } else {
         instrument_name
@@ -201,30 +201,14 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 let duration = calc_duration(ticks);
                 let start = calc_start_tick(start_tick);
 
-                // Sampler requires separate triggerAttackRelease for each note
-                // Other instruments can use a single call with an array of notes
-                if current_instrument == "Sampler" {
-                    // Create separate triggerAttackRelease for each note in the chord
-                    // Use references to duration and start to avoid cloning them for each note
-                    for note_name in note_names {
-                        commands.push(Command {
-                            event_type: "triggerAttackRelease".to_string(),
-                            node_id,
-                            node_type: None,
-                            connect_to: None,
-                            args: Some(serde_json::json!([note_name, &duration, &start])),
-                        });
-                    }
-                } else {
-                    // For PolySynth and other instruments, use array format
-                    commands.push(Command {
-                        event_type: "triggerAttackRelease".to_string(),
-                        node_id,
-                        node_type: None,
-                        connect_to: None,
-                        args: Some(serde_json::json!([note_names, duration, start])),
-                    });
-                }
+                // All polyphonic instruments (Sampler, PolySynth, etc.) use array format for chords
+                commands.push(Command {
+                    event_type: "triggerAttackRelease".to_string(),
+                    node_id,
+                    node_type: None,
+                    connect_to: None,
+                    args: Some(serde_json::json!([note_names, duration, start])),
+                });
 
                 start_tick += ticks;
             }
@@ -634,7 +618,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sampler_with_chord_creates_separate_events() {
+    fn test_sampler_with_chord_uses_array_format() {
         let ast = mml2ast(r#"@Sampler{"release":1} 'ceg'"#).unwrap();
         let result = ast2json(&ast).unwrap();
         
@@ -645,26 +629,19 @@ mod tests {
         assert_eq!(create_nodes.len(), 1);
         assert_eq!(create_nodes[0].node_type.as_ref().unwrap(), "Sampler");
         
-        // Should have 3 separate triggerAttackRelease events
+        // Should have 1 triggerAttackRelease with array of notes (like PolySynth)
         let notes: Vec<_> = result.iter()
             .filter(|c| c.event_type == "triggerAttackRelease")
             .collect();
-        assert_eq!(notes.len(), 3);
+        assert_eq!(notes.len(), 1);
         
-        // Each event should have a single note (string), not an array
-        let args0 = notes[0].args.as_ref().unwrap().as_array().unwrap();
-        let args1 = notes[1].args.as_ref().unwrap().as_array().unwrap();
-        let args2 = notes[2].args.as_ref().unwrap().as_array().unwrap();
-        
-        // First argument should be a string, not an array
-        assert_eq!(args0[0].as_str().unwrap(), "c4");
-        assert_eq!(args1[0].as_str().unwrap(), "e4");
-        assert_eq!(args2[0].as_str().unwrap(), "g4");
-        
-        // All should use the same nodeId
-        assert_eq!(notes[0].node_id, 0);
-        assert_eq!(notes[1].node_id, 0);
-        assert_eq!(notes[2].node_id, 0);
+        // First argument should be an array of notes
+        let args = notes[0].args.as_ref().unwrap().as_array().unwrap();
+        let notes_arr = args[0].as_array().unwrap();
+        let note_strings: Vec<String> = notes_arr.iter()
+            .map(|v| v.as_str().unwrap().to_string())
+            .collect();
+        assert_eq!(note_strings, vec!["c4", "e4", "g4"]);
     }
 
     #[test]

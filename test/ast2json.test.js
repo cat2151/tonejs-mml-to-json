@@ -745,7 +745,7 @@ describe('ast2json', () => {
       });
     });
 
-    it('should create separate triggerAttackRelease for each note in Sampler chord', () => {
+    it('should use array format for Sampler chord (same as PolySynth)', () => {
       const ast = [
         { type: 'instrument', value: "Sampler", args: '{"release":1,"urls":{"C4":"https://tonejs.github.io/audio/salamander/C4.mp3","D#4":"https://tonejs.github.io/audio/salamander/Ds4.mp3","F#4":"https://tonejs.github.io/audio/salamander/Fs4.mp3","A4":"https://tonejs.github.io/audio/salamander/A4.mp3"}}', length: 258 },
         { 
@@ -762,33 +762,17 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      // Should have setup (2) + 3 separate triggerAttackRelease events
-      expect(result).toHaveLength(5);
+      // Should have setup (2) + 1 chord event
+      expect(result).toHaveLength(3);
       
-      // Check each triggerAttackRelease event
-      expect(result[2]).toEqual({
-        eventType: "triggerAttackRelease",
-        nodeId: 0,
-        args: ["c4", "86i", "+0i"]
-      });
-      expect(result[3]).toEqual({
-        eventType: "triggerAttackRelease",
-        nodeId: 0,
-        args: ["e4", "86i", "+0i"]
-      });
-      expect(result[4]).toEqual({
-        eventType: "triggerAttackRelease",
-        nodeId: 0,
-        args: ["g4", "86i", "+0i"]
-      });
-      
-      // Verify all notes start at the same time (simultaneous)
-      expect(result[2].args[2]).toBe("+0i");
-      expect(result[3].args[2]).toBe("+0i");
-      expect(result[4].args[2]).toBe("+0i");
+      // Check the chord uses array format
+      expect(result[2].eventType).toBe('triggerAttackRelease');
+      const notes = result[2].args[0];
+      expect(Array.isArray(notes)).toBe(true);
+      expect(notes).toEqual(['c4', 'e4', 'g4']);
     });
 
-    it('should use same nodeId for all notes in Sampler chord (no new createNode)', () => {
+    it('should use same nodeId for Sampler chord (no new createNode)', () => {
       const ast = [
         { type: 'instrument', value: "Sampler", args: '{"release":1}', length: 20 },
         { 
@@ -808,11 +792,10 @@ describe('ast2json', () => {
       const createNodes = result.filter(e => e.eventType === 'createNode');
       expect(createNodes).toHaveLength(1);
       
-      // All triggerAttackRelease should use the same nodeId
+      // Should have 1 triggerAttackRelease with the same nodeId
       const notes = result.filter(e => e.eventType === 'triggerAttackRelease');
-      expect(notes).toHaveLength(2);
+      expect(notes).toHaveLength(1);
       expect(notes[0].nodeId).toBe(0);
-      expect(notes[1].nodeId).toBe(0);
     });
 
     it('should handle Sampler chord with accidentals', () => {
@@ -833,10 +816,10 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       const notes = result.filter(e => e.eventType === 'triggerAttackRelease');
-      expect(notes).toHaveLength(3);
-      expect(notes[0].args[0]).toBe("c#4");
-      expect(notes[1].args[0]).toBe("e4");
-      expect(notes[2].args[0]).toBe("gb4");
+      expect(notes).toHaveLength(1);
+      const noteArray = notes[0].args[0];
+      expect(Array.isArray(noteArray)).toBe(true);
+      expect(noteArray).toEqual(["c#4", "e4", "gb4"]);
     });
 
     it('should handle Sampler chord with duration', () => {
@@ -856,10 +839,9 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       const notes = result.filter(e => e.eventType === 'triggerAttackRelease');
-      expect(notes).toHaveLength(2);
-      // Both notes should have quarter note duration (192 - 10 = 182)
+      expect(notes).toHaveLength(1);
+      // Chord should have quarter note duration (192 - 10 = 182)
       expect(notes[0].args[1]).toBe("182i");
-      expect(notes[1].args[1]).toBe("182i");
     });
 
     it('should use PolySynth with array format for non-Sampler instruments with chords', () => {

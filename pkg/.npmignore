@@ -1,2 +1,0 @@
-# This file is intentionally empty to ensure pkg contents are included in npm package
-# wasm-pack creates a .gitignore with * but we want these files in npm
