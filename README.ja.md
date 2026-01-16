@@ -11,7 +11,7 @@
 
 ## 実装方針
 このプロジェクトは **Tree-sitter** を使用してMMLをパースします。
-- パーサの実装は `grammar.js` を単一の信頼できる情報源（SSOT）として扱います
+- パーサの実装は [`grammar.js`](tree-sitter-mml/grammar.js) を単一の信頼できる情報源（SSOT）として扱います
 - 詳細は [copilot-instructions.md](copilot-instructions.md) を参照してください
 
 ## 参考リポジトリ
