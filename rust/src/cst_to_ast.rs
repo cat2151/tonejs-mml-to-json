@@ -248,7 +248,7 @@ fn parse_chord(node: &CSTNode) -> Result<ChordToken, String> {
     }
     
     if notes.is_empty() {
-        return Err("Chord missing notes field".to_string());
+        return Err("Empty chord - must contain at least one note".to_string());
     }
     
     let length = node.text.as_ref().map(|t| t.len()).unwrap_or(2);
@@ -274,8 +274,7 @@ fn parse_chord_note(node: &CSTNode) -> Result<ChordNote, String> {
         return Err("Empty chord - must contain at least one note".to_string());
     }
     
-    let note = pitch_text.chars().next()
-        .ok_or_else(|| "Pitch text is empty".to_string())?;
+    let note = pitch_text.chars().next().unwrap();
     
     // Fixed: field is "accidental" not "accidentals"
     let accidental = node.fields.get("accidental")
