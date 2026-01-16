@@ -709,4 +709,165 @@ describe('ast2json', () => {
       expect(createNodes[1].nodeType).toBe('PolySynth');
     });
   });
+
+  describe('Sampler with chords', () => {
+    it('should create Sampler node (not PolySynth) when using @Sampler with chords', () => {
+      const ast = [
+        { type: 'instrument', value: "Sampler", args: '{"release":1,"urls":{"C4":"https://tonejs.github.io/audio/salamander/C4.mp3","D#4":"https://tonejs.github.io/audio/salamander/Ds4.mp3","F#4":"https://tonejs.github.io/audio/salamander/Fs4.mp3","A4":"https://tonejs.github.io/audio/salamander/A4.mp3"}}', length: 258 },
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'c', accidental: '' },
+            { note: 'e', accidental: '' },
+            { note: 'g', accidental: '' }
+          ],
+          duration: null, 
+          dots: 0, 
+          length: 5 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      // Should create Sampler node, not PolySynth
+      expect(result[0]).toEqual({
+        eventType: "createNode",
+        nodeId: 0,
+        nodeType: "Sampler",
+        args: {
+          release: 1,
+          urls: {
+            "C4": "https://tonejs.github.io/audio/salamander/C4.mp3",
+            "D#4": "https://tonejs.github.io/audio/salamander/Ds4.mp3",
+            "F#4": "https://tonejs.github.io/audio/salamander/Fs4.mp3",
+            "A4": "https://tonejs.github.io/audio/salamander/A4.mp3"
+          }
+        }
+      });
+    });
+
+    it('should use array format for Sampler chord (same as PolySynth)', () => {
+      const ast = [
+        { type: 'instrument', value: "Sampler", args: '{"release":1,"urls":{"C4":"https://tonejs.github.io/audio/salamander/C4.mp3","D#4":"https://tonejs.github.io/audio/salamander/Ds4.mp3","F#4":"https://tonejs.github.io/audio/salamander/Fs4.mp3","A4":"https://tonejs.github.io/audio/salamander/A4.mp3"}}', length: 258 },
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'c', accidental: '' },
+            { note: 'e', accidental: '' },
+            { note: 'g', accidental: '' }
+          ],
+          duration: null, 
+          dots: 0, 
+          length: 5 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      // Should have setup (2) + 1 chord event
+      expect(result).toHaveLength(3);
+      
+      // Check the chord uses array format
+      expect(result[2].eventType).toBe('triggerAttackRelease');
+      const notes = result[2].args[0];
+      expect(Array.isArray(notes)).toBe(true);
+      expect(notes).toEqual(['c4', 'e4', 'g4']);
+    });
+
+    it('should use same nodeId for Sampler chord (no new createNode)', () => {
+      const ast = [
+        { type: 'instrument', value: "Sampler", args: '{"release":1}', length: 20 },
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'c', accidental: '' },
+            { note: 'e', accidental: '' }
+          ],
+          duration: null, 
+          dots: 0, 
+          length: 4 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      // Should have exactly 1 createNode command
+      const createNodes = result.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(1);
+      
+      // Should have 1 triggerAttackRelease with the same nodeId
+      const notes = result.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(1);
+      expect(notes[0].nodeId).toBe(0);
+    });
+
+    it('should handle Sampler chord with accidentals', () => {
+      const ast = [
+        { type: 'instrument', value: "Sampler", args: '{"release":1}', length: 20 },
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'c', accidental: '+' },
+            { note: 'e', accidental: '' },
+            { note: 'g', accidental: '-' }
+          ],
+          duration: null, 
+          dots: 0, 
+          length: 7 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      const notes = result.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(1);
+      const noteArray = notes[0].args[0];
+      expect(Array.isArray(noteArray)).toBe(true);
+      expect(noteArray).toEqual(["c#4", "e4", "gb4"]);
+    });
+
+    it('should handle Sampler chord with duration', () => {
+      const ast = [
+        { type: 'instrument', value: "Sampler", args: '{"release":1}', length: 20 },
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'c', accidental: '' },
+            { note: 'e', accidental: '' }
+          ],
+          duration: 4, 
+          dots: 0, 
+          length: 5 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      const notes = result.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(1);
+      // Chord should have quarter note duration (192 - 10 = 182)
+      expect(notes[0].args[1]).toBe("182i");
+    });
+
+    it('should use PolySynth with array format for non-Sampler instruments with chords', () => {
+      const ast = [
+        { type: 'instrument', value: "FMSynth", length: 8 },
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'c', accidental: '' },
+            { note: 'e', accidental: '' }
+          ],
+          duration: null, 
+          dots: 0, 
+          length: 4 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      // Should use PolySynth for FMSynth with chords
+      expect(result[0].nodeType).toBe('PolySynth');
+      
+      // Should have 1 triggerAttackRelease with array of notes
+      const notes = result.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(1);
+      expect(Array.isArray(notes[0].args[0])).toBe(true);
+      expect(notes[0].args[0]).toEqual(['c4', 'e4']);
+    });
+  });
 });
