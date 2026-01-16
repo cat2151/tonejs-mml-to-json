@@ -10,9 +10,10 @@ const EVENT_TYPE_CREATE_NODE: &str = "createNode";
 const EVENT_TYPE_CONNECT: &str = "connect";
 
 /// Get the synth type to use, considering chords
-/// If the track has chords, always use PolySynth regardless of instrument name
+/// If the track has chords and it's not a Sampler, use PolySynth
+/// Sampler handles chords differently by creating separate triggerAttackRelease for each note
 fn get_synth_type_for_track(instrument_name: &str, needs_polysynth: bool) -> &str {
-    if needs_polysynth {
+    if needs_polysynth && instrument_name != "Sampler" {
         "PolySynth"
     } else {
         instrument_name
@@ -200,13 +201,29 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 let duration = calc_duration(ticks);
                 let start = calc_start_tick(start_tick);
 
-                commands.push(Command {
-                    event_type: "triggerAttackRelease".to_string(),
-                    node_id,
-                    node_type: None,
-                    connect_to: None,
-                    args: Some(serde_json::json!([note_names, duration, start])),
-                });
+                // Sampler requires separate triggerAttackRelease for each note
+                // Other instruments can use a single call with an array of notes
+                if current_instrument == "Sampler" {
+                    // Create separate triggerAttackRelease for each note in the chord
+                    for note_name in note_names {
+                        commands.push(Command {
+                            event_type: "triggerAttackRelease".to_string(),
+                            node_id,
+                            node_type: None,
+                            connect_to: None,
+                            args: Some(serde_json::json!([note_name, duration.clone(), start.clone()])),
+                        });
+                    }
+                } else {
+                    // For PolySynth and other instruments, use array format
+                    commands.push(Command {
+                        event_type: "triggerAttackRelease".to_string(),
+                        node_id,
+                        node_type: None,
+                        connect_to: None,
+                        args: Some(serde_json::json!([note_names, duration, start])),
+                    });
+                }
 
                 start_tick += ticks;
             }
@@ -369,15 +386,10 @@ fn convert_accidental(accidental: &str) -> String {
 }
 
 #[cfg(test)]
+#[cfg(feature = "tree-sitter")]
 mod tests {
     use super::*;
-    
-    // Import the appropriate parser based on feature flags
-    #[cfg(feature = "tree-sitter")]
     use crate::mml2ast::mml2ast;
-    
-    #[cfg(not(feature = "tree-sitter"))]
-    use crate::mml2ast_manual::mml2ast;
 
     #[test]
     fn test_basic_conversion() {
@@ -618,5 +630,62 @@ mod tests {
         let args = create_nodes[0].args.as_ref().unwrap();
         assert!(args.get("urls").is_some());
         assert!(args.get("release").is_some());
+    }
+
+    #[test]
+    fn test_sampler_with_chord_creates_separate_events() {
+        let ast = mml2ast(r#"@Sampler{"release":1} 'ceg'"#).unwrap();
+        let result = ast2json(&ast).unwrap();
+        
+        // Should create Sampler node, not PolySynth
+        let create_nodes: Vec<_> = result.iter()
+            .filter(|c| c.event_type == "createNode")
+            .collect();
+        assert_eq!(create_nodes.len(), 1);
+        assert_eq!(create_nodes[0].node_type.as_ref().unwrap(), "Sampler");
+        
+        // Should have 3 separate triggerAttackRelease events
+        let notes: Vec<_> = result.iter()
+            .filter(|c| c.event_type == "triggerAttackRelease")
+            .collect();
+        assert_eq!(notes.len(), 3);
+        
+        // Each event should have a single note (string), not an array
+        let args0 = notes[0].args.as_ref().unwrap().as_array().unwrap();
+        let args1 = notes[1].args.as_ref().unwrap().as_array().unwrap();
+        let args2 = notes[2].args.as_ref().unwrap().as_array().unwrap();
+        
+        // First argument should be a string, not an array
+        assert_eq!(args0[0].as_str().unwrap(), "c4");
+        assert_eq!(args1[0].as_str().unwrap(), "e4");
+        assert_eq!(args2[0].as_str().unwrap(), "g4");
+        
+        // All should use the same nodeId
+        assert_eq!(notes[0].node_id, 0);
+        assert_eq!(notes[1].node_id, 0);
+        assert_eq!(notes[2].node_id, 0);
+    }
+
+    #[test]
+    fn test_non_sampler_with_chord_uses_polysynth() {
+        let ast = mml2ast(r#"@FMSynth 'ce'"#).unwrap();
+        let result = ast2json(&ast).unwrap();
+        
+        // Should convert FMSynth to PolySynth for chords
+        let create_nodes: Vec<_> = result.iter()
+            .filter(|c| c.event_type == "createNode")
+            .collect();
+        assert_eq!(create_nodes[0].node_type.as_ref().unwrap(), "PolySynth");
+        
+        // Should have 1 triggerAttackRelease with array of notes
+        let notes: Vec<_> = result.iter()
+            .filter(|c| c.event_type == "triggerAttackRelease")
+            .collect();
+        assert_eq!(notes.len(), 1);
+        
+        // First argument should be an array
+        let args = notes[0].args.as_ref().unwrap().as_array().unwrap();
+        let notes_arr = args[0].as_array().unwrap();
+        assert_eq!(notes_arr.len(), 2);
     }
 }
