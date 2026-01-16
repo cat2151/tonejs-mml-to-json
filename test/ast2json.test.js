@@ -781,6 +781,11 @@ describe('ast2json', () => {
         nodeId: 0,
         args: ["g4", "86i", "+0i"]
       });
+      
+      // Verify all notes start at the same time (simultaneous)
+      expect(result[2].args[2]).toBe("+0i");
+      expect(result[3].args[2]).toBe("+0i");
+      expect(result[4].args[2]).toBe("+0i");
     });
 
     it('should use same nodeId for all notes in Sampler chord (no new createNode)', () => {

@@ -205,7 +205,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 // Other instruments can use a single call with an array of notes
                 if current_instrument == "Sampler" {
                     // Create separate triggerAttackRelease for each note in the chord
-                    // Avoid cloning by creating the args value once per note
+                    // Use references to duration and start to avoid cloning them for each note
                     for note_name in note_names {
                         commands.push(Command {
                             event_type: "triggerAttackRelease".to_string(),
