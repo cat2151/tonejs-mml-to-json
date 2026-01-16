@@ -205,13 +205,14 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 // Other instruments can use a single call with an array of notes
                 if current_instrument == "Sampler" {
                     // Create separate triggerAttackRelease for each note in the chord
+                    // Avoid cloning by creating the args value once per note
                     for note_name in note_names {
                         commands.push(Command {
                             event_type: "triggerAttackRelease".to_string(),
                             node_id,
                             node_type: None,
                             connect_to: None,
-                            args: Some(serde_json::json!([note_name, duration.clone(), start.clone()])),
+                            args: Some(serde_json::json!([note_name, &duration, &start])),
                         });
                     }
                 } else {
