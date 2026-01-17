@@ -109,6 +109,8 @@ For detailed usage, please refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 |---------|-------------|---------|
 | `@PingPongDelay` | Ping-pong delay effect<br>Connected between instrument and destination<br>Multiple specifications create serial connections<br>Parameters can be specified with arguments | `@PingPongDelay` `@PingPongDelay{"delayTime":"8n"}` |
 
+**Note:** Effects must be specified *before* the first note in a track and apply only to the initial instrument on that track. If you change instruments after notes have started playing, the new instrument will bypass any previously-declared effects. For example, in `@PingPongDelay c @FMSynth d`, only note `c` is played with the ping-pong delay; note `d` from `@FMSynth` is not affected by the delay.
+
 ### Multi-track
 | Command | Description | Example |
 |---------|-------------|---------|

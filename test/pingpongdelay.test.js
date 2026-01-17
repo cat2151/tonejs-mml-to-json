@@ -91,8 +91,8 @@ describe('@PingPongDelay effect', () => {
     });
   });
 
-  describe('Effects with instrument switching', () => {
-    it('should apply effects after instrument change', () => {
+  describe('Effects with custom instrument', () => {
+    it('should apply effects to custom instrument specified before first note', () => {
       const mml = '@FMSynth @PingPongDelay c d';
       const ast = mml2ast(mml);
       const json = ast2json(ast);
@@ -105,6 +105,45 @@ describe('@PingPongDelay effect', () => {
       // FMSynth -> PingPongDelay -> toDestination
       expect(connects[0].connectTo).toBe(1);
       expect(connects[1].connectTo).toBe('toDestination');
+    });
+  });
+
+  describe('Mid-track instrument switching behavior', () => {
+    it('should bypass effects when instrument changes after notes have been played', () => {
+      const mml = '@PingPongDelay c @FMSynth d';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      // Should have: Synth (nodeId 0), PingPongDelay (nodeId 1), FMSynth (nodeId 1 - reuses after reset)
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(3);
+      expect(createNodes[0].nodeType).toBe('Synth');
+      expect(createNodes[0].nodeId).toBe(0);
+      expect(createNodes[1].nodeType).toBe('PingPongDelay');
+      expect(createNodes[1].nodeId).toBe(1);
+      expect(createNodes[2].nodeType).toBe('FMSynth');
+      expect(createNodes[2].nodeId).toBe(1); // Reuses nodeId after reset
+      
+      const connects = json.filter(e => e.eventType === 'connect');
+      expect(connects).toHaveLength(3);
+      // Synth -> PingPongDelay
+      expect(connects[0].nodeId).toBe(0);
+      expect(connects[0].connectTo).toBe(1);
+      // PingPongDelay -> toDestination
+      expect(connects[1].nodeId).toBe(1);
+      expect(connects[1].connectTo).toBe('toDestination');
+      // FMSynth -> toDestination (bypasses effects)
+      expect(connects[2].nodeId).toBe(1);
+      expect(connects[2].connectTo).toBe('toDestination');
+      
+      const notes = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(2);
+      // First note uses initial Synth (nodeId 0) with effect
+      expect(notes[0].nodeId).toBe(0);
+      expect(notes[0].args[0]).toBe('c4');
+      // Second note uses FMSynth (nodeId 1) without effect
+      expect(notes[1].nodeId).toBe(1);
+      expect(notes[1].args[0]).toBe('d4');
     });
   });
 });
