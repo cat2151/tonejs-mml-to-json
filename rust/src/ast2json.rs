@@ -9,6 +9,11 @@ const DOUBLE_DOT_MULTIPLIER: f64 = 1.75;
 const EVENT_TYPE_CREATE_NODE: &str = "createNode";
 const EVENT_TYPE_CONNECT: &str = "connect";
 
+/// Check if a name is an effect (not an instrument)
+fn is_effect(name: &str) -> bool {
+    matches!(name, "PingPongDelay" | "FeedbackDelay" | "Reverb" | "Chorus" | "Phaser" | "Tremolo" | "Vibrato" | "Distortion")
+}
+
 /// Get the synth type to use, considering chords
 /// Sampler and PolySynth are polyphonic instruments that can handle chords with array format
 /// Other instruments are converted to PolySynth when chords are present
@@ -29,7 +34,7 @@ pub struct Command {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub node_type: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub connect_to: Option<String>,
+    pub connect_to: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub args: Option<serde_json::Value>,
 }
@@ -115,53 +120,102 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
     let mut octave = 4; // default octave 4
     let mut node_id = track_node_id; // Start with track's base node_id
     
-    // Check if the first meaningful token (before any notes/chords/rests) is an Instrument command
-    let first_instrument_token = ast.iter()
-        .take_while(|token| {
-            // Stop when we encounter a note, chord, or rest
-            !matches!(token, AstToken::Note(_) | AstToken::Chord(_) | AstToken::Rest(_))
-        })
-        .find_map(|token| {
-            if let AstToken::Instrument(instr) = token {
-                Some(instr.clone())
-            } else {
-                None
-            }
-        });
+    // Collect initial instrument and effects before any notes
+    let mut first_instrument: Option<InstrumentToken> = None;
+    let mut initial_effects: Vec<InstrumentToken> = Vec::new();
     
-    let mut current_instrument = first_instrument_token.as_ref()
+    for token in ast.iter().take_while(|token| {
+        // Stop when we encounter a note, chord, or rest
+        !matches!(token, AstToken::Note(_) | AstToken::Chord(_) | AstToken::Rest(_))
+    }) {
+        if let AstToken::Instrument(instr) = token {
+            let name = instr.value.as_deref().unwrap_or("");
+            if is_effect(name) {
+                initial_effects.push(instr.clone());
+            } else if first_instrument.is_none() {
+                first_instrument = Some(instr.clone());
+            }
+        }
+    }
+    
+    let mut current_instrument = first_instrument.as_ref()
         .and_then(|t| t.value.as_deref())
-        .unwrap_or("Synth"); // Use first instrument or default to Synth
-    let mut skip_first_instrument = first_instrument_token.is_some(); // Flag to skip the first @instrument command
+        .unwrap_or("Synth");
 
     // Determine if this track needs PolySynth (has chords)
     let needs_polysynth = has_chords(ast);
     let synth_type = get_synth_type_for_track(current_instrument, needs_polysynth);
 
     // Parse args from the first instrument token if present
-    let initial_args = first_instrument_token.as_ref()
+    let initial_args = first_instrument.as_ref()
         .and_then(|t| t.args.as_ref())
         .and_then(|json_str| {
             serde_json::from_str(json_str).ok()
         });
 
-    // Add initial setup commands with the appropriate instrument
+    // Create the instrument node
+    let instrument_node_id = node_id;
     commands.push(Command {
         event_type: EVENT_TYPE_CREATE_NODE.to_string(),
-        node_id,
+        node_id: instrument_node_id,
         node_type: Some(synth_type.to_string()),
         connect_to: None,
         args: initial_args,
     });
+    
+    // Create effect nodes and chain them
+    let mut last_node_id = instrument_node_id;
+    for effect in &initial_effects {
+        node_id += 1;
+        let effect_name = effect.value.as_deref().unwrap_or("");
+        let effect_args = effect.args.as_ref()
+            .and_then(|json_str| serde_json::from_str(json_str).ok());
+        
+        // Create the effect node
+        commands.push(Command {
+            event_type: EVENT_TYPE_CREATE_NODE.to_string(),
+            node_id,
+            node_type: Some(effect_name.to_string()),
+            connect_to: None,
+            args: effect_args,
+        });
+        
+        // Connect previous node to this effect
+        commands.push(Command {
+            event_type: EVENT_TYPE_CONNECT.to_string(),
+            node_id: last_node_id,
+            node_type: None,
+            connect_to: Some(serde_json::json!(node_id)),
+            args: None,
+        });
+        
+        last_node_id = node_id;
+    }
+    
+    // Connect the last node (instrument or last effect) to destination
     commands.push(Command {
         event_type: EVENT_TYPE_CONNECT.to_string(),
-        node_id,
+        node_id: last_node_id,
         node_type: None,
-        connect_to: Some("toDestination".to_string()),
+        connect_to: Some(serde_json::json!("toDestination")),
         args: None,
     });
+    
+    // Reset node_id for instrument playback
+    node_id = instrument_node_id;
+    
+    // Track which initial tokens we've already processed
+    let mut tokens_to_skip = 0;
+    for token in ast.iter().take_while(|token| {
+        !matches!(token, AstToken::Note(_) | AstToken::Chord(_) | AstToken::Rest(_))
+    }) {
+        if matches!(token, AstToken::Instrument(_)) {
+            tokens_to_skip += 1;
+        }
+    }
 
     // Process each AST token
+    let mut skipped = 0;
     for token in ast {
         match token {
             AstToken::Note(note) => {
@@ -241,45 +295,47 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
             }
 
             AstToken::Instrument(instr) => {
-                // Skip the first instrument command if it was already used for initialization
-                if skip_first_instrument {
-                    skip_first_instrument = false;
-                    // Update current_instrument even though we're skipping node creation
-                    if let Some(ref name) = instr.value {
-                        current_instrument = name.as_str();
-                    }
+                let name = instr.value.as_deref().unwrap_or("");
+                
+                // Skip initial instruments and effects that were already processed
+                if skipped < tokens_to_skip {
+                    skipped += 1;
                     continue;
                 }
                 
-                // Update current instrument name if provided
-                if let Some(ref name) = instr.value {
-                    current_instrument = name.as_str();
-                }
-                
-                // Parse args if present
-                let instrument_args = instr.args.as_ref()
-                    .and_then(|json_str| {
-                        serde_json::from_str(json_str).ok()
+                // Check if this is an effect or instrument
+                if is_effect(name) {
+                    // This is an effect - not yet supported mid-track
+                    // For now, we only support effects before the first note
+                    continue;
+                } else {
+                    // This is an instrument change
+                    current_instrument = name;
+                    
+                    // Parse args if present
+                    let instrument_args = instr.args.as_ref()
+                        .and_then(|json_str| {
+                            serde_json::from_str(json_str).ok()
+                        });
+                    
+                    node_id += 1;
+                    // Get the synth type based on the instrument name
+                    let new_synth_type = get_synth_type_for_track(current_instrument, needs_polysynth);
+                    commands.push(Command {
+                        event_type: EVENT_TYPE_CREATE_NODE.to_string(),
+                        node_id,
+                        node_type: Some(new_synth_type.to_string()),
+                        connect_to: None,
+                        args: instrument_args,
                     });
-                
-                node_id += 1;
-                // Both createNode and connect use the same nodeId (the new one)
-                // Get the synth type based on the instrument name
-                let new_synth_type = get_synth_type_for_track(current_instrument, needs_polysynth);
-                commands.push(Command {
-                    event_type: EVENT_TYPE_CREATE_NODE.to_string(),
-                    node_id,
-                    node_type: Some(new_synth_type.to_string()),
-                    connect_to: None,
-                    args: instrument_args,
-                });
-                commands.push(Command {
-                    event_type: EVENT_TYPE_CONNECT.to_string(),
-                    node_id,
-                    node_type: None,
-                    connect_to: Some("toDestination".to_string()),
-                    args: None,
-                });
+                    commands.push(Command {
+                        event_type: EVENT_TYPE_CONNECT.to_string(),
+                        node_id,
+                        node_type: None,
+                        connect_to: Some(serde_json::json!("toDestination")),
+                        args: None,
+                    });
+                }
             }
 
             AstToken::TrackSeparator(_) => {
