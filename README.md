@@ -104,6 +104,13 @@ For detailed usage, please refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 |---------|-------------|---------|
 | `@InstrumentName` | Change timbre (synthesizer)<br>Uses Tone.js synth class names<br>(See "About Timbre Specification" below for details) | `@Synth` `@FMSynth` `@AMSynth` |
 
+### Effects
+| Command | Description | Example |
+|---------|-------------|---------|
+| `@PingPongDelay` | Ping-pong delay effect<br>Connected between instrument and destination<br>Multiple specifications create serial connections<br>Parameters can be specified with arguments | `@PingPongDelay` `@PingPongDelay{"delayTime":"8n"}` |
+
+**Note:** Effects must be specified *before* the first note in a track and apply only to the initial instrument on that track. If you change instruments after notes have started playing, the new instrument will bypass any previously-declared effects. For example, in `@PingPongDelay c @FMSynth d`, only note `c` is played with the ping-pong delay; note `d` from `@FMSynth` is not affected by the delay.
+
 ### Multi-track
 | Command | Description | Example |
 |---------|-------------|---------|
@@ -150,6 +157,18 @@ o4 'c+4eg-' 'd+8f+a' 'e4g+b'.
 
 // Instrument switching within a track
 @Synth o4 cde @FMSynth fga @AMSynth b<c
+
+// Effects (PingPongDelay)
+@PingPongDelay o4 l8 cdefgab<c  // Ping-pong delay effect
+
+// Effects with parameters
+@PingPongDelay{"delayTime":"8n"} o4 l8 cdefgab<c  // Delay time of eighth note
+
+// Multiple effects in series
+@PingPongDelay @PingPongDelay o4 l8 cdefgab<c  // Double delay
+
+// Combining instruments and effects
+@FMSynth @PingPongDelay o4 l8 cdefgab<c  // FMSynth + ping-pong delay
 ```
 
 ## Unimplemented Commands (Planned for Future Implementation)
@@ -307,7 +326,7 @@ The goal is to enable the expression of musical elements possible with `tonejs-j
 | Effect | tonejs-json-sequencer | This Library (MML) | Purpose |
 |-----------|----------------------|--------------------|---------|
 | **FeedbackDelay** | ✅ Supported | ⏳ Not Supported | Feedback delay |
-| **PingPongDelay** | ✅ Supported | ⏳ Not Supported | Ping-pong delay |
+| **PingPongDelay** | ✅ Supported | ✅ Supported | Ping-pong delay |
 
 #### Distortion Effects
 

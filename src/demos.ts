@@ -153,6 +153,30 @@ export const demos: Demo[] = [
     mml: 'o4 l8 c \'eg\' d \'fac\' e \'gb\' c4'
   },
   {
+    id: 'effect-pingpongdelay',
+    name: '@PingPongDelay (Single)',
+    description: 'PingPongDelay effect - creates a bouncing echo between left and right channels',
+    mml: '@PingPongDelay o4 l8 cdefgab<c'
+  },
+  {
+    id: 'effect-pingpongdelay-args',
+    name: '@PingPongDelay with Args',
+    description: 'PingPongDelay with custom delay time - faster or slower echoes',
+    mml: '@PingPongDelay{"delayTime":"8n"} o4 l8 cdefgab<c'
+  },
+  {
+    id: 'effect-pingpongdelay-multiple',
+    name: '@PingPongDelay (Multiple)',
+    description: 'Multiple PingPongDelay effects in series - creates complex echo patterns',
+    mml: '@PingPongDelay @PingPongDelay o4 l8 cdefgab<c'
+  },
+  {
+    id: 'effect-pingpongdelay-instrument',
+    name: '@PingPongDelay with Instrument',
+    description: 'PingPongDelay with FMSynth - electric piano with ping-pong echo',
+    mml: '@FMSynth @PingPongDelay o4 l8 cdefgab<c'
+  },
+  {
     id: 'accidentals',
     name: 'Accidentals (Sharps & Flats)',
     description: 'Chromatic scale using sharps (+) and flats (-) - can be repeated (++, --)',
