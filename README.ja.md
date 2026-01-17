@@ -106,6 +106,11 @@ console.log(json);
 |---------|------|-----|
 | `@楽器名` | 音色（シンセサイザー）を変更<br>Tone.jsのシンセクラス名を使用<br>（詳細は下記の「音色仕様について」を参照） | `@Synth` `@FMSynth` `@AMSynth` |
 
+### エフェクト
+| コマンド | 説明 | 例 |
+|---------|------|-----|
+| `@PingPongDelay` | ピンポンディレイエフェクト<br>楽器と出力先の間に接続される<br>複数指定で直列接続<br>引数でパラメータ指定可能 | `@PingPongDelay` `@PingPongDelay{"delayTime":"8n"}` |
+
 ### マルチトラック
 | コマンド | 説明 | 例 |
 |---------|------|-----|
@@ -152,6 +157,18 @@ o4 'c+4eg-' 'd+8f+a' 'e4g+b'.
 
 // 1トラック内での楽器切り替え
 @Synth o4 cde @FMSynth fga @AMSynth b<c
+
+// エフェクト（PingPongDelay）
+@PingPongDelay o4 l8 cdefgab<c  // ピンポンディレイ効果
+
+// エフェクトにパラメータを渡す
+@PingPongDelay{"delayTime":"8n"} o4 l8 cdefgab<c  // 8分音符のディレイタイム
+
+// 複数のエフェクトを直列接続
+@PingPongDelay @PingPongDelay o4 l8 cdefgab<c  // ディレイを2つ重ねる
+
+// 楽器とエフェクトの組み合わせ
+@FMSynth @PingPongDelay o4 l8 cdefgab<c  // FMシンセ + ピンポンディレイ
 ```
 
 ## 未実装コマンド（将来実装予定）
@@ -309,7 +326,7 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
 | エフェクト | tonejs-json-sequencer | 本ライブラリ(MML) | 用途 |
 |-----------|----------------------|------------------|------|
 | **FeedbackDelay** | ✅ 対応済み | ⏳ 未対応 | フィードバックディレイ |
-| **PingPongDelay** | ✅ 対応済み | ⏳ 未対応 | ピンポンディレイ |
+| **PingPongDelay** | ✅ 対応済み | ✅ 対応済み | ピンポンディレイ |
 
 #### 歪み系（Distortion）
 
