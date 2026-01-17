@@ -9,9 +9,21 @@ const DOUBLE_DOT_MULTIPLIER: f64 = 1.75;
 const EVENT_TYPE_CREATE_NODE: &str = "createNode";
 const EVENT_TYPE_CONNECT: &str = "connect";
 
+// Constant array of known effect types
+const KNOWN_EFFECTS: &[&str] = &[
+    "PingPongDelay",
+    "FeedbackDelay",
+    "Reverb",
+    "Chorus",
+    "Phaser",
+    "Tremolo",
+    "Vibrato",
+    "Distortion",
+];
+
 /// Check if a name is an effect (not an instrument)
 fn is_effect(name: &str) -> bool {
-    matches!(name, "PingPongDelay" | "FeedbackDelay" | "Reverb" | "Chorus" | "Phaser" | "Tremolo" | "Vibrato" | "Distortion")
+    KNOWN_EFFECTS.contains(&name)
 }
 
 /// Get the synth type to use, considering chords
@@ -123,6 +135,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
     // Collect initial instrument and effects before any notes
     let mut first_instrument: Option<InstrumentToken> = None;
     let mut initial_effects: Vec<InstrumentToken> = Vec::new();
+    let mut tokens_to_skip = 0;
     
     for token in ast.iter().take_while(|token| {
         // Stop when we encounter a note, chord, or rest
@@ -135,6 +148,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
             } else if first_instrument.is_none() {
                 first_instrument = Some(instr.clone());
             }
+            tokens_to_skip += 1;
         }
     }
     
@@ -203,18 +217,8 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
     
     // Reset node_id for instrument playback
     node_id = instrument_node_id;
-    
-    // Track which initial tokens we've already processed
-    let mut tokens_to_skip = 0;
-    for token in ast.iter().take_while(|token| {
-        !matches!(token, AstToken::Note(_) | AstToken::Chord(_) | AstToken::Rest(_))
-    }) {
-        if matches!(token, AstToken::Instrument(_)) {
-            tokens_to_skip += 1;
-        }
-    }
 
-    // Process each AST token
+    // Process each AST token, skipping the initial instrument/effect tokens we already processed
     let mut skipped = 0;
     for token in ast {
         match token {
@@ -305,8 +309,13 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 
                 // Check if this is an effect or instrument
                 if is_effect(name) {
-                    // This is an effect - not yet supported mid-track
-                    // For now, we only support effects before the first note
+                    // Mid-track effects are not yet supported.
+                    // Current limitation: Effects must be specified before the first note.
+                    // Future enhancement: Support adding effects mid-track by:
+                    //   1. Disconnecting current instrument from destination
+                    //   2. Inserting new effect in the chain
+                    //   3. Reconnecting to destination through the new effect
+                    // For now, ignore mid-track effect commands.
                     continue;
                 } else {
                     // This is an instrument change
