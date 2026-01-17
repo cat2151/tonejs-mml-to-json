@@ -870,4 +870,178 @@ describe('ast2json', () => {
       expect(notes[0].args[0]).toEqual(['c4', 'e4']);
     });
   });
+
+  describe('Non-Sampler instruments with args', () => {
+    it('should pass args to FMSynth when provided', () => {
+      const ast = [
+        { 
+          type: 'instrument', 
+          value: "FMSynth", 
+          args: '{"harmonicity":3,"modulationIndex":10}',
+          length: 47
+        },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      // Check createNode has args
+      const createNodes = result.filter(c => c.eventType === "createNode");
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe("FMSynth");
+      
+      // Check that args were passed through
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.harmonicity).toBe(3);
+      expect(createNodes[0].args.modulationIndex).toBe(10);
+    });
+
+    it('should pass args to AMSynth when provided', () => {
+      const ast = [
+        { 
+          type: 'instrument', 
+          value: "AMSynth", 
+          args: '{"harmonicity":2.5}',
+          length: 28
+        },
+        { type: 'note', note: 'e', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      const createNodes = result.filter(c => c.eventType === "createNode");
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe("AMSynth");
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.harmonicity).toBe(2.5);
+    });
+
+    it('should pass args to MonoSynth when provided', () => {
+      const ast = [
+        { 
+          type: 'instrument', 
+          value: "MonoSynth", 
+          args: '{"filter":{"Q":2,"type":"lowpass","rolloff":-12},"envelope":{"attack":0.005}}',
+          length: 90
+        },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      const createNodes = result.filter(c => c.eventType === "createNode");
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe("MonoSynth");
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.filter).toBeDefined();
+      expect(createNodes[0].args.filter.Q).toBe(2);
+      expect(createNodes[0].args.envelope).toBeDefined();
+      expect(createNodes[0].args.envelope.attack).toBe(0.005);
+    });
+
+    it('should pass args to PluckSynth when provided', () => {
+      const ast = [
+        { 
+          type: 'instrument', 
+          value: "PluckSynth", 
+          args: '{"attackNoise":0.5,"dampening":4000,"resonance":0.95}',
+          length: 65
+        },
+        { type: 'note', note: 'a', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      const createNodes = result.filter(c => c.eventType === "createNode");
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe("PluckSynth");
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.attackNoise).toBe(0.5);
+      expect(createNodes[0].args.dampening).toBe(4000);
+      expect(createNodes[0].args.resonance).toBe(0.95);
+    });
+
+    it('should pass args to Synth when provided', () => {
+      const ast = [
+        { 
+          type: 'instrument', 
+          value: "Synth", 
+          args: '{"oscillator":{"type":"triangle"},"envelope":{"attack":0.01}}',
+          length: 70
+        },
+        { type: 'note', note: 'g', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      const createNodes = result.filter(c => c.eventType === "createNode");
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe("Synth");
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.oscillator).toBeDefined();
+      expect(createNodes[0].args.oscillator.type).toBe("triangle");
+      expect(createNodes[0].args.envelope).toBeDefined();
+      expect(createNodes[0].args.envelope.attack).toBe(0.01);
+    });
+
+    it('should handle instrument switching with args', () => {
+      const ast = [
+        { 
+          type: 'instrument', 
+          value: "FMSynth", 
+          args: '{"harmonicity":3}',
+          length: 27
+        },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 },
+        { 
+          type: 'instrument', 
+          value: "AMSynth", 
+          args: '{"harmonicity":2}',
+          length: 27
+        },
+        { type: 'note', note: 'd', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      const createNodes = result.filter(c => c.eventType === "createNode");
+      expect(createNodes).toHaveLength(2);
+      
+      // First instrument: FMSynth with args
+      expect(createNodes[0].nodeType).toBe("FMSynth");
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.harmonicity).toBe(3);
+      
+      // Second instrument: AMSynth with args
+      expect(createNodes[1].nodeType).toBe("AMSynth");
+      expect(createNodes[1].args).toBeDefined();
+      expect(createNodes[1].args.harmonicity).toBe(2);
+    });
+
+    it('should pass args to PolySynth when chords are used with non-Sampler instrument', () => {
+      const ast = [
+        { 
+          type: 'instrument', 
+          value: "FMSynth", 
+          args: '{"harmonicity":5}',
+          length: 27
+        },
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'c', accidental: '' },
+            { note: 'e', accidental: '' },
+            { note: 'g', accidental: '' }
+          ],
+          duration: null, 
+          dots: 0, 
+          length: 5 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      // Should create PolySynth (not FMSynth) because track has chords
+      const createNodes = result.filter(c => c.eventType === "createNode");
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe("PolySynth");
+      
+      // Args should still be passed through to PolySynth
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.harmonicity).toBe(5);
+    });
+  });
 });

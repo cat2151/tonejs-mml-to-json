@@ -73,6 +73,42 @@ export const demos = [
         mml: '@Synth o4 cde @FMSynth fga @AMSynth gab @MonoSynth agf'
     },
     {
+        id: 'instrument-fmsynth-args',
+        name: '@FMSynth with Args',
+        description: 'FM synthesis with custom harmonicity and modulation - creates different timbres',
+        mml: '@FMSynth{"harmonicity":3,"modulationIndex":10} o4 l8 cdefgab<c'
+    },
+    {
+        id: 'instrument-amsynth-args',
+        name: '@AMSynth with Args',
+        description: 'AM synthesis with custom harmonicity - adjusts the modulation ratio',
+        mml: '@AMSynth{"harmonicity":2.5} o4 l8 cdefgab<c'
+    },
+    {
+        id: 'instrument-monosynth-args',
+        name: '@MonoSynth with Args',
+        description: 'MonoSynth with custom filter and envelope - creates a punchy bass sound',
+        mml: '@MonoSynth{"filter":{"Q":2,"type":"lowpass","rolloff":-12},"envelope":{"attack":0.005}} o3 l8 c c c c d d d d'
+    },
+    {
+        id: 'instrument-plucksynth-args',
+        name: '@PluckSynth with Args',
+        description: 'PluckSynth with custom parameters - adjusts the plucked string sound',
+        mml: '@PluckSynth{"attackNoise":0.5,"dampening":4000,"resonance":0.95} o4 l8 cdefgab<c'
+    },
+    {
+        id: 'instrument-synth-args',
+        name: '@Synth with Args',
+        description: 'Basic Synth with custom oscillator and envelope - creates a soft pad sound',
+        mml: '@Synth{"oscillator":{"type":"triangle"},"envelope":{"attack":0.1,"decay":0.2,"sustain":0.5,"release":1}} o4 l4 c e g c'
+    },
+    {
+        id: 'instrument-switch-args',
+        name: 'Instrument Switching with Args',
+        description: 'Switch between instruments with custom parameters',
+        mml: '@FMSynth{"harmonicity":3} o4 cde @AMSynth{"harmonicity":2} fga'
+    },
+    {
         id: 'instrument-sampler',
         name: '@Sampler (Piano)',
         description: 'Sample-based synthesis using audio files - realistic piano, drums, or any recorded sound',

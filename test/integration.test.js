@@ -456,4 +456,134 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(notes).toEqual(['e4', 'g#4', 'b4']);
     });
   });
+
+  describe('Instruments with args', () => {
+    it('should convert @FMSynth with args through full pipeline', () => {
+      const mml = '@FMSynth{"harmonicity":3,"modulationIndex":10} c d e';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      // Check createNode has FMSynth with args
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe('FMSynth');
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.harmonicity).toBe(3);
+      expect(createNodes[0].args.modulationIndex).toBe(10);
+      
+      // Check notes are played
+      const notes = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(3);
+      expect(notes[0].args[0]).toBe('c4');
+      expect(notes[1].args[0]).toBe('d4');
+      expect(notes[2].args[0]).toBe('e4');
+    });
+
+    it('should convert @AMSynth with args through full pipeline', () => {
+      const mml = '@AMSynth{"harmonicity":2.5} o5 a b c';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe('AMSynth');
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.harmonicity).toBe(2.5);
+      
+      const notes = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes[0].args[0]).toBe('a5');
+      expect(notes[1].args[0]).toBe('b5');
+      expect(notes[2].args[0]).toBe('c5');
+    });
+
+    it('should convert @MonoSynth with nested args through full pipeline', () => {
+      const mml = '@MonoSynth{"filter":{"Q":2,"type":"lowpass"},"envelope":{"attack":0.005}} c';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe('MonoSynth');
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.filter).toBeDefined();
+      expect(createNodes[0].args.filter.Q).toBe(2);
+      expect(createNodes[0].args.filter.type).toBe('lowpass');
+      expect(createNodes[0].args.envelope).toBeDefined();
+      expect(createNodes[0].args.envelope.attack).toBe(0.005);
+    });
+
+    it('should convert @PluckSynth with args through full pipeline', () => {
+      const mml = '@PluckSynth{"attackNoise":0.5,"dampening":4000} o4 e f g';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe('PluckSynth');
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.attackNoise).toBe(0.5);
+      expect(createNodes[0].args.dampening).toBe(4000);
+    });
+
+    it('should handle instrument switching with args through full pipeline', () => {
+      const mml = '@FMSynth{"harmonicity":3} c d @AMSynth{"harmonicity":2} e f';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      
+      // First instrument
+      expect(createNodes[0].nodeType).toBe('FMSynth');
+      expect(createNodes[0].args.harmonicity).toBe(3);
+      
+      // Second instrument
+      expect(createNodes[1].nodeType).toBe('AMSynth');
+      expect(createNodes[1].args.harmonicity).toBe(2);
+      
+      // Check notes are assigned to correct instruments
+      const notes = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(4);
+      expect(notes[0].nodeId).toBe(0); // c on FMSynth
+      expect(notes[1].nodeId).toBe(0); // d on FMSynth
+      expect(notes[2].nodeId).toBe(1); // e on AMSynth
+      expect(notes[3].nodeId).toBe(1); // f on AMSynth
+    });
+
+    it('should convert chord with non-Sampler instrument args through full pipeline', () => {
+      const mml = '@FMSynth{"harmonicity":5} \'ceg\' \'dfb\'';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      // Should create PolySynth (not FMSynth) because of chords
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe('PolySynth');
+      
+      // Args should still be passed through
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.harmonicity).toBe(5);
+      
+      // Check chords are arrays
+      const chords = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(chords).toHaveLength(2);
+      expect(Array.isArray(chords[0].args[0])).toBe(true);
+      expect(chords[0].args[0]).toEqual(['c4', 'e4', 'g4']);
+      expect(chords[1].args[0]).toEqual(['d4', 'f4', 'b4']);
+    });
+
+    it('should preserve Sampler args when using chords', () => {
+      const mml = '@Sampler{"urls":{"C4":"test.mp3"},"release":1} \'ce\'';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      // Should keep Sampler (not convert to PolySynth)
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe('Sampler');
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.urls).toBeDefined();
+      expect(createNodes[0].args.release).toBe(1);
+    });
+  });
 });
