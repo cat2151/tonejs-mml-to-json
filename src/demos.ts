@@ -85,5 +85,65 @@ export const demos: Demo[] = [
     name: '@Sampler (Piano)',
     description: 'Sample-based synthesis using audio files - realistic piano, drums, or any recorded sound',
     mml: '@Sampler{"urls":{"C4":"https://tonejs.github.io/audio/salamander/C4.mp3","D#4":"https://tonejs.github.io/audio/salamander/Ds4.mp3","F#4":"https://tonejs.github.io/audio/salamander/Fs4.mp3","A4":"https://tonejs.github.io/audio/salamander/A4.mp3"},"release":1} o4 l8 cdefgab>c'
+  },
+  {
+    id: 'chord-basic',
+    name: 'Chords (Basic)',
+    description: 'Basic chord demonstration - notes enclosed in single quotes play simultaneously',
+    mml: 'o4 l4 \'ceg\' \'dfb\' \'ace\' \'gbdf\''
+  },
+  {
+    id: 'chord-sampler',
+    name: 'Chords with @Sampler',
+    description: 'Chord demonstration with Sampler - rich piano chords',
+    mml: '@Sampler{"urls":{"C4":"https://tonejs.github.io/audio/salamander/C4.mp3","D#4":"https://tonejs.github.io/audio/salamander/Ds4.mp3","F#4":"https://tonejs.github.io/audio/salamander/Fs4.mp3","A4":"https://tonejs.github.io/audio/salamander/A4.mp3"},"release":1} o4 l4 \'ceg\' \'dfb\' \'ace\' \'gbdf\''
+  },
+  {
+    id: 'chord-accidentals',
+    name: 'Chords with Accidentals',
+    description: 'Chords with sharps and flats - demonstrating \'c+eg-\' notation',
+    mml: 'o4 l4 \'c+eg\' \'df+a\' \'eg+b\' \'c-eg-\''
+  },
+  {
+    id: 'chord-duration',
+    name: 'Chords with Duration',
+    description: 'Chords with different durations and dots - duration inside quotes, dots outside',
+    mml: 'o4 \'c4eg\' \'d8fb\' \'e4ac\'. \'f8gbd\'..'
+  },
+  {
+    id: 'chord-mixed',
+    name: 'Mixed Single Notes and Chords',
+    description: 'Combining single notes with chords in one melody',
+    mml: 'o4 l8 c \'eg\' d \'fac\' e \'gb\' c4'
+  },
+  {
+    id: 'accidentals',
+    name: 'Accidentals (Sharps & Flats)',
+    description: 'Chromatic scale using sharps (+) and flats (-) - can be repeated (++, --)',
+    mml: 'o4 l16 c c+ d d+ e f f+ g g+ a a+ b >c'
+  },
+  {
+    id: 'rest-rhythm',
+    name: 'Rest and Rhythm',
+    description: 'Using rests (r) to create rhythmic patterns',
+    mml: 'o4 l8 c r e r g r e r c4 r4'
+  },
+  {
+    id: 'dotted-notes',
+    name: 'Dotted Notes',
+    description: 'Dotted notes (.) increase duration by 1.5x, double dots (..) by 1.75x',
+    mml: 'o4 c4. d8 e4. f8 g4.. a16 b4'
+  },
+  {
+    id: 'octave-control',
+    name: 'Octave Control (< and >)',
+    description: 'Using < to raise octave and > to lower octave',
+    mml: 'o4 l8 cdefgab < cdefgab < c > bagfedc > bagfedc'
+  },
+  {
+    id: 'comprehensive',
+    name: 'Comprehensive Demo',
+    description: 'Combining multiple MML features: chords, accidentals, dots, octaves, multi-track',
+    mml: '@FMSynth o4 l8 c4. \'eg\' d+ \'f+ac\'. e r < c; @MonoSynth o3 l4 c e g c'
   }
 ];
