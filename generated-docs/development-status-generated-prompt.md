@@ -550,12 +550,12 @@ o4 'c+4eg-' 'd+8f+a' 'e4g+b'.
 @Synth cde @FMSynth efg @AMSynth abc
 
 // 異なる楽器タイプ
-@FMSynth o4 l8 cdefgab>c  // FMSynth - エレピの音
+@FMSynth o4 l8 cdefgab<c  // FMSynth - エレピの音
 @MonoSynth o3 l8 ccccdddd    // MonoSynth - ベース音
 @PluckSynth o4 l8 cdefgab     // PluckSynth - ギターの音
 
 // 1トラック内での楽器切り替え
-@Synth o4 cde @FMSynth fga @AMSynth b>c
+@Synth o4 cde @FMSynth fga @AMSynth b<c
 ```
 
 ## 未実装コマンド（将来実装予定）
@@ -641,10 +641,10 @@ c;e;g
 
 ```mml
 // FMSynthでエレピの音
-@FMSynth o4 l8 cdefgab>c
+@FMSynth o4 l8 cdefgab<c
 
 // トラック内で楽器を切り替え
-@Synth o4 cde @FMSynth fga @AMSynth b>c
+@Synth o4 cde @FMSynth fga @AMSynth b<c
 
 // MonoSynthでベースライン
 @MonoSynth o3 l8 c c c c d d d d
