@@ -49,7 +49,7 @@ import { initWasm, mml2json } from 'tonejs-mml-to-json';
 
 await initWasm();
 
-const mml = 'o4 l16 e f g+ a b a g+ f e8. >e8. <e8';
+const mml = 'o4 l16 e f g+ a b a g+ f e8. <e8. >e8';
 const json = mml2json(mml);
 // json is an array of Tone.js commands ready for tonejs-json-sequencer
 ```
@@ -109,7 +109,7 @@ import { playSequence } from 'tonejs-json-sequencer';
 
 await initWasm();
 
-const mml = 'o4 l16 e f g+ a b a g+ f e8. >e8. <e8';
+const mml = 'o4 l16 e f g+ a b a g+ f e8. <e8. >e8';
 const json = mml2json(mml);
 
 // Play the sequence

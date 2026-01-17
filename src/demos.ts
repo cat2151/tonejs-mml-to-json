@@ -18,7 +18,7 @@ export const demos: Demo[] = [
     id: 'traditional',
     name: 'Traditional Demo',
     description: 'Single track MML demo',
-    mml: 'o4 l16 efg+abag+f e8.>e8.<e8'
+    mml: 'o4 l16 efg+abag+f e8.<e8.>e8'
   },
   {
     id: 'multitrack',
@@ -30,19 +30,19 @@ export const demos: Demo[] = [
     id: 'instrument-synth',
     name: '@Synth (Default)',
     description: 'Basic subtractive synthesis - default sound',
-    mml: '@Synth o4 l8 cdefgab<c'
+    mml: '@Synth o4 l8 cdefgab>c'
   },
   {
     id: 'instrument-fm',
     name: '@FMSynth',
     description: 'FM synthesis - electric piano, bell-like sounds',
-    mml: '@FMSynth o4 l8 cdefgab<c'
+    mml: '@FMSynth o4 l8 cdefgab>c'
   },
   {
     id: 'instrument-am',
     name: '@AMSynth',
     description: 'AM synthesis - bells, metallic sounds, tremolo effects',
-    mml: '@AMSynth o4 l8 cdefgab<c'
+    mml: '@AMSynth o4 l8 cdefgab>c'
   },
   {
     id: 'instrument-mono',
@@ -54,7 +54,7 @@ export const demos: Demo[] = [
     id: 'instrument-pluck',
     name: '@PluckSynth',
     description: 'Plucked string simulation - guitar, harp, koto',
-    mml: '@PluckSynth o4 l8 cdefgab<c'
+    mml: '@PluckSynth o4 l8 cdefgab>c'
   },
   {
     id: 'instrument-membrane',
@@ -72,7 +72,7 @@ export const demos: Demo[] = [
     id: 'instrument-duo',
     name: '@DuoSynth',
     description: 'Dual-voice synthesis - rich textures, chorus effects',
-    mml: '@DuoSynth o4 l8 cdefgab<c'
+    mml: '@DuoSynth o4 l8 cdefgab>c'
   },
   {
     id: 'instrument-switch',
@@ -84,7 +84,7 @@ export const demos: Demo[] = [
     id: 'instrument-sampler',
     name: '@Sampler (Piano)',
     description: 'Sample-based synthesis using audio files - realistic piano, drums, or any recorded sound',
-    mml: '@Sampler{"urls":{"C4":"https://tonejs.github.io/audio/salamander/C4.mp3","D#4":"https://tonejs.github.io/audio/salamander/Ds4.mp3","F#4":"https://tonejs.github.io/audio/salamander/Fs4.mp3","A4":"https://tonejs.github.io/audio/salamander/A4.mp3"},"release":1} o4 l8 cdefgab<c'
+    mml: '@Sampler{"urls":{"C4":"https://tonejs.github.io/audio/salamander/C4.mp3","D#4":"https://tonejs.github.io/audio/salamander/Ds4.mp3","F#4":"https://tonejs.github.io/audio/salamander/Fs4.mp3","A4":"https://tonejs.github.io/audio/salamander/A4.mp3"},"release":1} o4 l8 cdefgab>c'
   },
   {
     id: 'chord-basic',

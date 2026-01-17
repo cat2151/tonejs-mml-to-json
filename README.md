@@ -55,7 +55,7 @@ import { initWasm, mml2json } from 'tonejs-mml-to-json';
 await initWasm();
 
 // Convert MML to JSON
-const mml = 'o4 l16 e f g+ a b a g+ f e8. >e8. <e8';
+const mml = 'o4 l16 e f g+ a b a g+ f e8. <e8. >e8';
 const json = mml2json(mml);
 console.log(json);
 ```
@@ -144,12 +144,12 @@ o4 'c+4eg-' 'd+8f+a' 'e4g+b'.
 @Synth cde @FMSynth efg @AMSynth abc
 
 // Different instrument types
-@FMSynth o4 l8 cdefgab<c  // FMSynth - Electric piano sound
+@FMSynth o4 l8 cdefgab>c  // FMSynth - Electric piano sound
 @MonoSynth o3 l8 ccccdddd    // MonoSynth - Bass sound
 @PluckSynth o4 l8 cdefgab     // PluckSynth - Guitar sound
 
 // Instrument switching within a single track
-@Synth o4 cde @FMSynth fga @AMSynth b<c
+@Synth o4 cde @FMSynth fga @AMSynth b>c
 ```
 
 ## Unimplemented Commands (Planned for Future Implementation)
@@ -235,10 +235,10 @@ The following are Tone.js synthesizer types that may be specified with the `@` c
 
 ```mml
 // Electric piano sound with FMSynth
-@FMSynth o4 l8 cdefgab<c
+@FMSynth o4 l8 cdefgab>c
 
 // Switch instruments within a track
-@Synth o4 cde @FMSynth fga @AMSynth b<c
+@Synth o4 cde @FMSynth fga @AMSynth b>c
 
 // Bassline with MonoSynth
 @MonoSynth o3 l8 c c c c d d d d

@@ -52,7 +52,7 @@ This grammar supports the following MML commands:
 ## Example MML
 
 ```mml
-o4 l16 e f g+ a b a g+ f e8. >e8. <e8
+o4 l16 e f g+ a b a g+ f e8. <e8. >e8
 ```
 
 ## Integration
