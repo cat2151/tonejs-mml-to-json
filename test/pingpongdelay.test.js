@@ -114,7 +114,9 @@ describe('@PingPongDelay effect', () => {
       const ast = mml2ast(mml);
       const json = ast2json(ast);
       
-      // Should have: Synth (nodeId 0), PingPongDelay (nodeId 1), FMSynth (nodeId 1 - reuses after reset)
+      // Should have: Synth (nodeId 0), PingPongDelay (nodeId 1), FMSynth (nodeId 1)
+      // Note: FMSynth reuses nodeId 1 because node_id is reset to instrument_node_id (0)
+      // after initial setup, then incremented to 1 when @FMSynth is processed
       const createNodes = json.filter(e => e.eventType === 'createNode');
       expect(createNodes).toHaveLength(3);
       expect(createNodes[0].nodeType).toBe('Synth');
@@ -122,7 +124,7 @@ describe('@PingPongDelay effect', () => {
       expect(createNodes[1].nodeType).toBe('PingPongDelay');
       expect(createNodes[1].nodeId).toBe(1);
       expect(createNodes[2].nodeType).toBe('FMSynth');
-      expect(createNodes[2].nodeId).toBe(1); // Reuses nodeId after reset
+      expect(createNodes[2].nodeId).toBe(1); // Same as PingPongDelay due to node_id reset
       
       const connects = json.filter(e => e.eventType === 'connect');
       expect(connects).toHaveLength(3);
@@ -132,7 +134,7 @@ describe('@PingPongDelay effect', () => {
       // PingPongDelay -> toDestination
       expect(connects[1].nodeId).toBe(1);
       expect(connects[1].connectTo).toBe('toDestination');
-      // FMSynth -> toDestination (bypasses effects)
+      // FMSynth -> toDestination (bypasses effects, same nodeId as effect but different node)
       expect(connects[2].nodeId).toBe(1);
       expect(connects[2].connectTo).toBe('toDestination');
       
