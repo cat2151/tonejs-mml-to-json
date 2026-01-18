@@ -19,6 +19,7 @@ const KNOWN_EFFECTS: &[&str] = &[
     "Tremolo",
     "Vibrato",
     "Distortion",
+    "DelayVibrato",
 ];
 
 /// Check if a name is an effect (not an instrument)
@@ -177,21 +178,34 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
         args: initial_args,
     });
     
+    // Track DelayVibrato node_id if present
+    let mut delay_vibrato_node_id: Option<u32> = None;
+    
     // Create effect nodes and chain them
     let mut last_node_id = instrument_node_id;
     for effect in &initial_effects {
         node_id += 1;
         let effect_name = effect.value.as_deref().unwrap_or("");
-        let effect_args = effect.args.as_ref()
-            .and_then(|json_str| serde_json::from_str(json_str).ok());
+        
+        // Special handling for DelayVibrato
+        let (actual_effect_name, actual_effect_args) = if effect_name == "DelayVibrato" {
+            // DelayVibrato creates a Vibrato node with hardcoded parameters:
+            // frequency=7, initial depth=0
+            delay_vibrato_node_id = Some(node_id);
+            ("Vibrato", Some(serde_json::json!([7, 0])))
+        } else {
+            let effect_args = effect.args.as_ref()
+                .and_then(|json_str| serde_json::from_str(json_str).ok());
+            (effect_name, effect_args)
+        };
         
         // Create the effect node
         commands.push(Command {
             event_type: EVENT_TYPE_CREATE_NODE.to_string(),
             node_id,
-            node_type: Some(effect_name.to_string()),
+            node_type: Some(actual_effect_name.to_string()),
             connect_to: None,
-            args: effect_args,
+            args: actual_effect_args,
         });
         
         // Connect previous node to this effect
@@ -240,6 +254,47 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                     args: Some(serde_json::json!([note_name, duration, start])),
                 });
 
+                // Add DelayVibrato depth.rampTo commands if DelayVibrato effect is present
+                if let Some(vibrato_node_id) = delay_vibrato_node_id {
+                    // Hardcoded parameters for DelayVibrato:
+                    // - Delay before vibrato starts: 192 ticks
+                    // - Ramp duration: 192 ticks
+                    // - Target depth: 0.2
+                    // - End ramp duration: 10 ticks
+                    const VIBRATO_DELAY_TICKS: u32 = 192;
+                    const VIBRATO_RAMP_TICKS: u32 = 192;
+                    const VIBRATO_DEPTH: &str = "0.2";
+                    const VIBRATO_END_RAMP_TICKS: u32 = 10;
+                    
+                    // Start ramping up vibrato after delay
+                    let ramp_start_tick = start_tick + VIBRATO_DELAY_TICKS;
+                    commands.push(Command {
+                        event_type: "depth.rampTo".to_string(),
+                        node_id: vibrato_node_id,
+                        node_type: None,
+                        connect_to: None,
+                        args: Some(serde_json::json!([
+                            VIBRATO_DEPTH,
+                            format!("{}i", VIBRATO_RAMP_TICKS),
+                            format!("+{}i", ramp_start_tick)
+                        ])),
+                    });
+                    
+                    // Ramp down vibrato when note ends
+                    let ramp_end_tick = start_tick + ticks;
+                    commands.push(Command {
+                        event_type: "depth.rampTo".to_string(),
+                        node_id: vibrato_node_id,
+                        node_type: None,
+                        connect_to: None,
+                        args: Some(serde_json::json!([
+                            "0",
+                            format!("{}i", VIBRATO_END_RAMP_TICKS),
+                            format!("+{}i", ramp_end_tick)
+                        ])),
+                    });
+                }
+
                 start_tick += ticks;
             }
 
@@ -267,6 +322,47 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                     connect_to: None,
                     args: Some(serde_json::json!([note_names, duration, start])),
                 });
+
+                // Add DelayVibrato depth.rampTo commands if DelayVibrato effect is present
+                if let Some(vibrato_node_id) = delay_vibrato_node_id {
+                    // Hardcoded parameters for DelayVibrato:
+                    // - Delay before vibrato starts: 192 ticks
+                    // - Ramp duration: 192 ticks
+                    // - Target depth: 0.2
+                    // - End ramp duration: 10 ticks
+                    const VIBRATO_DELAY_TICKS: u32 = 192;
+                    const VIBRATO_RAMP_TICKS: u32 = 192;
+                    const VIBRATO_DEPTH: &str = "0.2";
+                    const VIBRATO_END_RAMP_TICKS: u32 = 10;
+                    
+                    // Start ramping up vibrato after delay
+                    let ramp_start_tick = start_tick + VIBRATO_DELAY_TICKS;
+                    commands.push(Command {
+                        event_type: "depth.rampTo".to_string(),
+                        node_id: vibrato_node_id,
+                        node_type: None,
+                        connect_to: None,
+                        args: Some(serde_json::json!([
+                            VIBRATO_DEPTH,
+                            format!("{}i", VIBRATO_RAMP_TICKS),
+                            format!("+{}i", ramp_start_tick)
+                        ])),
+                    });
+                    
+                    // Ramp down vibrato when note ends
+                    let ramp_end_tick = start_tick + ticks;
+                    commands.push(Command {
+                        event_type: "depth.rampTo".to_string(),
+                        node_id: vibrato_node_id,
+                        node_type: None,
+                        connect_to: None,
+                        args: Some(serde_json::json!([
+                            "0",
+                            format!("{}i", VIBRATO_END_RAMP_TICKS),
+                            format!("+{}i", ramp_end_tick)
+                        ])),
+                    });
+                }
 
                 start_tick += ticks;
             }
