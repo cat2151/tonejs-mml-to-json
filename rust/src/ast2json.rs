@@ -9,6 +9,12 @@ const DOUBLE_DOT_MULTIPLIER: f64 = 1.75;
 const EVENT_TYPE_CREATE_NODE: &str = "createNode";
 const EVENT_TYPE_CONNECT: &str = "connect";
 
+// DelayVibrato effect constants (hardcoded parameters)
+const VIBRATO_DELAY_TICKS: u32 = 192;    // Delay before vibrato starts
+const VIBRATO_RAMP_TICKS: u32 = 192;     // Ramp duration for vibrato increase
+const VIBRATO_DEPTH: &str = "0.2";       // Target vibrato depth
+const VIBRATO_END_RAMP_TICKS: u32 = 10;  // Ramp duration for vibrato decrease
+
 // Constant array of known effect types
 const KNOWN_EFFECTS: &[&str] = &[
     "PingPongDelay",
@@ -256,16 +262,6 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
 
                 // Add DelayVibrato depth.rampTo commands if DelayVibrato effect is present
                 if let Some(vibrato_node_id) = delay_vibrato_node_id {
-                    // Hardcoded parameters for DelayVibrato:
-                    // - Delay before vibrato starts: 192 ticks
-                    // - Ramp duration: 192 ticks
-                    // - Target depth: 0.2
-                    // - End ramp duration: 10 ticks
-                    const VIBRATO_DELAY_TICKS: u32 = 192;
-                    const VIBRATO_RAMP_TICKS: u32 = 192;
-                    const VIBRATO_DEPTH: &str = "0.2";
-                    const VIBRATO_END_RAMP_TICKS: u32 = 10;
-                    
                     // Start ramping up vibrato after delay
                     let ramp_start_tick = start_tick + VIBRATO_DELAY_TICKS;
                     commands.push(Command {
@@ -325,16 +321,6 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
 
                 // Add DelayVibrato depth.rampTo commands if DelayVibrato effect is present
                 if let Some(vibrato_node_id) = delay_vibrato_node_id {
-                    // Hardcoded parameters for DelayVibrato:
-                    // - Delay before vibrato starts: 192 ticks
-                    // - Ramp duration: 192 ticks
-                    // - Target depth: 0.2
-                    // - End ramp duration: 10 ticks
-                    const VIBRATO_DELAY_TICKS: u32 = 192;
-                    const VIBRATO_RAMP_TICKS: u32 = 192;
-                    const VIBRATO_DEPTH: &str = "0.2";
-                    const VIBRATO_END_RAMP_TICKS: u32 = 10;
-                    
                     // Start ramping up vibrato after delay
                     let ramp_start_tick = start_tick + VIBRATO_DELAY_TICKS;
                     commands.push(Command {
