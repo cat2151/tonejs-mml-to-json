@@ -119,14 +119,6 @@ describe('@DelayVibrato effect', () => {
       const ast = mml2ast(mml);
       const json = ast2json(ast);
       
-      // First few commands should be setup (createNode, connect)
-      const setupCommands = json.filter(e => 
-        e.eventType === 'createNode' || e.eventType === 'connect'
-      );
-      const nonSetupCommands = json.filter(e => 
-        e.eventType !== 'createNode' && e.eventType !== 'connect'
-      );
-      
       // All setup commands should come before non-setup commands
       const firstSetupIndex = json.findIndex(e => 
         e.eventType === 'createNode' || e.eventType === 'connect'
