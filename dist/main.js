@@ -28,8 +28,8 @@ function initializeDemoDropdown() {
         const selectedDemo = demos.find(d => d.id === demoSelect.value);
         if (selectedDemo && textarea1) {
             textarea1.value = selectedDemo.mml;
-            // Trigger play to update the output
-            play(true);
+            // Note: play() will be automatically triggered by textarea1's input event listener
+            // No need to call play() explicitly here to avoid double-calling
         }
     });
 }
