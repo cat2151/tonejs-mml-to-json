@@ -1,105 +1,22 @@
-use crate::ast::*;
-use serde::{Deserialize, Serialize};
-
-// Duration multiplier constants
-const SINGLE_DOT_MULTIPLIER: f64 = 1.5;
-const DOUBLE_DOT_MULTIPLIER: f64 = 1.75;
-
-// Event type constants for sorting and comparison
-const EVENT_TYPE_CREATE_NODE: &str = "createNode";
-const EVENT_TYPE_CONNECT: &str = "connect";
-
-// DelayVibrato effect constants (hardcoded parameters)
-const VIBRATO_DELAY_TICKS: u32 = 192;    // Delay before vibrato starts
-const VIBRATO_RAMP_TICKS: u32 = 192;     // Ramp duration for vibrato increase
-const VIBRATO_DEPTH: &str = "0.2";       // Target vibrato depth
-const VIBRATO_END_RAMP_TICKS: u32 = 10;  // Ramp duration for vibrato decrease
-
-// Constant array of known effect types
-const KNOWN_EFFECTS: &[&str] = &[
-    "PingPongDelay",
-    "FeedbackDelay",
-    "Reverb",
-    "Chorus",
-    "Phaser",
-    "Tremolo",
-    "Vibrato",
-    "Distortion",
-    "DelayVibrato",
-];
-
-/// Check if a name is an effect (not an instrument)
-fn is_effect(name: &str) -> bool {
-    KNOWN_EFFECTS.contains(&name)
-}
-
-/// Convert effect args from object format (user-friendly MML) to array format (Tone.js constructors)
+/// AST to JSON converter (refactored)
 /// 
-/// tonejs-json-sequencer expects effects to use array args that are spread into constructor parameters.
-/// Example: PingPongDelay constructor is `new Tone.PingPongDelay(delayTime, feedback)`
-/// So {"delayTime": "8n"} should become ["8n"]
-fn convert_effect_args_to_array(effect_name: &str, args_obj: &serde_json::Value) -> Option<serde_json::Value> {
-    if !args_obj.is_object() {
-        // If it's already an array or other type, return as-is
-        return Some(args_obj.clone());
-    }
-    
-    let obj = args_obj.as_object()?;
-    
-    // Define parameter mappings for each effect
-    // Based on Tone.js constructor signatures
-    let param_order: &[&str] = match effect_name {
-        "PingPongDelay" => &["delayTime", "feedback"],
-        "FeedbackDelay" => &["delayTime", "feedback"],
-        "Reverb" => &["decay"],
-        "Chorus" => &["frequency", "delayTime", "depth"],
-        "Phaser" => &["frequency", "octaves", "baseFrequency"],
-        "Tremolo" => &["frequency", "depth"],
-        "Vibrato" => &["frequency", "depth"],
-        "Distortion" => &["distortion"],
-        // Add more mappings as needed
-        _ => return Some(args_obj.clone()), // Unknown effect, pass through as-is
-    };
-    
-    // Extract values in the defined order, skipping undefined parameters
-    let mut array = Vec::new();
-    for &param_name in param_order {
-        if let Some(value) = obj.get(param_name) {
-            array.push(value.clone());
-        }
-    }
-    
-    if array.is_empty() {
-        None
-    } else {
-        Some(serde_json::Value::Array(array))
-    }
-}
+/// This module orchestrates the conversion of AST to Tone.js JSON format.
+/// Individual responsibilities are delegated to specialized modules:
+/// - command: Command struct and helper functions
+/// - timing: Timing calculations (ticks, duration, start time)
+/// - effects: Effect handling and DelayVibrato commands
+/// - instrument: Instrument type determination
+/// - track: Track splitting and chord detection
 
-/// Get the synth type to use, considering chords
-/// Sampler and PolySynth are polyphonic instruments that can handle chords with array format
-/// Other instruments are converted to PolySynth when chords are present
-fn get_synth_type_for_track(instrument_name: &str, needs_polysynth: bool) -> &str {
-    if needs_polysynth && instrument_name != "Sampler" && instrument_name != "PolySynth" {
-        "PolySynth"
-    } else {
-        instrument_name
-    }
-}
+use crate::ast::*;
+use crate::command::{Command, EVENT_TYPE_CREATE_NODE, EVENT_TYPE_CONNECT, get_start_tick};
+use crate::timing::{calc_ticks, calc_duration, calc_start_tick, convert_accidental};
+use crate::effects::{is_effect, convert_effect_args_to_array, add_delay_vibrato_commands};
+use crate::instrument::get_synth_type_for_track;
+use crate::track::{split_into_tracks, has_chords};
 
-/// JSON command types for Tone.js
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Command {
-    pub event_type: String,
-    pub node_id: u32,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub node_type: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub connect_to: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub args: Option<serde_json::Value>,
-}
+// Re-export Command for backward compatibility
+pub use crate::command::Command as ToneCommand;
 
 /// Convert AST to Tone.js JSON format
 pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
@@ -143,69 +60,6 @@ pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
         // Single track processing (original logic)
         process_single_track(ast, 0)
     }
-}
-
-/// Split AST into separate tracks based on TrackSeparator tokens
-fn split_into_tracks(ast: &[AstToken]) -> Vec<Vec<AstToken>> {
-    let mut tracks = vec![Vec::new()];
-    
-    for token in ast {
-        match token {
-            AstToken::TrackSeparator(_) => {
-                // Start a new track
-                tracks.push(Vec::new());
-            }
-            _ => {
-                // Add token to current track
-                if let Some(current_track) = tracks.last_mut() {
-                    current_track.push(token.clone());
-                }
-            }
-        }
-    }
-    
-    tracks
-}
-
-/// Check if a track contains any chord tokens
-fn has_chords(ast: &[AstToken]) -> bool {
-    ast.iter().any(|token| matches!(token, AstToken::Chord(_)))
-}
-
-/// Generate DelayVibrato depth.rampTo commands for a note or chord
-fn add_delay_vibrato_commands(
-    commands: &mut Vec<Command>,
-    vibrato_node_id: u32,
-    start_tick: u32,
-    ticks: u32,
-) {
-    // Start ramping up vibrato after delay
-    let ramp_start_tick = start_tick + VIBRATO_DELAY_TICKS;
-    commands.push(Command {
-        event_type: "depth.rampTo".to_string(),
-        node_id: vibrato_node_id,
-        node_type: None,
-        connect_to: None,
-        args: Some(serde_json::json!([
-            VIBRATO_DEPTH,
-            format!("{}i", VIBRATO_RAMP_TICKS),
-            format!("+{}i", ramp_start_tick)
-        ])),
-    });
-    
-    // Ramp down vibrato when note ends
-    let ramp_end_tick = start_tick + ticks;
-    commands.push(Command {
-        event_type: "depth.rampTo".to_string(),
-        node_id: vibrato_node_id,
-        node_type: None,
-        connect_to: None,
-        args: Some(serde_json::json!([
-            "0",
-            format!("{}i", VIBRATO_END_RAMP_TICKS),
-            format!("+{}i", ramp_end_tick)
-        ])),
-    });
 }
 
 /// Process a single track and generate commands with the specified node_id
@@ -466,84 +320,6 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
     }
 
     Ok(commands)
-}
-
-/// Helper function to extract start tick from a command
-fn get_start_tick(command: &Command) -> u32 {
-    if let Some(args) = &command.args {
-        if let Some(arr) = args.as_array() {
-            if arr.len() >= 3 {
-                if let Some(start_str) = arr[2].as_str() {
-                    // Parse "+123i" format
-                    if start_str.len() > 2 && start_str.starts_with('+') && start_str.ends_with('i') {
-                        if let Ok(tick) = start_str[1..start_str.len()-1].parse::<u32>() {
-                            return tick;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    0
-}
-
-fn calc_ticks(duration: Option<u32>, dots: u32, default_length: u32, meas_tick: u32) -> u32 {
-    let mut result = if let Some(dur) = duration {
-        meas_tick / dur
-    } else {
-        meas_tick / default_length
-    };
-
-    // Apply dots
-    if dots > 0 {
-        match dots {
-            1 => result = (result as f64 * SINGLE_DOT_MULTIPLIER) as u32,
-            2 => result = (result as f64 * DOUBLE_DOT_MULTIPLIER) as u32,
-            _ => {
-                // For more dots, calculate appropriately
-                let mut multiplier = 1.0;
-                let mut dot_value = 0.5;
-                for _ in 0..dots {
-                    multiplier += dot_value;
-                    dot_value /= 2.0;
-                }
-                result = (result as f64 * multiplier) as u32;
-            }
-        }
-    }
-
-    result
-}
-
-const GATE_TIME_REDUCTION: u32 = 10;
-const MIN_DURATION_FOR_GATE: u32 = 20;
-
-fn calc_duration(ticks: u32) -> String {
-    let mut duration = ticks;
-    // Apply gate time adjustment: subtract 10 ticks from durations >= 20 
-    // to create a slight gap between notes (equivalent to 'q' quantize command).
-    // This prevents notes from bleeding together and makes the music sound more natural.
-    if duration >= MIN_DURATION_FOR_GATE {
-        duration -= GATE_TIME_REDUCTION;
-    }
-    format!("{}i", duration)
-}
-
-fn calc_start_tick(start_tick: u32) -> String {
-    format!("+{}i", start_tick)
-}
-
-/// Convert accidental notation from +/- to sharp/flat
-fn convert_accidental(accidental: &str) -> String {
-    if accidental.is_empty() {
-        String::new()
-    } else if accidental.starts_with('+') {
-        "#".repeat(accidental.len())
-    } else if accidental.starts_with('-') {
-        "b".repeat(accidental.len())
-    } else {
-        String::new()
-    }
 }
 
 #[cfg(test)]
