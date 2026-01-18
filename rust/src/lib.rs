@@ -10,12 +10,20 @@ pub mod mml2ast;
 // CST to AST converter for WASM builds (using web-tree-sitter)
 pub mod cst_to_ast;
 
+// Core conversion modules (refactored for Single Responsibility Principle)
+pub mod command;
+pub mod timing;
+pub mod effects;
+pub mod instrument;
+pub mod track;
 pub mod ast2json;
 
 pub use ast::{AstToken, NoteToken, RestToken, LengthToken, OctaveToken, InstrumentToken, TrackSeparatorToken};
 #[cfg(feature = "tree-sitter")]
 pub use mml2ast::mml2ast;
 pub use ast2json::ast2json;
+// Re-export Command for backward compatibility
+pub use command::Command;
 
 /// Error response structure for WASM
 #[derive(Serialize)]
