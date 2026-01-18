@@ -2,6 +2,8 @@ import { SequencerNodes, playSequence } from 'tonejs-json-sequencer';
 // Global state - using SequencerNodes from tonejs-json-sequencer
 export const nodes = new SequencerNodes();
 export let errorPoint = "";
+// Flag to prevent concurrent play() calls
+let isPlaying = false;
 /**
  * Convert ToneCommand to SequenceEvent format
  * The main difference is connectTo which can be any string in ToneCommand
@@ -21,6 +23,11 @@ function toSequenceEvent(cmd) {
  * @param regenerateJson - If true, regenerate JSON from MML in textarea1. If false, play directly from textarea2.
  */
 export async function play(regenerateJson = true) {
+    // Prevent concurrent play() calls to avoid race conditions with node disposal/creation
+    if (isPlaying) {
+        return;
+    }
+    isPlaying = true;
     try {
         // Get textarea references
         const textarea1 = document.querySelector('#textarea1');
@@ -49,6 +56,10 @@ export async function play(regenerateJson = true) {
     }
     catch (error) {
         console.log(errorPoint + " error : [" + error + "]");
+    }
+    finally {
+        // Always reset the flag, even if there was an error
+        isPlaying = false;
     }
 }
 //# sourceMappingURL=play.js.map

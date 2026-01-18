@@ -36,8 +36,9 @@ function initializeDemoDropdown(): void {
     const selectedDemo = demos.find(d => d.id === demoSelect.value);
     if (selectedDemo && textarea1) {
       textarea1.value = selectedDemo.mml;
-      // Note: play() will be automatically triggered by textarea1's input event listener
-      // No need to call play() explicitly here to avoid double-calling
+      // Trigger play to update the output
+      // Note: Programmatic value changes don't trigger 'input' event, so we must call play() explicitly
+      play(true);
     }
   });
 }
