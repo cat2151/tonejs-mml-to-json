@@ -29,13 +29,14 @@ const effectsToFix = [
 ];
 
 effectsToFix.forEach(effectName => {
-    // Replace spread syntax with direct args passing
-    const oldPattern = new RegExp(
-        `(case '${effectName}':\\s*nodes\\.set\\(element\\.nodeId, new Tone\\.${effectName}\\()\\.\\.\\.(\\(element\\.args \\|\\| \\[\\]\\))(\\)\\);)`,
-        'g'
-    );
-    const replacement = `$1element.args$3`;
-    content = content.replace(oldPattern, replacement);
+    // Replace: new Tone.EffectName(...(element.args || []))
+    // With:    new Tone.EffectName(element.args)
+    // This fixes the issue where spreading an object doesn't work as function arguments
+    
+    const oldCode = `new Tone.${effectName}(...(element.args || []))`;
+    const newCode = `new Tone.${effectName}(element.args)`;
+    
+    content = content.replace(oldCode, newCode);
 });
 
 writeFileSync(dest, content, 'utf8');
