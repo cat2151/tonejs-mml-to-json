@@ -43,6 +43,10 @@ export async function play(regenerateJson = true) {
         const jsonStr = textarea2.value;
         errorPoint = "JSON.parse";
         const sequence = JSON.parse(jsonStr);
+        // Stop and cancel any existing playback before starting new sequence
+        // This prevents "Synth was already disposed" errors when playing during playback
+        Tone.Transport.stop();
+        Tone.Transport.cancel();
         // Convert to SequenceEvent format and use tonejs-json-sequencer to play
         errorPoint = "playSequence";
         await playSequence(Tone, nodes, sequence.map(toSequenceEvent));

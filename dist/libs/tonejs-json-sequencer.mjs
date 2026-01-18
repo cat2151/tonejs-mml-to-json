@@ -199,8 +199,6 @@ function connectNode(nodes, element) {
  * @param sequence - Array of sequence events
  */
 export async function playSequence(Tone, nodes, sequence) {
-    // Cancel all scheduled events before disposing nodes to prevent "already disposed" errors
-    Tone.Transport.cancel();
     // Dispose existing nodes
     nodes.disposeAll();
     // First pass: create nodes and connections
