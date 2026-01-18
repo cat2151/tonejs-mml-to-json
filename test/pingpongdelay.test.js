@@ -41,7 +41,9 @@ describe('@PingPongDelay effect', () => {
       const pingPongNode = createNodes.find(n => n.nodeType === 'PingPongDelay');
       expect(pingPongNode).toBeDefined();
       expect(pingPongNode.args).toBeDefined();
-      expect(pingPongNode.args.delayTime).toBe('8n');
+      // Args are converted to array format for tonejs-json-sequencer compatibility
+      expect(Array.isArray(pingPongNode.args)).toBe(true);
+      expect(pingPongNode.args[0]).toBe('8n');
     });
   });
 
@@ -82,8 +84,11 @@ describe('@PingPongDelay effect', () => {
       
       const pingPongNodes = createNodes.filter(n => n.nodeType === 'PingPongDelay');
       expect(pingPongNodes).toHaveLength(3);
-      expect(pingPongNodes[0].args.delayTime).toBe('8n');
-      expect(pingPongNodes[1].args.delayTime).toBe('16n');
+      // Args are converted to array format
+      expect(Array.isArray(pingPongNodes[0].args)).toBe(true);
+      expect(pingPongNodes[0].args[0]).toBe('8n');
+      expect(Array.isArray(pingPongNodes[1].args)).toBe(true);
+      expect(pingPongNodes[1].args[0]).toBe('16n');
       expect(pingPongNodes[2].args).toBeUndefined();
       
       const connects = json.filter(e => e.eventType === 'connect');
