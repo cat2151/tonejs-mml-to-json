@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdirSync, copyFileSync, readFileSync, writeFileSync } from 'fs';
+import { mkdirSync, copyFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -15,34 +15,7 @@ const source = join(projectRoot, 'node_modules', 'tonejs-json-sequencer', 'dist'
 const dest = join(libsDir, 'tonejs-json-sequencer.mjs');
 copyFileSync(source, dest);
 
-// Patch tonejs-json-sequencer to fix effect constructor args handling
-// Issue: Effects use spread operator on args which fails for objects
-// Fix: Pass args directly as first parameter, like instruments do
-let content = readFileSync(dest, 'utf8');
-
-// List of effects that need patching - these should accept an options object
-const effectsToFix = [
-    'AutoFilter', 'AutoPanner', 'AutoWah', 'BitCrusher', 'Chebyshev',
-    'Chorus', 'Distortion', 'FeedbackDelay', 'Freeverb', 'FrequencyShifter',
-    'JCReverb', 'Phaser', 'PingPongDelay', 'PitchShift', 'Reverb',
-    'StereoWidener', 'Tremolo', 'Vibrato'
-];
-
-effectsToFix.forEach(effectName => {
-    // Replace: new Tone.EffectName(...(element.args || []))
-    // With:    new Tone.EffectName(element.args)
-    // This fixes the issue where spreading an object doesn't work as function arguments
-    
-    const oldCode = `new Tone.${effectName}(...(element.args || []))`;
-    const newCode = `new Tone.${effectName}(element.args)`;
-    
-    // Use replaceAll to handle multiple instances (though each effect should only appear once)
-    content = content.replaceAll(oldCode, newCode);
-});
-
-writeFileSync(dest, content, 'utf8');
-
-console.log('✓ Copied and patched tonejs-json-sequencer to dist/libs');
+console.log('✓ Copied tonejs-json-sequencer to dist/libs');
 
 // Create dist/tree-sitter-mml directory
 const treeSitterDir = join(projectRoot, 'dist', 'tree-sitter-mml');

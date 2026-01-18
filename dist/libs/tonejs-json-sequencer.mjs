@@ -113,58 +113,58 @@ function createNode(Tone, nodes, element) {
             break;
         // Effects
         case 'AutoFilter':
-            nodes.set(element.nodeId, new Tone.AutoFilter(element.args));
+            nodes.set(element.nodeId, new Tone.AutoFilter(...(element.args || [])));
             break;
         case 'AutoPanner':
-            nodes.set(element.nodeId, new Tone.AutoPanner(element.args));
+            nodes.set(element.nodeId, new Tone.AutoPanner(...(element.args || [])));
             break;
         case 'AutoWah':
-            nodes.set(element.nodeId, new Tone.AutoWah(element.args));
+            nodes.set(element.nodeId, new Tone.AutoWah(...(element.args || [])));
             break;
         case 'BitCrusher':
-            nodes.set(element.nodeId, new Tone.BitCrusher(element.args));
+            nodes.set(element.nodeId, new Tone.BitCrusher(...(element.args || [])));
             break;
         case 'Chebyshev':
-            nodes.set(element.nodeId, new Tone.Chebyshev(element.args));
+            nodes.set(element.nodeId, new Tone.Chebyshev(...(element.args || [])));
             break;
         case 'Chorus':
-            nodes.set(element.nodeId, new Tone.Chorus(element.args));
+            nodes.set(element.nodeId, new Tone.Chorus(...(element.args || [])));
             break;
         case 'Distortion':
-            nodes.set(element.nodeId, new Tone.Distortion(element.args));
+            nodes.set(element.nodeId, new Tone.Distortion(...(element.args || [])));
             break;
         case 'FeedbackDelay':
-            nodes.set(element.nodeId, new Tone.FeedbackDelay(element.args));
+            nodes.set(element.nodeId, new Tone.FeedbackDelay(...(element.args || [])));
             break;
         case 'Freeverb':
-            nodes.set(element.nodeId, new Tone.Freeverb(element.args));
+            nodes.set(element.nodeId, new Tone.Freeverb(...(element.args || [])));
             break;
         case 'FrequencyShifter':
-            nodes.set(element.nodeId, new Tone.FrequencyShifter(element.args));
+            nodes.set(element.nodeId, new Tone.FrequencyShifter(...(element.args || [])));
             break;
         case 'JCReverb':
-            nodes.set(element.nodeId, new Tone.JCReverb(element.args));
+            nodes.set(element.nodeId, new Tone.JCReverb(...(element.args || [])));
             break;
         case 'Phaser':
-            nodes.set(element.nodeId, new Tone.Phaser(element.args));
+            nodes.set(element.nodeId, new Tone.Phaser(...(element.args || [])));
             break;
         case 'PingPongDelay':
-            nodes.set(element.nodeId, new Tone.PingPongDelay(element.args));
+            nodes.set(element.nodeId, new Tone.PingPongDelay(...(element.args || [])));
             break;
         case 'PitchShift':
-            nodes.set(element.nodeId, new Tone.PitchShift(element.args));
+            nodes.set(element.nodeId, new Tone.PitchShift(...(element.args || [])));
             break;
         case 'Reverb':
-            nodes.set(element.nodeId, new Tone.Reverb(element.args));
+            nodes.set(element.nodeId, new Tone.Reverb(...(element.args || [])));
             break;
         case 'StereoWidener':
-            nodes.set(element.nodeId, new Tone.StereoWidener(element.args));
+            nodes.set(element.nodeId, new Tone.StereoWidener(...(element.args || [])));
             break;
         case 'Tremolo':
-            nodes.set(element.nodeId, new Tone.Tremolo(element.args));
+            nodes.set(element.nodeId, new Tone.Tremolo(...(element.args || [])));
             break;
         case 'Vibrato':
-            nodes.set(element.nodeId, new Tone.Vibrato(element.args));
+            nodes.set(element.nodeId, new Tone.Vibrato(...(element.args || [])));
             break;
         default:
             console.warn(`Unknown node type: ${element.nodeType}`);

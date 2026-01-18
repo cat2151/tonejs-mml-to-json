@@ -126,6 +126,32 @@ When fixing bugs, especially those related to browser/demo functionality:
    - If a solution bypasses Tree-sitter, STOP and report failure
    - All parsing must go through grammar.js → Tree-sitter → CST → AST
 
+## External Library Dependencies
+
+### tonejs-json-sequencer
+
+This project depends on `tonejs-json-sequencer`, which is maintained by the same owner (cat2151).
+
+**IMPORTANT: Do NOT patch or modify external libraries**
+
+1. **Report Bugs to Library Owner**
+   - If you discover a bug in tonejs-json-sequencer, report it to the user (repository owner)
+   - Do NOT create ad-hoc patches in build scripts or copy scripts
+   - Do NOT modify the library files in dist/libs/
+   - The proper fix should be made in the tonejs-json-sequencer repository itself
+
+2. **Why Ad-hoc Patching is an Anti-pattern**
+   - Makes maintenance difficult
+   - Hides issues that should be fixed at the source
+   - Creates divergence between the library and the patched version
+   - Makes upgrades problematic
+
+3. **Correct Process for Library Bugs**
+   - Identify and document the bug
+   - Report to the user with clear description and reproduction steps
+   - Wait for the fix to be made in the upstream library
+   - Update the dependency version after the fix is released
+
 ## Questions?
 
 When in doubt:
