@@ -37,7 +37,7 @@ function initializeDemoDropdown(): void {
     if (selectedDemo && textarea1) {
       textarea1.value = selectedDemo.mml;
       // Trigger play to update the output
-      play();
+      play(true);
     }
   });
 }
@@ -52,10 +52,12 @@ window.addEventListener("load", () => {
   }
   
   if (textarea1) {
-    textarea1.addEventListener('input', play);
+    // When MML changes, regenerate JSON and play
+    textarea1.addEventListener('input', () => play(true));
   }
   if (textarea2) {
-    textarea2.addEventListener('input', play);
+    // When JSON is edited, play directly without regenerating from MML
+    textarea2.addEventListener('input', () => play(false));
   }
 
   // Initialize demo dropdown after textareas are assigned
@@ -65,7 +67,7 @@ window.addEventListener("load", () => {
   if (button) {
     button.onclick = async () => {
       await Tone.start();
-      play();
+      play(true);
     };
   }
 
@@ -74,7 +76,7 @@ window.addEventListener("load", () => {
   if ((window as any).wasmReadyPromise && typeof (window as any).wasmReadyPromise.then === 'function') {
     (window as any).wasmReadyPromise.then(() => {
       // playボタンを押さなくてもtextarea2にコンパイル結果を出力する用
-      play();
+      play(true);
     }).catch((e: Error) => {
       console.error('WASM initialization failed:', e);
       if (textarea2) {
@@ -84,7 +86,7 @@ window.addEventListener("load", () => {
   } else {
     // Fallback: if promise not available, use event listener
     window.addEventListener('wasmReady', () => {
-      play();
+      play(true);
     }, { once: true });
     
     window.addEventListener('wasmError', (e: Event) => {
