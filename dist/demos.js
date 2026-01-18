@@ -52,7 +52,7 @@ export const demos = [
         id: 'instrument-membrane',
         name: '@MembraneSynth',
         description: 'Membrane vibration - drums, percussion',
-        mml: '@MembraneSynth o3 l8 c c c c e e e e g g g g'
+        mml: '@MembraneSynth o2 l4 c c c c e e e e g g g g'
     },
     {
         id: 'instrument-metal',
@@ -172,13 +172,13 @@ export const demos = [
         id: 'effect-delayvibrato',
         name: '@DelayVibrato (Single)',
         description: 'DelayVibrato effect - vibrato gradually increases after note starts',
-        mml: '@DelayVibrato o4 l8 cdefgab<c'
+        mml: '@DelayVibrato o4 l1 cdefgab<c'
     },
     {
         id: 'effect-delayvibrato-instrument',
         name: '@DelayVibrato with Instrument',
         description: 'DelayVibrato with FMSynth - electric piano with gradual vibrato effect',
-        mml: '@FMSynth @DelayVibrato o4 l8 cdefgab<c'
+        mml: '@FMSynth @DelayVibrato o4 l1 cdefgab<c'
     },
     {
         id: 'accidentals',

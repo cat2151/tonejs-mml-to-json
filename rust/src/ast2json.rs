@@ -33,6 +33,49 @@ fn is_effect(name: &str) -> bool {
     KNOWN_EFFECTS.contains(&name)
 }
 
+/// Convert effect args from object format (user-friendly MML) to array format (Tone.js constructors)
+/// 
+/// tonejs-json-sequencer expects effects to use array args that are spread into constructor parameters.
+/// Example: PingPongDelay constructor is `new Tone.PingPongDelay(delayTime, feedback)`
+/// So {"delayTime": "8n"} should become ["8n"]
+fn convert_effect_args_to_array(effect_name: &str, args_obj: &serde_json::Value) -> Option<serde_json::Value> {
+    if !args_obj.is_object() {
+        // If it's already an array or other type, return as-is
+        return Some(args_obj.clone());
+    }
+    
+    let obj = args_obj.as_object()?;
+    
+    // Define parameter mappings for each effect
+    // Based on Tone.js constructor signatures
+    let param_order: &[&str] = match effect_name {
+        "PingPongDelay" => &["delayTime", "feedback"],
+        "FeedbackDelay" => &["delayTime", "feedback"],
+        "Reverb" => &["decay"],
+        "Chorus" => &["frequency", "delayTime", "depth"],
+        "Phaser" => &["frequency", "octaves", "baseFrequency"],
+        "Tremolo" => &["frequency", "depth"],
+        "Vibrato" => &["frequency", "depth"],
+        "Distortion" => &["distortion"],
+        // Add more mappings as needed
+        _ => return Some(args_obj.clone()), // Unknown effect, pass through as-is
+    };
+    
+    // Extract values in the defined order, skipping undefined parameters
+    let mut array = Vec::new();
+    for &param_name in param_order {
+        if let Some(value) = obj.get(param_name) {
+            array.push(value.clone());
+        }
+    }
+    
+    if array.is_empty() {
+        None
+    } else {
+        Some(serde_json::Value::Array(array))
+    }
+}
+
 /// Get the synth type to use, considering chords
 /// Sampler and PolySynth are polyphonic instruments that can handle chords with array format
 /// Other instruments are converted to PolySynth when chords are present
@@ -236,8 +279,10 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
             delay_vibrato_node_id = Some(node_id);
             ("Vibrato", Some(serde_json::json!([7, 0])))
         } else {
+            // Parse args from JSON string
             let effect_args = effect.args.as_ref()
-                .and_then(|json_str| serde_json::from_str(json_str).ok());
+                .and_then(|json_str| serde_json::from_str::<serde_json::Value>(json_str).ok())
+                .and_then(|parsed_args| convert_effect_args_to_array(effect_name, &parsed_args));
             (effect_name, effect_args)
         };
         
