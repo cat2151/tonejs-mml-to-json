@@ -108,6 +108,7 @@ For detailed usage, please refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 | Command | Description | Example |
 |---------|------|-----|
 | `@PingPongDelay` | Ping Pong Delay effect<br>Connected between instrument and output<br>Multiple specifications connect in series<br>Parameters can be specified as arguments | `@PingPongDelay` `@PingPongDelay{"delayTime":"8n"}` |
+| `@DelayVibrato` | Delayed Vibrato effect<br>Vibrato that gradually increases after note starts<br>Currently uses hardcoded parameters (frequency=7, depth ramps from 0 to 0.2) | `@DelayVibrato` |
 
 **Note:** Effects must be specified before the first note in a track and apply only to the initial instrument of that track. If the instrument changes midway through playback, the effect will not be connected to the new instrument. For example, in `@PingPongDelay c @FMSynth d`, the note `c` will have ping-pong delay, but the `@FMSynth` note `d` will not.
 
@@ -169,6 +170,10 @@ o4 'c+4eg-' 'd+8f+a' 'e4g+b'.
 
 // Combination of instrument and effect
 @FMSynth @PingPongDelay o4 l8 cdefgab<c  // FM Synth + Ping Pong Delay
+
+// Effect (DelayVibrato)
+@DelayVibrato o4 l8 cdefgab<c  // Delayed Vibrato effect - vibrato gradually increases after note starts
+@FMSynth @DelayVibrato o4 l8 cdefgab<c  // FM Synth + Delayed Vibrato
 ```
 
 ## Unimplemented Commands (Planned for Future Implementation)
