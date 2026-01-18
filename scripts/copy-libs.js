@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdirSync, copyFileSync } from 'fs';
+import { mkdirSync, copyFileSync, readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -15,7 +15,32 @@ const source = join(projectRoot, 'node_modules', 'tonejs-json-sequencer', 'dist'
 const dest = join(libsDir, 'tonejs-json-sequencer.mjs');
 copyFileSync(source, dest);
 
-console.log('✓ Copied tonejs-json-sequencer to dist/libs');
+// Patch tonejs-json-sequencer to fix effect constructor args handling
+// Issue: Effects use spread operator on args which fails for objects
+// Fix: Pass args directly as first parameter, like instruments do
+let content = readFileSync(dest, 'utf8');
+
+// List of effects that need patching - these should accept an options object
+const effectsToFix = [
+    'AutoFilter', 'AutoPanner', 'AutoWah', 'BitCrusher', 'Chebyshev',
+    'Chorus', 'Distortion', 'FeedbackDelay', 'Freeverb', 'FrequencyShifter',
+    'JCReverb', 'Phaser', 'PingPongDelay', 'PitchShift', 'Reverb',
+    'StereoWidener', 'Tremolo', 'Vibrato'
+];
+
+effectsToFix.forEach(effectName => {
+    // Replace spread syntax with direct args passing
+    const oldPattern = new RegExp(
+        `(case '${effectName}':\\s*nodes\\.set\\(element\\.nodeId, new Tone\\.${effectName}\\()\\.\\.\\.(\\(element\\.args \\|\\| \\[\\]\\))(\\)\\);)`,
+        'g'
+    );
+    const replacement = `$1element.args$3`;
+    content = content.replace(oldPattern, replacement);
+});
+
+writeFileSync(dest, content, 'utf8');
+
+console.log('✓ Copied and patched tonejs-json-sequencer to dist/libs');
 
 // Create dist/tree-sitter-mml directory
 const treeSitterDir = join(projectRoot, 'dist', 'tree-sitter-mml');
