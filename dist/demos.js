@@ -169,6 +169,18 @@ export const demos = [
         mml: '@FMSynth @PingPongDelay o4 l8 cdefgab<c'
     },
     {
+        id: 'effect-delayvibrato',
+        name: '@DelayVibrato (Single)',
+        description: 'DelayVibrato effect - vibrato gradually increases after note starts',
+        mml: '@DelayVibrato o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-delayvibrato-instrument',
+        name: '@DelayVibrato with Instrument',
+        description: 'DelayVibrato with FMSynth - electric piano with gradual vibrato effect',
+        mml: '@FMSynth @DelayVibrato o4 l8 cdefgab<c'
+    },
+    {
         id: 'accidentals',
         name: 'Accidentals (Sharps & Flats)',
         description: 'Chromatic scale using sharps (+) and flats (-) - can be repeated (++, --)',
