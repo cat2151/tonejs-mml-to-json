@@ -1,22 +1,22 @@
-# Copilot Instructions for tonejs-mml-to-json
+# tonejs-mml-to-json の Copilot 指示書
 
-## Core Policy
+## 基本方針
 
-**CRITICAL**: This project uses Tree-sitter for all parsing.
+**重要**: このプロジェクトは、すべてのパースに Tree-sitter を使用します。
 
-1. **grammar.js is the Single Source of Truth**
-   - All MML syntax is defined in `tree-sitter-mml/grammar.js`
-   - Changes to parsing logic MUST be made in grammar.js first
-   - Generated parsers (C and WASM) are derived from grammar.js
+1. **grammar.js が唯一の情報源（Single Source of Truth）**
+   - すべての MML 構文は `tree-sitter-mml/grammar.js` で定義されています
+   - パース処理のロジック変更は、必ず grammar.js で最初に行う必要があります
+   - 生成されるパーサー（C および WASM）は grammar.js から派生します
 
-2. **Never Create Manual Parsers**
-   - Do NOT implement string parsing, regex parsers, or custom parsing logic
-   - Only transform Tree-sitter's CST to AST
+2. **手動パーサーの実装禁止**
+   - 文字列パース、正規表現パーサー、カスタムパースロジックを実装しないでください
+   - Tree-sitter の CST を AST に変換するだけにしてください
 
-3. **Reference**: https://github.com/cat2151/tree-sitter-wasm-c-generate-example
+3. **参考**: https://github.com/cat2151/tree-sitter-wasm-c-generate-example
 
-## External Libraries
+## 外部ライブラリ
 
-**Do NOT patch or modify external libraries** (especially tonejs-json-sequencer)
-- Report bugs to the user instead of creating ad-hoc patches
-- The proper fix should be made in the upstream library
+**外部ライブラリにパッチや変更を加えないでください**（特に tonejs-json-sequencer）
+- アドホックなパッチを作成せず、バグはユーザーに報告してください
+- 適切な修正は、上流のライブラリで行うべきです
