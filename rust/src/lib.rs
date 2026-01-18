@@ -24,7 +24,6 @@ pub use mml2ast::mml2ast;
 pub use ast2json::ast2json;
 // Re-export Command for backward compatibility
 pub use command::Command;
-pub use ast2json::ToneCommand;
 
 /// Error response structure for WASM
 #[derive(Serialize)]

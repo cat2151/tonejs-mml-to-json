@@ -48,7 +48,7 @@ pub fn has_chords(ast: &[AstToken]) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast::{NoteToken, RestToken, TrackSeparatorToken};
+    use crate::ast::{NoteToken, RestToken, TrackSeparatorToken, ChordToken, ChordNote};
 
     #[test]
     fn test_split_into_tracks_single() {
@@ -111,5 +111,39 @@ mod tests {
         ];
         
         assert!(!has_chords(&ast));
+    }
+
+    #[test]
+    fn test_has_chords_true() {
+        let ast = vec![
+            AstToken::Note(NoteToken {
+                note: 'c',
+                accidental: "".to_string(),
+                duration: None,
+                dots: 0,
+                length: 1,
+            }),
+            AstToken::Chord(ChordToken {
+                notes: vec![
+                    ChordNote {
+                        note: 'c',
+                        accidental: "".to_string(),
+                    },
+                    ChordNote {
+                        note: 'e',
+                        accidental: "".to_string(),
+                    },
+                    ChordNote {
+                        note: 'g',
+                        accidental: "".to_string(),
+                    },
+                ],
+                duration: None,
+                dots: 0,
+                length: 5,
+            }),
+        ];
+        
+        assert!(has_chords(&ast));
     }
 }
