@@ -41,7 +41,7 @@
   "author": "cat2151",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^25.0.3",
+    "@types/node": "^25.0.9",
     "http-server": "^14.1.1",
     "playwright": "^1.57.0",
     "tonejs-json-sequencer": "github:cat2151/tonejs-json-sequencer",
