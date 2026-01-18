@@ -26,6 +26,8 @@ rust/Cargo.lock
 tree-sitter-mml/node_modules/
 tree-sitter-mml/bindings/
 tree-sitter-mml/build/
+tree-sitter-mml/target/
+tree-sitter-mml/Cargo.lock
 
 # Added by cargo
 
