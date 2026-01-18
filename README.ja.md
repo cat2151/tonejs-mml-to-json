@@ -110,6 +110,7 @@ console.log(json);
 | コマンド | 説明 | 例 |
 |---------|------|-----|
 | `@PingPongDelay` | ピンポンディレイエフェクト<br>楽器と出力先の間に接続される<br>複数指定で直列接続<br>引数でパラメータ指定可能 | `@PingPongDelay` `@PingPongDelay{"delayTime":"8n"}` |
+| `@DelayVibrato` | ディレイビブラートエフェクト<br>音符の開始後に徐々にビブラートがかかる<br>現在はハードコードされたパラメータを使用（frequency=7, depthは0から0.2まで増加） | `@DelayVibrato` |
 
 **注意:** エフェクトはトラック内の最初の音符より前に指定する必要があり、そのトラックの初期楽器にのみ適用されます。演奏途中で楽器変更が行われた場合、新しい楽器にはエフェクトは接続されません。例: `@PingPongDelay c @FMSynth d` の場合、音符 `c` にはピンポンディレイがかかりますが、`@FMSynth` の音符 `d` にはディレイがかかりません。
 
@@ -171,6 +172,10 @@ o4 'c+4eg-' 'd+8f+a' 'e4g+b'.
 
 // 楽器とエフェクトの組み合わせ
 @FMSynth @PingPongDelay o4 l8 cdefgab<c  // FMシンセ + ピンポンディレイ
+
+// エフェクト（DelayVibrato）
+@DelayVibrato o4 l8 cdefgab<c  // ディレイビブラート効果 - 音符開始後にビブラートが徐々にかかる
+@FMSynth @DelayVibrato o4 l8 cdefgab<c  // FMシンセ + ディレイビブラート
 ```
 
 ## 未実装コマンド（将来実装予定）
