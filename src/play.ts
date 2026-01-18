@@ -8,9 +8,6 @@ import { SequencerNodes, playSequence, type SequenceEvent } from 'tonejs-json-se
 export const nodes = new SequencerNodes();
 export let errorPoint: string = "";
 
-// Flag to prevent concurrent play() calls
-let isPlaying: boolean = false;
-
 /**
  * Convert ToneCommand to SequenceEvent format
  * The main difference is connectTo which can be any string in ToneCommand
@@ -31,12 +28,6 @@ function toSequenceEvent(cmd: ToneCommand): SequenceEvent {
  * @param regenerateJson - If true, regenerate JSON from MML in textarea1. If false, play directly from textarea2.
  */
 export async function play(regenerateJson: boolean = true): Promise<void> {
-  // Prevent concurrent play() calls to avoid race conditions with node disposal/creation
-  if (isPlaying) {
-    return;
-  }
-  
-  isPlaying = true;
   try {
     // Get textarea references
     const textarea1 = document.querySelector('#textarea1') as HTMLTextAreaElement;
@@ -69,8 +60,5 @@ export async function play(regenerateJson: boolean = true): Promise<void> {
     await playSequence(Tone, nodes, sequence.map(toSequenceEvent));
   } catch (error) {
     console.log(errorPoint + " error : [" + error + "]");
-  } finally {
-    // Always reset the flag, even if there was an error
-    isPlaying = false;
   }
 }

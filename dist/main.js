@@ -29,7 +29,6 @@ function initializeDemoDropdown() {
         if (selectedDemo && textarea1) {
             textarea1.value = selectedDemo.mml;
             // Trigger play to update the output
-            // Note: Programmatic value changes don't trigger 'input' event, so we must call play() explicitly
             play(true);
         }
     });
