@@ -36,7 +36,8 @@ effectsToFix.forEach(effectName => {
     const oldCode = `new Tone.${effectName}(...(element.args || []))`;
     const newCode = `new Tone.${effectName}(element.args)`;
     
-    content = content.replace(oldCode, newCode);
+    // Use replaceAll to handle multiple instances (though each effect should only appear once)
+    content = content.replaceAll(oldCode, newCode);
 });
 
 writeFileSync(dest, content, 'utf8');
