@@ -23,7 +23,11 @@ function toSequenceEvent(cmd: ToneCommand): SequenceEvent {
   return cmd as SequenceEvent;
 }
 
-export async function play(): Promise<void> {
+/**
+ * Play the sequence from MML or JSON
+ * @param regenerateJson - If true, regenerate JSON from MML in textarea1. If false, play directly from textarea2.
+ */
+export async function play(regenerateJson: boolean = true): Promise<void> {
   try {
     // Get textarea references
     const textarea1 = document.querySelector('#textarea1') as HTMLTextAreaElement;
@@ -34,14 +38,17 @@ export async function play(): Promise<void> {
       return;
     }
 
-    // mml
-    const mml = textarea1.value;
-    errorPoint = "mml2json";
-    
-    // mml -> Tone.js playable JSON
-    let json = (window as any).mml2json(mml);
-    errorPoint = "after mml2json";
-    textarea2.value = JSON.stringify(json, null, 2);
+    // Only regenerate JSON from MML if requested
+    if (regenerateJson) {
+      // mml
+      const mml = textarea1.value;
+      errorPoint = "mml2json";
+      
+      // mml -> Tone.js playable JSON
+      let json = (window as any).mml2json(mml);
+      errorPoint = "after mml2json";
+      textarea2.value = JSON.stringify(json, null, 2);
+    }
     
     // Tone.js playable JSON -> Tone.js
     const jsonStr = textarea2.value;
