@@ -84,43 +84,83 @@ export const demos: Demo[] = [
     id: 'instrument-fmsynth-args',
     name: '@FMSynth with Args',
     description: 'FM synthesis with custom harmonicity and modulation - creates different timbres',
-    mml: '@FMSynth{"harmonicity":3,"modulationIndex":10} o4 l8 cdefgab<c'
+    mml: `@FMSynth{
+  "harmonicity": 3,
+  "modulationIndex": 10
+} o4 l8 cdefgab<c`
   },
   {
     id: 'instrument-amsynth-args',
     name: '@AMSynth with Args',
     description: 'AM synthesis with custom harmonicity - adjusts the modulation ratio',
-    mml: '@AMSynth{"harmonicity":2.5} o4 l8 cdefgab<c'
+    mml: `@AMSynth{
+  "harmonicity": 2.5
+} o4 l8 cdefgab<c`
   },
   {
     id: 'instrument-monosynth-args',
     name: '@MonoSynth with Args',
     description: 'MonoSynth with custom filter and envelope - creates a punchy bass sound',
-    mml: '@MonoSynth{"filter":{"Q":2,"type":"lowpass","rolloff":-12},"envelope":{"attack":0.005}} o3 l8 c c c c d d d d'
+    mml: `@MonoSynth{
+  "filter": {
+    "Q": 2,
+    "type": "lowpass",
+    "rolloff": -12
+  },
+  "envelope": {
+    "attack": 0.005
+  }
+} o3 l8 c c c c d d d d`
   },
   {
     id: 'instrument-plucksynth-args',
     name: '@PluckSynth with Args',
     description: 'PluckSynth with custom parameters - adjusts the plucked string sound',
-    mml: '@PluckSynth{"attackNoise":0.5,"dampening":4000,"resonance":0.95} o4 l8 cdefgab<c'
+    mml: `@PluckSynth{
+  "attackNoise": 0.5,
+  "dampening": 4000,
+  "resonance": 0.95
+} o4 l8 cdefgab<c`
   },
   {
     id: 'instrument-synth-args',
     name: '@Synth with Args',
     description: 'Basic Synth with custom oscillator and envelope - creates a soft pad sound',
-    mml: '@Synth{"oscillator":{"type":"triangle"},"envelope":{"attack":0.1,"decay":0.2,"sustain":0.5,"release":1}} o4 l4 c e g c'
+    mml: `@Synth{
+  "oscillator": {
+    "type": "triangle"
+  },
+  "envelope": {
+    "attack": 0.1,
+    "decay": 0.2,
+    "sustain": 0.5,
+    "release": 1
+  }
+} o4 l4 c e g c`
   },
   {
     id: 'instrument-switch-args',
     name: 'Instrument Switching with Args',
     description: 'Switch between instruments with custom parameters',
-    mml: '@FMSynth{"harmonicity":3} o4 cde @AMSynth{"harmonicity":2} fga'
+    mml: `@FMSynth{
+  "harmonicity": 3
+} o4 cde @AMSynth{
+  "harmonicity": 2
+} fga`
   },
   {
     id: 'instrument-sampler',
     name: '@Sampler (Piano)',
     description: 'Sample-based synthesis using audio files - realistic piano, drums, or any recorded sound',
-    mml: '@Sampler{"urls":{"C4":"https://tonejs.github.io/audio/salamander/C4.mp3","D#4":"https://tonejs.github.io/audio/salamander/Ds4.mp3","F#4":"https://tonejs.github.io/audio/salamander/Fs4.mp3","A4":"https://tonejs.github.io/audio/salamander/A4.mp3"},"release":1} o4 l8 cdefgab<c'
+    mml: `@Sampler{
+  "urls": {
+    "C4": "https://tonejs.github.io/audio/salamander/C4.mp3",
+    "D#4": "https://tonejs.github.io/audio/salamander/Ds4.mp3",
+    "F#4": "https://tonejs.github.io/audio/salamander/Fs4.mp3",
+    "A4": "https://tonejs.github.io/audio/salamander/A4.mp3"
+  },
+  "release": 1
+} o4 l8 cdefgab<c`
   },
   {
     id: 'chord-basic',
@@ -132,7 +172,15 @@ export const demos: Demo[] = [
     id: 'chord-sampler',
     name: 'Chords with @Sampler',
     description: 'Chord demonstration with Sampler - rich piano chords',
-    mml: '@Sampler{"urls":{"C4":"https://tonejs.github.io/audio/salamander/C4.mp3","D#4":"https://tonejs.github.io/audio/salamander/Ds4.mp3","F#4":"https://tonejs.github.io/audio/salamander/Fs4.mp3","A4":"https://tonejs.github.io/audio/salamander/A4.mp3"},"release":1} o4 l4 \'ceg\' \'dfb\' \'ace\' \'gbdf\''
+    mml: `@Sampler{
+  "urls": {
+    "C4": "https://tonejs.github.io/audio/salamander/C4.mp3",
+    "D#4": "https://tonejs.github.io/audio/salamander/Ds4.mp3",
+    "F#4": "https://tonejs.github.io/audio/salamander/Fs4.mp3",
+    "A4": "https://tonejs.github.io/audio/salamander/A4.mp3"
+  },
+  "release": 1
+} o4 l4 'ceg' 'dfb' 'ace' 'gbdf'`
   },
   {
     id: 'chord-accidentals',
@@ -162,7 +210,9 @@ export const demos: Demo[] = [
     id: 'effect-pingpongdelay-args',
     name: '@PingPongDelay with Args',
     description: 'PingPongDelay with custom delay time - faster or slower echoes',
-    mml: '@PingPongDelay{"delayTime":"8n"} o4 l8 cdefgab<c'
+    mml: `@PingPongDelay{
+  "delayTime": "8n"
+} o4 l8 cdefgab<c`
   },
   {
     id: 'effect-pingpongdelay-multiple',
@@ -198,7 +248,9 @@ export const demos: Demo[] = [
     id: 'effect-reverb-args',
     name: '@Reverb with Args',
     description: 'Reverb with custom decay time - longer decay creates larger space',
-    mml: '@Reverb{"decay":2.5} o4 l8 cdefgab<c'
+    mml: `@Reverb{
+  "decay": 2.5
+} o4 l8 cdefgab<c`
   },
   {
     id: 'effect-feedbackdelay',
@@ -210,7 +262,10 @@ export const demos: Demo[] = [
     id: 'effect-feedbackdelay-args',
     name: '@FeedbackDelay with Args',
     description: 'FeedbackDelay with custom parameters - adjust delay time and feedback amount',
-    mml: '@FeedbackDelay{"delayTime":"8n","feedback":0.6} o4 l8 cdefgab<c'
+    mml: `@FeedbackDelay{
+  "delayTime": "8n",
+  "feedback": 0.6
+} o4 l8 cdefgab<c`
   },
   {
     id: 'effect-chorus',
@@ -222,7 +277,11 @@ export const demos: Demo[] = [
     id: 'effect-chorus-args',
     name: '@Chorus with Args',
     description: 'Chorus with custom parameters - adjust frequency, delay time, and depth',
-    mml: '@Chorus{"frequency":4,"delayTime":2.5,"depth":0.7} o4 l8 cdefgab<c'
+    mml: `@Chorus{
+  "frequency": 4,
+  "delayTime": 2.5,
+  "depth": 0.7
+} o4 l8 cdefgab<c`
   },
   {
     id: 'effect-phaser',
@@ -234,7 +293,11 @@ export const demos: Demo[] = [
     id: 'effect-phaser-args',
     name: '@Phaser with Args',
     description: 'Phaser with custom parameters - adjust frequency, octaves, and base frequency',
-    mml: '@Phaser{"frequency":0.5,"octaves":3,"baseFrequency":350} o4 l8 cdefgab<c'
+    mml: `@Phaser{
+  "frequency": 0.5,
+  "octaves": 3,
+  "baseFrequency": 350
+} o4 l8 cdefgab<c`
   },
   {
     id: 'effect-tremolo',
@@ -246,7 +309,10 @@ export const demos: Demo[] = [
     id: 'effect-tremolo-args',
     name: '@Tremolo with Args',
     description: 'Tremolo with custom parameters - adjust frequency and depth',
-    mml: '@Tremolo{"frequency":10,"depth":0.5} o4 l8 cdefgab<c'
+    mml: `@Tremolo{
+  "frequency": 10,
+  "depth": 0.5
+} o4 l8 cdefgab<c`
   },
   {
     id: 'effect-vibrato',
@@ -258,7 +324,10 @@ export const demos: Demo[] = [
     id: 'effect-vibrato-args',
     name: '@Vibrato with Args',
     description: 'Vibrato with custom parameters - adjust frequency and depth',
-    mml: '@Vibrato{"frequency":5,"depth":0.1} o4 l8 cdefgab<c'
+    mml: `@Vibrato{
+  "frequency": 5,
+  "depth": 0.1
+} o4 l8 cdefgab<c`
   },
   {
     id: 'effect-distortion',
@@ -270,7 +339,9 @@ export const demos: Demo[] = [
     id: 'effect-distortion-args',
     name: '@Distortion with Args',
     description: 'Distortion with custom amount - higher values create more intense distortion',
-    mml: '@Distortion{"distortion":0.8} o4 l8 cdefgab<c'
+    mml: `@Distortion{
+  "distortion": 0.8
+} o4 l8 cdefgab<c`
   },
   {
     id: 'effect-mixed-chain',
@@ -282,7 +353,13 @@ export const demos: Demo[] = [
     id: 'effect-mixed-chain-args',
     name: 'Mixed Effects Chain with Args',
     description: 'Chain effects with custom parameters for complex sound design',
-    mml: '@Reverb{"decay":2} @Chorus{"frequency":4} @PingPongDelay{"delayTime":"8n"} o4 l8 cdefgab<c'
+    mml: `@Reverb{
+  "decay": 2
+} @Chorus{
+  "frequency": 4
+} @PingPongDelay{
+  "delayTime": "8n"
+} o4 l8 cdefgab<c`
   },
   {
     id: 'effect-mixed-instrument',
@@ -294,7 +371,13 @@ export const demos: Demo[] = [
     id: 'effect-creative-chain',
     name: 'Creative Effects Chain',
     description: 'Experimental effect chain - Distortion -> Chorus -> Reverb -> Delay',
-    mml: '@Distortion{"distortion":0.4} @Chorus @Reverb{"decay":1.5} @FeedbackDelay{"delayTime":"8n"} o4 l8 cdefgab<c'
+    mml: `@Distortion{
+  "distortion": 0.4
+} @Chorus @Reverb{
+  "decay": 1.5
+} @FeedbackDelay{
+  "delayTime": "8n"
+} o4 l8 cdefgab<c`
   },
   {
     id: 'accidentals',
