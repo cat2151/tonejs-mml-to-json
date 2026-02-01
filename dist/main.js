@@ -1,5 +1,6 @@
 let textarea1;
 let textarea2;
+let debounceTimer = null;
 // Import play function and demos
 import { play } from './play.js';
 import { demos } from './demos.js';
@@ -33,6 +34,54 @@ function initializeDemoDropdown() {
         }
     });
 }
+/**
+ * Handle debounced input for textarea2
+ */
+function handleDebouncedInput() {
+    if (debounceTimer !== null) {
+        clearTimeout(debounceTimer);
+    }
+    debounceTimer = setTimeout(() => {
+        play(false);
+    }, 1000);
+}
+/**
+ * Handle manual input for textarea2 (keyboard shortcuts)
+ */
+function handleManualInput(event) {
+    // Check for Ctrl+S or Shift+Enter
+    if ((event.ctrlKey && event.key === 's') || (event.shiftKey && event.key === 'Enter')) {
+        event.preventDefault(); // Prevent browser's save dialog for Ctrl+S
+        play(false);
+    }
+}
+/**
+ * Setup event listeners for textarea2 based on the selected mode
+ */
+function setupTextarea2Listeners() {
+    if (!textarea2)
+        return;
+    // Get the selected radio button
+    const radioButtons = document.querySelectorAll('input[name="jsonEditMode"]');
+    let selectedMode = 'manual'; // default
+    radioButtons.forEach((radio) => {
+        if (radio.checked) {
+            selectedMode = radio.value;
+        }
+    });
+    // Remove existing listeners by cloning the element
+    const newTextarea2 = textarea2.cloneNode(true);
+    textarea2.parentNode?.replaceChild(newTextarea2, textarea2);
+    textarea2 = newTextarea2;
+    // Add appropriate listeners based on mode
+    if (selectedMode === 'debounce') {
+        textarea2.addEventListener('input', handleDebouncedInput);
+    }
+    else {
+        // Manual mode: only on keyboard shortcuts
+        textarea2.addEventListener('keydown', handleManualInput);
+    }
+}
 window.addEventListener("load", () => {
     textarea1 = document.querySelector('#textarea1');
     textarea2 = document.querySelector('#textarea2');
@@ -44,10 +93,13 @@ window.addEventListener("load", () => {
         // When MML changes, regenerate JSON and play
         textarea1.addEventListener('input', () => play(true));
     }
-    if (textarea2) {
-        // When JSON is edited, play directly without regenerating from MML
-        textarea2.addEventListener('input', () => play(false));
-    }
+    // Setup textarea2 listeners based on initial mode
+    setupTextarea2Listeners();
+    // Add change listener to radio buttons to update textarea2 behavior
+    const radioButtons = document.querySelectorAll('input[name="jsonEditMode"]');
+    radioButtons.forEach((radio) => {
+        radio.addEventListener('change', setupTextarea2Listeners);
+    });
     // Initialize demo dropdown after textareas are assigned
     initializeDemoDropdown();
     const button = document.querySelector('button');

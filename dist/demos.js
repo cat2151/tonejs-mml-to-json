@@ -181,6 +181,114 @@ export const demos = [
         mml: '@FMSynth @DelayVibrato o4 l1 cdefgab<c'
     },
     {
+        id: 'effect-reverb',
+        name: '@Reverb',
+        description: 'Reverb effect - adds spacious room ambience and echo',
+        mml: '@Reverb o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-reverb-args',
+        name: '@Reverb with Args',
+        description: 'Reverb with custom decay time - longer decay creates larger space',
+        mml: '@Reverb{"decay":2.5} o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-feedbackdelay',
+        name: '@FeedbackDelay',
+        description: 'FeedbackDelay effect - creates repeating echoes with feedback',
+        mml: '@FeedbackDelay o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-feedbackdelay-args',
+        name: '@FeedbackDelay with Args',
+        description: 'FeedbackDelay with custom parameters - adjust delay time and feedback amount',
+        mml: '@FeedbackDelay{"delayTime":"8n","feedback":0.6} o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-chorus',
+        name: '@Chorus',
+        description: 'Chorus effect - creates rich, shimmering sound by duplicating and detuning',
+        mml: '@Chorus o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-chorus-args',
+        name: '@Chorus with Args',
+        description: 'Chorus with custom parameters - adjust frequency, delay time, and depth',
+        mml: '@Chorus{"frequency":4,"delayTime":2.5,"depth":0.7} o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-phaser',
+        name: '@Phaser',
+        description: 'Phaser effect - creates sweeping, whooshing sound by phase-shifting',
+        mml: '@Phaser o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-phaser-args',
+        name: '@Phaser with Args',
+        description: 'Phaser with custom parameters - adjust frequency, octaves, and base frequency',
+        mml: '@Phaser{"frequency":0.5,"octaves":3,"baseFrequency":350} o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-tremolo',
+        name: '@Tremolo',
+        description: 'Tremolo effect - creates rhythmic volume variations',
+        mml: '@Tremolo o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-tremolo-args',
+        name: '@Tremolo with Args',
+        description: 'Tremolo with custom parameters - adjust frequency and depth',
+        mml: '@Tremolo{"frequency":10,"depth":0.5} o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-vibrato',
+        name: '@Vibrato',
+        description: 'Vibrato effect - creates pitch variations for expressive sound',
+        mml: '@Vibrato o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-vibrato-args',
+        name: '@Vibrato with Args',
+        description: 'Vibrato with custom parameters - adjust frequency and depth',
+        mml: '@Vibrato{"frequency":5,"depth":0.1} o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-distortion',
+        name: '@Distortion',
+        description: 'Distortion effect - adds grit and overdrive to the sound',
+        mml: '@Distortion o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-distortion-args',
+        name: '@Distortion with Args',
+        description: 'Distortion with custom amount - higher values create more intense distortion',
+        mml: '@Distortion{"distortion":0.8} o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-mixed-chain',
+        name: 'Mixed Effects Chain',
+        description: 'Chain different effect types in series - Reverb -> Chorus -> Delay',
+        mml: '@Reverb @Chorus @PingPongDelay o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-mixed-chain-args',
+        name: 'Mixed Effects Chain with Args',
+        description: 'Chain effects with custom parameters for complex sound design',
+        mml: '@Reverb{"decay":2} @Chorus{"frequency":4} @PingPongDelay{"delayTime":"8n"} o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-mixed-instrument',
+        name: 'Effects with Custom Instrument',
+        description: 'Combine FMSynth with Reverb and Chorus for lush electric piano sound',
+        mml: '@FMSynth @Reverb @Chorus o4 l8 cdefgab<c'
+    },
+    {
+        id: 'effect-creative-chain',
+        name: 'Creative Effects Chain',
+        description: 'Experimental effect chain - Distortion -> Chorus -> Reverb -> Delay',
+        mml: '@Distortion{"distortion":0.4} @Chorus @Reverb{"decay":1.5} @FeedbackDelay{"delayTime":"8n"} o4 l8 cdefgab<c'
+    },
+    {
         id: 'accidentals',
         name: 'Accidentals (Sharps & Flats)',
         description: 'Chromatic scale using sharps (+) and flats (-) - can be repeated (++, --)',
