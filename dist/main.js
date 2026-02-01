@@ -13,12 +13,9 @@ import { demos } from './demos.js';
 function autoResizeTextarea1() {
     if (!textarea1)
         return;
-    // Reset height to minimum to get accurate scrollHeight
+    // Reset to auto to calculate natural height, then set to scrollHeight
     textarea1.style.height = 'auto';
-    // Only expand if content exceeds current height
-    if (textarea1.scrollHeight > textarea1.clientHeight) {
-        textarea1.style.height = textarea1.scrollHeight + 'px';
-    }
+    textarea1.style.height = textarea1.scrollHeight + 'px';
 }
 /**
  * Initialize the demo dropdown menu
