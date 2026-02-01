@@ -109,10 +109,24 @@ console.log(json);
 ### エフェクト
 | コマンド | 説明 | 例 |
 |---------|------|-----|
-| `@PingPongDelay` | ピンポンディレイエフェクト<br>楽器と出力先の間に接続される<br>複数指定で直列接続<br>引数でパラメータ指定可能 | `@PingPongDelay` `@PingPongDelay{"delayTime":"8n"}` |
+| `@PingPongDelay` | ピンポンディレイエフェクト<br>左右のチャンネル間で跳ね返るエコーを作成<br>パラメータ: delayTime, feedback | `@PingPongDelay` `@PingPongDelay{"delayTime":"8n","feedback":0.5}` |
+| `@FeedbackDelay` | フィードバックディレイエフェクト<br>調整可能なフィードバックで繰り返すエコーを作成<br>パラメータ: delayTime, feedback | `@FeedbackDelay` `@FeedbackDelay{"delayTime":"8n","feedback":0.6}` |
+| `@Reverb` | リバーブエフェクト<br>空間的な部屋の雰囲気とエコーを追加<br>パラメータ: decay | `@Reverb` `@Reverb{"decay":2.5}` |
+| `@Chorus` | コーラスエフェクト<br>複製と音程変化により豊かで煌めく音色を作成<br>パラメータ: frequency, delayTime, depth | `@Chorus` `@Chorus{"frequency":4,"delayTime":2.5,"depth":0.7}` |
+| `@Phaser` | フェイザーエフェクト<br>位相シフトによりスイープやうねりの音を作成<br>パラメータ: frequency, octaves, baseFrequency | `@Phaser` `@Phaser{"frequency":0.5,"octaves":3,"baseFrequency":350}` |
+| `@Tremolo` | トレモロエフェクト<br>リズミカルな音量変化を作成<br>パラメータ: frequency, depth | `@Tremolo` `@Tremolo{"frequency":10,"depth":0.5}` |
+| `@Vibrato` | ビブラートエフェクト<br>表現豊かな音のための音程変化を作成<br>パラメータ: frequency, depth | `@Vibrato` `@Vibrato{"frequency":5,"depth":0.1}` |
+| `@Distortion` | ディストーションエフェクト<br>音に歪みとオーバードライブを追加<br>パラメータ: distortion | `@Distortion` `@Distortion{"distortion":0.8}` |
 | `@DelayVibrato` | ディレイビブラートエフェクト<br>音符の開始後に徐々にビブラートがかかる<br>現在はハードコードされたパラメータを使用（frequency=7, depthは0から0.2まで増加） | `@DelayVibrato` |
 
-**注意:** エフェクトはトラック内の最初の音符より前に指定する必要があり、そのトラックの初期楽器にのみ適用されます。演奏途中で楽器変更が行われた場合、新しい楽器にはエフェクトは接続されません。例: `@PingPongDelay c @FMSynth d` の場合、音符 `c` にはピンポンディレイがかかりますが、`@FMSynth` の音符 `d` にはディレイがかかりません。
+**エフェクト機能:**
+- すべてのエフェクトは楽器と出力先の間に接続されます
+- **複数のエフェクトを直列に接続可能** (例: `@Reverb @Chorus @PingPongDelay`)
+- **異なる種類のエフェクトを任意の順序で組み合わせ可能**
+- パラメータはJSON引数として指定可能
+- エフェクトはトラック内の最初の音符より前に指定する必要があります
+
+**注意:** エフェクトはそのトラックの初期楽器にのみ適用されます。演奏途中で楽器変更が行われた場合、新しい楽器にはエフェクトは接続されません。例: `@PingPongDelay c @FMSynth d` の場合、音符 `c` にはピンポンディレイがかかりますが、`@FMSynth` の音符 `d` にはディレイがかかりません。
 
 ### マルチトラック
 | コマンド | 説明 | 例 |
@@ -164,14 +178,25 @@ o4 'c+4eg-' 'd+8f+a' 'e4g+b'.
 // エフェクト（PingPongDelay）
 @PingPongDelay o4 l8 cdefgab<c  // ピンポンディレイ効果
 
+// エフェクト（Reverb）
+@Reverb o4 l8 cdefgab<c  // リバーブ効果 - 空間的な部屋の雰囲気を追加
+
+// エフェクト（Chorus）
+@Chorus o4 l8 cdefgab<c  // コーラス効果 - 豊かで煌めく音色
+
 // エフェクトにパラメータを渡す
 @PingPongDelay{"delayTime":"8n"} o4 l8 cdefgab<c  // 8分音符のディレイタイム
+@Reverb{"decay":2.5} o4 l8 cdefgab<c  // より長いディケイタイム
 
-// 複数のエフェクトを直列接続
+// 同じ種類のエフェクトを複数接続
 @PingPongDelay @PingPongDelay o4 l8 cdefgab<c  // ディレイを2つ重ねる
+
+// 異なる種類のエフェクトを接続
+@Reverb @Chorus @PingPongDelay o4 l8 cdefgab<c  // 複数種類のエフェクトチェーン
 
 // 楽器とエフェクトの組み合わせ
 @FMSynth @PingPongDelay o4 l8 cdefgab<c  // FMシンセ + ピンポンディレイ
+@FMSynth @Reverb @Chorus o4 l8 cdefgab<c  // FMシンセ + リバーブ + コーラス
 
 // エフェクト（DelayVibrato）
 @DelayVibrato o4 l8 cdefgab<c  // ディレイビブラート効果 - 音符開始後にビブラートが徐々にかかる
