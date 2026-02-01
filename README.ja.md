@@ -29,10 +29,9 @@
 |------|--------|
 | 🎵 Demo | https://cat2151.github.io/tonejs-mml-to-json/index.html |
 | 📦 NPM Package | [npm install tonejs-mml-to-json](https://www.npmjs.com/package/tonejs-mml-to-json) |
-| 📚 ライブラリ利用ガイド | [LIBRARY_USAGE.md](LIBRARY_USAGE.md) |
-| 📖 プロジェクト概要 | [generated-docs/project-overview.md](generated-docs/project-overview.md) |
 | 📖 コールグラフ | [generated-docs/callgraph-enhanced.html](https://cat2151.github.io/tonejs-mml-to-json/generated-docs/callgraph-enhanced.html) |
-| 📊 開発状況 | [generated-docs/development-status.md](generated-docs/development-status.md) |
+| 📊 実装サマリー | [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) |
+| 🦀 Rust実装詳細 | [rust/IMPLEMENTATION.md](rust/IMPLEMENTATION.md) |
 
 # 概要
 - MML（Music Macro Language）で書いた音楽を、ブラウザで再生できるJSON形式に変換します
@@ -74,7 +73,19 @@ console.log(json);
 </script>
 ```
 
-詳細な使い方については [LIBRARY_USAGE.md](LIBRARY_USAGE.md) を参照してください。
+## API リファレンス
+
+### `initWasm(): Promise<void>`
+WASMモジュールを初期化します。**すべての変換関数を使用する前に必ず呼び出す必要があります。**
+
+### `mml2json(mml: string): ToneCommand[]`
+MML文字列をTone.js JSON形式に直接変換します。これがメインの変換関数です。
+
+### `mml2ast(mml: string): ASTToken[]`
+MML文字列を抽象構文木（AST）に変換します。
+
+### `ast2json(ast: ASTToken[]): ToneCommand[]`
+抽象構文木（AST）をTone.js JSON形式に変換します。
 
 # MMLコマンドリファレンス
 
@@ -511,7 +522,7 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
   - Rustライブラリクレートとして利用可能
   - WASMコンパイルでブラウザでも動作
   - JavaScript実装と100%互換
-  - 詳細は [rust/README.md](rust/README.md) を参照
+  - 詳細は [rust/IMPLEMENTATION.md](rust/IMPLEMENTATION.md) を参照
 
 ## アーキテクチャ
 - **mml2ast**: MML文字列をASTに変換するパーサー

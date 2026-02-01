@@ -231,8 +231,7 @@ cd rust && cargo run --example basic_usage  # Example
 
 ## Documentation
 
-- `rust/README.md` - User guide for the Rust library
-- `rust/IMPLEMENTATION.md` - Technical implementation details
+- `rust/IMPLEMENTATION.md` - Technical implementation details and usage guide for the Rust library
 - `README.ja.md` - Updated with Rust implementation notes
 - Inline code documentation in Rust source files
 - This summary document
