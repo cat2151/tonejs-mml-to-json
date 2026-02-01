@@ -6,6 +6,21 @@ let currentAbortController = null;
 import { play } from './play.js';
 import { demos } from './demos.js';
 /**
+ * Auto-resize textarea1 based on content
+ * Expands the height if content doesn't fit in one line
+ * Does not auto-shrink (user can manually adjust)
+ */
+function autoResizeTextarea1() {
+    if (!textarea1)
+        return;
+    // Reset height to minimum to get accurate scrollHeight
+    textarea1.style.height = 'auto';
+    // Only expand if content exceeds current height
+    if (textarea1.scrollHeight > textarea1.clientHeight) {
+        textarea1.style.height = textarea1.scrollHeight + 'px';
+    }
+}
+/**
  * Initialize the demo dropdown menu
  */
 function initializeDemoDropdown() {
@@ -30,6 +45,8 @@ function initializeDemoDropdown() {
         const selectedDemo = demos.find(d => d.id === demoSelect.value);
         if (selectedDemo && textarea1) {
             textarea1.value = selectedDemo.mml;
+            // Auto-resize textarea1 after changing content
+            autoResizeTextarea1();
             // Trigger play to update the output
             play(true);
         }
