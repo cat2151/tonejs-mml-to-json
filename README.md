@@ -29,10 +29,9 @@ This project references the following Tree-sitter implementation repositories:
 |------|--------|
 | 🎵 Demo | https://cat2151.github.io/tonejs-mml-to-json/index.html |
 | 📦 NPM Package | [npm install tonejs-mml-to-json](https://www.npmjs.com/package/tonejs-mml-to-json) |
-| 📚 Library Usage Guide | [LIBRARY_USAGE.md](LIBRARY_USAGE.md) |
-| 📖 Project Overview | [generated-docs/project-overview.md](generated-docs/project-overview.md) |
 | 📖 Call Graph | [generated-docs/callgraph-enhanced.html](https://cat2151.github.io/tonejs-mml-to-json/generated-docs/callgraph-enhanced.html) |
-| 📊 Development Status | [generated-docs/development-status.md](generated-docs/development-status.md) |
+| 📊 Implementation Summary | [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) |
+| 🦀 Rust Implementation Details | [rust/IMPLEMENTATION.md](rust/IMPLEMENTATION.md) |
 
 # Overview
 - Converts music written in MML (Music Macro Language) into a JSON format playable in a browser.
@@ -72,7 +71,25 @@ console.log(json);
 </script>
 ```
 
-For detailed usage, please refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
+## API Reference
+
+### `initWasm(): Promise<void>`
+Initialize the WASM module. **This must be called before using any conversion functions.**
+- **Errors**: Throws if initialization fails
+
+### `mml2json(mml: string): ToneCommand[]`
+Convert MML string directly to Tone.js JSON format. This is the main convenience function.
+- **Returns**: Array of Tone.js sequencer commands
+- **Errors**: Throws an `Error` if the WASM module is not initialized or if conversion fails (e.g., invalid MML or a WASM error)
+
+### `mml2ast(mml: string): ASTToken[]`
+Convert MML string to Abstract Syntax Tree (AST).
+- **Returns**: Array of AST tokens
+- **Errors**: Throws an `Error` if the WASM module is not initialized or if parsing fails (e.g., invalid MML or a WASM error)
+
+### `ast2json(ast: ASTToken[]): ToneCommand[]`
+Convert Abstract Syntax Tree (AST) to Tone.js JSON format.
+- **Returns**: Array of Tone.js sequencer commands
 
 # MML Command Reference
 
@@ -509,7 +526,7 @@ The goal is to enable the expression of musical elements available in `tonejs-js
   - Available as a Rust library crate.
   - Works in browsers via WASM compilation.
   - 100% compatible with JavaScript implementation.
-  - See [rust/README.md](rust/README.md) for details.
+  - Tree-sitter-based implementation details: [rust/IMPLEMENTATION.md](rust/IMPLEMENTATION.md)
 
 ## Architecture
 - **mml2ast**: Parser that converts MML string to AST.
