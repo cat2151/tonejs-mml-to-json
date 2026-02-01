@@ -78,12 +78,17 @@ Initialize the WASM module. **This must be called before using any conversion fu
 
 ### `mml2json(mml: string): ToneCommand[]`
 Convert MML string directly to Tone.js JSON format. This is the main convenience function.
+- **Returns**: Array of Tone.js sequencer commands
+- **Errors**: Parser outputs warnings for invalid MML syntax but continues conversion where possible
 
 ### `mml2ast(mml: string): ASTToken[]`
 Convert MML string to Abstract Syntax Tree (AST).
+- **Returns**: Array of AST tokens
+- **Errors**: Invalid syntax outputs warnings but parsing continues
 
 ### `ast2json(ast: ASTToken[]): ToneCommand[]`
 Convert Abstract Syntax Tree (AST) to Tone.js JSON format.
+- **Returns**: Array of Tone.js sequencer commands
 
 # MML Command Reference
 

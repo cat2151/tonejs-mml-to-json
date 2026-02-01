@@ -80,12 +80,17 @@ WASMモジュールを初期化します。**すべての変換関数を使用�
 
 ### `mml2json(mml: string): ToneCommand[]`
 MML文字列をTone.js JSON形式に直接変換します。これがメインの変換関数です。
+- **戻り値**: Tone.jsシーケンサーコマンドの配列
+- **エラー**: 無効なMML構文の場合、パーサーは警告を出力しますが、可能な限り変換を続行します
 
 ### `mml2ast(mml: string): ASTToken[]`
 MML文字列を抽象構文木（AST）に変換します。
+- **戻り値**: ASTトークンの配列
+- **エラー**: 無効な構文は警告を出力しますが、パース処理は続行されます
 
 ### `ast2json(ast: ASTToken[]): ToneCommand[]`
 抽象構文木（AST）をTone.js JSON形式に変換します。
+- **戻り値**: Tone.jsシーケンサーコマンドの配列
 
 # MMLコマンドリファレンス
 
