@@ -75,16 +75,17 @@ console.log(json);
 
 ### `initWasm(): Promise<void>`
 Initialize the WASM module. **This must be called before using any conversion functions.**
+- **Errors**: Throws if initialization fails
 
 ### `mml2json(mml: string): ToneCommand[]`
 Convert MML string directly to Tone.js JSON format. This is the main convenience function.
 - **Returns**: Array of Tone.js sequencer commands
-- **Errors**: Parser outputs warnings for invalid MML syntax but continues conversion where possible
+- **Errors**: Throws an `Error` if the WASM module is not initialized or if conversion fails (e.g., invalid MML or a WASM error)
 
 ### `mml2ast(mml: string): ASTToken[]`
 Convert MML string to Abstract Syntax Tree (AST).
 - **Returns**: Array of AST tokens
-- **Errors**: Invalid syntax outputs warnings but parsing continues
+- **Errors**: Throws an `Error` if the WASM module is not initialized or if parsing fails (e.g., invalid MML or a WASM error)
 
 ### `ast2json(ast: ASTToken[]): ToneCommand[]`
 Convert Abstract Syntax Tree (AST) to Tone.js JSON format.
@@ -525,7 +526,7 @@ The goal is to enable the expression of musical elements available in `tonejs-js
   - Available as a Rust library crate.
   - Works in browsers via WASM compilation.
   - 100% compatible with JavaScript implementation.
-  - See [rust/IMPLEMENTATION.md](rust/IMPLEMENTATION.md) for details.
+  - Tree-sitter-based implementation details: [rust/IMPLEMENTATION.md](rust/IMPLEMENTATION.md)
 
 ## Architecture
 - **mml2ast**: Parser that converts MML string to AST.
