@@ -48,16 +48,12 @@ function initializeDemoDropdown(): void {
  * Get the currently selected JSON edit mode
  */
 function getSelectedMode(): string {
-  const radioButtons = document.querySelectorAll('input[name="jsonEditMode"]');
-  let selectedMode = 'manual'; // default
-  
-  radioButtons.forEach((radio) => {
-    if ((radio as HTMLInputElement).checked) {
-      selectedMode = (radio as HTMLInputElement).value;
-    }
-  });
-  
-  return selectedMode;
+  const checkedRadio = document.querySelector<HTMLInputElement>('input[name="jsonEditMode"]:checked');
+  if (checkedRadio) {
+    return checkedRadio.value;
+  }
+  // Default mode when no radio button is selected
+  return 'manual';
 }
 
 /**
@@ -76,9 +72,9 @@ function handleDebouncedInput(): void {
  * Handle manual input for textarea2 (keyboard shortcuts)
  */
 function handleManualInput(event: KeyboardEvent): void {
-  // Check for Ctrl+S or Shift+Enter (case-insensitive for 's')
-  if ((event.ctrlKey && event.key.toLowerCase() === 's') || (event.shiftKey && event.key === 'Enter')) {
-    event.preventDefault(); // Prevent browser's save dialog for Ctrl+S
+  // Check for Ctrl/Cmd+S or Shift+Enter (case-insensitive for 's')
+  if (((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') || (event.shiftKey && event.key === 'Enter')) {
+    event.preventDefault(); // Prevent browser's save dialog for Ctrl/Cmd+S
     play(false);
   }
 }
@@ -171,5 +167,17 @@ window.addEventListener("load", () => {
         textarea2.value = 'Error: Failed to initialize WASM module. Please refresh the page.';
       }
     }, { once: true });
+  }
+});
+
+// Cleanup on window unload
+window.addEventListener('beforeunload', () => {
+  if (currentAbortController) {
+    currentAbortController.abort();
+    currentAbortController = null;
+  }
+  if (debounceTimer !== null) {
+    clearTimeout(debounceTimer);
+    debounceTimer = null;
   }
 });

@@ -39,14 +39,12 @@ function initializeDemoDropdown() {
  * Get the currently selected JSON edit mode
  */
 function getSelectedMode() {
-    const radioButtons = document.querySelectorAll('input[name="jsonEditMode"]');
-    let selectedMode = 'manual'; // default
-    radioButtons.forEach((radio) => {
-        if (radio.checked) {
-            selectedMode = radio.value;
-        }
-    });
-    return selectedMode;
+    const checkedRadio = document.querySelector('input[name="jsonEditMode"]:checked');
+    if (checkedRadio) {
+        return checkedRadio.value;
+    }
+    // Default mode when no radio button is selected
+    return 'manual';
 }
 /**
  * Handle debounced input for textarea2
@@ -63,9 +61,9 @@ function handleDebouncedInput() {
  * Handle manual input for textarea2 (keyboard shortcuts)
  */
 function handleManualInput(event) {
-    // Check for Ctrl+S or Shift+Enter (case-insensitive for 's')
-    if ((event.ctrlKey && event.key.toLowerCase() === 's') || (event.shiftKey && event.key === 'Enter')) {
-        event.preventDefault(); // Prevent browser's save dialog for Ctrl+S
+    // Check for Ctrl/Cmd+S or Shift+Enter (case-insensitive for 's')
+    if (((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') || (event.shiftKey && event.key === 'Enter')) {
+        event.preventDefault(); // Prevent browser's save dialog for Ctrl/Cmd+S
         play(false);
     }
 }
@@ -147,6 +145,17 @@ window.addEventListener("load", () => {
                 textarea2.value = 'Error: Failed to initialize WASM module. Please refresh the page.';
             }
         }, { once: true });
+    }
+});
+// Cleanup on window unload
+window.addEventListener('beforeunload', () => {
+    if (currentAbortController) {
+        currentAbortController.abort();
+        currentAbortController = null;
+    }
+    if (debounceTimer !== null) {
+        clearTimeout(debounceTimer);
+        debounceTimer = null;
     }
 });
 //# sourceMappingURL=main.js.map
