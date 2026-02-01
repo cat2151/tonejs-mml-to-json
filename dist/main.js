@@ -63,8 +63,8 @@ function handleDebouncedInput() {
  * Handle manual input for textarea2 (keyboard shortcuts)
  */
 function handleManualInput(event) {
-    // Check for Ctrl+S or Shift+Enter
-    if ((event.ctrlKey && event.key === 's') || (event.shiftKey && event.key === 'Enter')) {
+    // Check for Ctrl+S or Shift+Enter (case-insensitive for 's')
+    if ((event.ctrlKey && event.key.toLowerCase() === 's') || (event.shiftKey && event.key === 'Enter')) {
         event.preventDefault(); // Prevent browser's save dialog for Ctrl+S
         play(false);
     }
