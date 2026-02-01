@@ -236,6 +236,54 @@ describe('mml2ast', () => {
       expect(result[0].value).toBe('Synth');
       expect(result[0].args).toBeUndefined();
     });
+
+    it('should parse @FMSynth with multiline JSON args', () => {
+      const mml = `@FMSynth{
+  "harmonicity": 3,
+  "modulationIndex": 10
+} o4 c`;
+      const result = mml2ast(mml);
+      expect(result).toHaveLength(3); // instrument, octave, note
+      expect(result[0].type).toBe('instrument');
+      expect(result[0].value).toBe('FMSynth');
+      expect(result[0].args).toBeDefined();
+      
+      // Validate that multiline JSON is correctly parsed
+      const parsedArgs = JSON.parse(result[0].args);
+      expect(parsedArgs).toHaveProperty('harmonicity', 3);
+      expect(parsedArgs).toHaveProperty('modulationIndex', 10);
+      
+      // Check the octave and note are also parsed
+      expect(result[1].type).toBe('octave');
+      expect(result[1].value).toBe(4);
+      expect(result[2].type).toBe('note');
+      expect(result[2].note).toBe('c');
+    });
+
+    it('should parse @MonoSynth with nested multiline JSON args', () => {
+      const mml = `@MonoSynth{
+  "filter": {
+    "Q": 2,
+    "type": "lowpass"
+  },
+  "envelope": {
+    "attack": 0.005
+  }
+} o3 c`;
+      const result = mml2ast(mml);
+      expect(result).toHaveLength(3); // instrument, octave, note
+      expect(result[0].type).toBe('instrument');
+      expect(result[0].value).toBe('MonoSynth');
+      expect(result[0].args).toBeDefined();
+      
+      // Validate that nested multiline JSON is correctly parsed
+      const parsedArgs = JSON.parse(result[0].args);
+      expect(parsedArgs).toHaveProperty('filter');
+      expect(parsedArgs.filter).toHaveProperty('Q', 2);
+      expect(parsedArgs.filter).toHaveProperty('type', 'lowpass');
+      expect(parsedArgs).toHaveProperty('envelope');
+      expect(parsedArgs.envelope).toHaveProperty('attack', 0.005);
+    });
   });
 
   describe('Complex MML sequences', () => {
