@@ -11,6 +11,19 @@ import { play } from './play.js';
 import { demos, type Demo } from './demos.js';
 
 /**
+ * Auto-resize textarea1 based on content
+ * Expands the height if content doesn't fit in one line
+ * Does not auto-shrink (user can manually adjust)
+ */
+function autoResizeTextarea1(): void {
+  if (!textarea1) return;
+  
+  // Reset to auto to calculate natural height, then set to scrollHeight
+  textarea1.style.height = 'auto';
+  textarea1.style.height = textarea1.scrollHeight + 'px';
+}
+
+/**
  * Initialize the demo dropdown menu
  */
 function initializeDemoDropdown(): void {
@@ -38,6 +51,8 @@ function initializeDemoDropdown(): void {
     const selectedDemo = demos.find(d => d.id === demoSelect.value);
     if (selectedDemo && textarea1) {
       textarea1.value = selectedDemo.mml;
+      // Auto-resize textarea1 after changing content
+      autoResizeTextarea1();
       // Trigger play to update the output
       play(true);
     }
@@ -115,6 +130,8 @@ window.addEventListener("load", () => {
   // Initialize textarea1 with the first demo's MML
   if (textarea1 && demos.length > 0) {
     textarea1.value = demos[0].mml;
+    // Auto-resize textarea1 after initial content load
+    autoResizeTextarea1();
   }
   
   if (textarea1) {
