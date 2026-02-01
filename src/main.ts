@@ -4,6 +4,7 @@ declare const Tone: any;
 let textarea1: HTMLTextAreaElement | null;
 let textarea2: HTMLTextAreaElement | null;
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let currentAbortController: AbortController | null = null;
 
 // Import play function and demos
 import { play } from './play.js';
@@ -44,6 +45,22 @@ function initializeDemoDropdown(): void {
 }
 
 /**
+ * Get the currently selected JSON edit mode
+ */
+function getSelectedMode(): string {
+  const radioButtons = document.querySelectorAll('input[name="jsonEditMode"]');
+  let selectedMode = 'manual'; // default
+  
+  radioButtons.forEach((radio) => {
+    if ((radio as HTMLInputElement).checked) {
+      selectedMode = (radio as HTMLInputElement).value;
+    }
+  });
+  
+  return selectedMode;
+}
+
+/**
  * Handle debounced input for textarea2
  */
 function handleDebouncedInput(): void {
@@ -72,27 +89,26 @@ function handleManualInput(event: KeyboardEvent): void {
 function setupTextarea2Listeners(): void {
   if (!textarea2) return;
   
-  // Get the selected radio button
-  const radioButtons = document.querySelectorAll('input[name="jsonEditMode"]');
-  let selectedMode = 'manual'; // default
+  // Clear any pending debounce timer when switching modes
+  if (debounceTimer !== null) {
+    clearTimeout(debounceTimer);
+    debounceTimer = null;
+  }
   
-  radioButtons.forEach((radio) => {
-    if ((radio as HTMLInputElement).checked) {
-      selectedMode = (radio as HTMLInputElement).value;
-    }
-  });
+  // Abort previous event listeners
+  if (currentAbortController) {
+    currentAbortController.abort();
+  }
+  currentAbortController = new AbortController();
   
-  // Remove existing listeners by cloning the element
-  const newTextarea2 = textarea2.cloneNode(true) as HTMLTextAreaElement;
-  textarea2.parentNode?.replaceChild(newTextarea2, textarea2);
-  textarea2 = newTextarea2;
+  const selectedMode = getSelectedMode();
   
   // Add appropriate listeners based on mode
   if (selectedMode === 'debounce') {
-    textarea2.addEventListener('input', handleDebouncedInput);
+    textarea2.addEventListener('input', handleDebouncedInput, { signal: currentAbortController.signal });
   } else {
     // Manual mode: only on keyboard shortcuts
-    textarea2.addEventListener('keydown', handleManualInput);
+    textarea2.addEventListener('keydown', handleManualInput, { signal: currentAbortController.signal });
   }
 }
 
