@@ -130,6 +130,8 @@ window.addEventListener("load", () => {
   // Initialize textarea1 with the first demo's MML
   if (textarea1 && demos.length > 0) {
     textarea1.value = demos[0].mml;
+    // Auto-resize textarea1 after initial content load
+    autoResizeTextarea1();
   }
   
   if (textarea1) {
