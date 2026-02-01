@@ -107,10 +107,24 @@ For detailed usage, please refer to [LIBRARY_USAGE.md](LIBRARY_USAGE.md).
 ### Effects
 | Command | Description | Example |
 |---------|------|-----|
-| `@PingPongDelay` | Ping-pong delay effect<br>Connected between the instrument and the output<br>Multiple specifications result in serial connection<br>Parameters can be specified as arguments | `@PingPongDelay` `@PingPongDelay{"delayTime":"8n"}` |
+| `@PingPongDelay` | Ping-pong delay effect<br>Creates bouncing echo between left and right channels<br>Parameters: delayTime, feedback | `@PingPongDelay` `@PingPongDelay{"delayTime":"8n","feedback":0.5}` |
+| `@FeedbackDelay` | Feedback delay effect<br>Creates repeating echoes with adjustable feedback<br>Parameters: delayTime, feedback | `@FeedbackDelay` `@FeedbackDelay{"delayTime":"8n","feedback":0.6}` |
+| `@Reverb` | Reverb effect<br>Adds spacious room ambience and echo<br>Parameters: decay | `@Reverb` `@Reverb{"decay":2.5}` |
+| `@Chorus` | Chorus effect<br>Creates rich, shimmering sound by duplicating and detuning<br>Parameters: frequency, delayTime, depth | `@Chorus` `@Chorus{"frequency":4,"delayTime":2.5,"depth":0.7}` |
+| `@Phaser` | Phaser effect<br>Creates sweeping, whooshing sound by phase-shifting<br>Parameters: frequency, octaves, baseFrequency | `@Phaser` `@Phaser{"frequency":0.5,"octaves":3,"baseFrequency":350}` |
+| `@Tremolo` | Tremolo effect<br>Creates rhythmic volume variations<br>Parameters: frequency, depth | `@Tremolo` `@Tremolo{"frequency":10,"depth":0.5}` |
+| `@Vibrato` | Vibrato effect<br>Creates pitch variations for expressive sound<br>Parameters: frequency, depth | `@Vibrato` `@Vibrato{"frequency":5,"depth":0.1}` |
+| `@Distortion` | Distortion effect<br>Adds grit and overdrive to the sound<br>Parameters: distortion | `@Distortion` `@Distortion{"distortion":0.8}` |
 | `@DelayVibrato` | Delay vibrato effect<br>Vibrato gradually applies after the note starts<br>Currently uses hardcoded parameters (frequency=7, depth increases from 0 to 0.2) | `@DelayVibrato` |
 
-**Note:** Effects must be specified before the first note in a track and are only applied to the initial instrument of that track. If the instrument changes midway through playback, the new instrument will not have the effect connected. Example: In `@PingPongDelay c @FMSynth d`, note `c` will have a ping-pong delay, but the `@FMSynth` note `d` will not.
+**Effect Features:**
+- All effects are connected between the instrument and the output
+- **Multiple effects can be chained in series** (e.g., `@Reverb @Chorus @PingPongDelay`)
+- **Different effect types can be mixed** in any order
+- Parameters can be specified as JSON arguments
+- Effects must be specified before the first note in a track
+
+**Note:** Effects are only applied to the initial instrument of that track. If the instrument changes midway through playback, the new instrument will not have the effect connected. Example: In `@PingPongDelay c @FMSynth d`, note `c` will have a ping-pong delay, but the `@FMSynth` note `d` will not.
 
 ### Multitrack
 | Command | Description | Example |
@@ -162,14 +176,25 @@ o4 'c+4eg-' 'd+8f+a' 'e4g+b'.
 // Effect (PingPongDelay)
 @PingPongDelay o4 l8 cdefgab<c  // Ping-pong delay effect
 
+// Effect (Reverb)
+@Reverb o4 l8 cdefgab<c  // Reverb effect - adds spacious room ambience
+
+// Effect (Chorus)
+@Chorus o4 l8 cdefgab<c  // Chorus effect - rich, shimmering sound
+
 // Passing parameters to an effect
 @PingPongDelay{"delayTime":"8n"} o4 l8 cdefgab<c  // 8th note delay time
+@Reverb{"decay":2.5} o4 l8 cdefgab<c  // Longer decay time
 
-// Chaining multiple effects in series
+// Chaining multiple effects of the same type
 @PingPongDelay @PingPongDelay o4 l8 cdefgab<c  // Two delays stacked
 
-// Combination of instrument and effect
+// Chaining different effect types
+@Reverb @Chorus @PingPongDelay o4 l8 cdefgab<c  // Mixed effects chain
+
+// Combination of instrument and effects
 @FMSynth @PingPongDelay o4 l8 cdefgab<c  // FM Synth + Ping-pong delay
+@FMSynth @Reverb @Chorus o4 l8 cdefgab<c  // FM Synth + Reverb + Chorus
 
 // Effect (DelayVibrato)
 @DelayVibrato o4 l8 cdefgab<c  // Delay vibrato effect - vibrato gradually applies after note starts
