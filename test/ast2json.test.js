@@ -1044,4 +1044,84 @@ describe('ast2json', () => {
       expect(createNodes[0].args.harmonicity).toBe(5);
     });
   });
+
+  describe('Tempo command', () => {
+    it('should convert tempo AST to JSON command', () => {
+      const ast = [
+        { type: 'tempo', value: 120, length: 4 }
+      ];
+      const result = ast2json(ast);
+      
+      // Should have setup commands + tempo command
+      expect(result).toHaveLength(3);
+      expect(result[0].eventType).toBe("createNode");
+      expect(result[1].eventType).toBe("connect");
+      expect(result[2]).toEqual({
+        eventType: "set",
+        nodeId: 0,
+        nodeType: "Transport.bpm.value",
+        args: [120]
+      });
+    });
+
+    it('should convert tempo with notes', () => {
+      const ast = [
+        { type: 'tempo', value: 140, length: 4 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result).toHaveLength(4); // setup + tempo + note
+      expect(result[2]).toEqual({
+        eventType: "set",
+        nodeId: 0,
+        nodeType: "Transport.bpm.value",
+        args: [140]
+      });
+      expect(result[3].eventType).toBe("triggerAttackRelease");
+      expect(result[3].args[0]).toBe("c4");
+    });
+
+    it('should handle multiple tempo changes', () => {
+      const ast = [
+        { type: 'tempo', value: 120, length: 4 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 },
+        { type: 'tempo', value: 140, length: 4 },
+        { type: 'note', note: 'd', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result).toHaveLength(6); // setup + tempo + note + tempo + note
+      
+      // First tempo
+      expect(result[2]).toEqual({
+        eventType: "set",
+        nodeId: 0,
+        nodeType: "Transport.bpm.value",
+        args: [120]
+      });
+      
+      // Second tempo
+      expect(result[4]).toEqual({
+        eventType: "set",
+        nodeId: 0,
+        nodeType: "Transport.bpm.value",
+        args: [140]
+      });
+    });
+
+    it('should ignore tempo without value', () => {
+      const ast = [
+        { type: 'tempo', value: null, length: 1 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      // Should have setup + note, but no tempo command
+      expect(result).toHaveLength(3);
+      expect(result[0].eventType).toBe("createNode");
+      expect(result[1].eventType).toBe("connect");
+      expect(result[2].eventType).toBe("triggerAttackRelease");
+    });
+  });
 });

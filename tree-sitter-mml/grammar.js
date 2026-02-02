@@ -13,6 +13,7 @@
  * - Length: l (sets default note length)
  * - Octave: o (sets octave), < (octave up), > (octave down)
  * - Instrument: @ followed by instrument name (e.g., @Synth, @FMSynth)
+ * - Tempo: t or T (sets BPM, e.g., t120, T140)
  * - Track separator: ; (for multi-track)
  * - Chords: 'notes' (e.g., 'ceg', 'c+eg-')
  */
@@ -36,6 +37,7 @@ module.exports = grammar({
         $.octave_up,
         $.octave_down,
         $.instrument_command,
+        $.tempo_command,
         $.track_separator,
       )
     ),
@@ -90,6 +92,12 @@ module.exports = grammar({
 
     // Octave down: >
     octave_down: $ => '>',
+
+    // Tempo command: t or T followed by number (BPM)
+    tempo_command: $ => seq(
+      choice('t', 'T'),
+      field('value', optional($.duration)),
+    ),
 
     // Instrument command: @ followed by instrument name and optional JSON args
     instrument_command: $ => seq(

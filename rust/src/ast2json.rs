@@ -312,6 +312,19 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 }
             }
 
+            AstToken::Tempo(tempo) => {
+                // Set the tempo (BPM) for the Transport
+                if let Some(bpm) = tempo.value {
+                    commands.push(Command {
+                        event_type: "set".to_string(),
+                        node_id: 0,  // Use node_id 0 for Transport commands
+                        node_type: Some("Transport.bpm.value".to_string()),
+                        connect_to: None,
+                        args: Some(serde_json::json!([bpm])),
+                    });
+                }
+            }
+
             AstToken::TrackSeparator(_) => {
                 // Track separators should not appear in single track processing
                 // They are filtered out during track splitting

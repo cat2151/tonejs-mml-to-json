@@ -242,10 +242,30 @@
           "named": true
         },
         {
+          "type": "tempo_command",
+          "named": true
+        },
+        {
           "type": "track_separator",
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "tempo_command",
+    "named": true,
+    "fields": {
+      "value": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "duration",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -270,6 +290,10 @@
   },
   {
     "type": "@",
+    "named": false
+  },
+  {
+    "type": "T",
     "named": false
   },
   {
@@ -334,6 +358,10 @@
   },
   {
     "type": "r",
+    "named": false
+  },
+  {
+    "type": "t",
     "named": false
   },
   {
