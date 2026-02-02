@@ -115,6 +115,7 @@ Converts an Abstract Syntax Tree (AST) to Tone.js JSON format.
 | Command | Description | Example |
 |---------|-------------|---------|
 | `lNumber` | Set default note length<br>_(Applied if length is not specified for subsequent notes)_ | `l8` `l16` `l4` |
+| `tNumber` `TNumber` | Set tempo (BPM - Beats Per Minute)<br>_Both lowercase `t` and uppercase `T` are supported_ | `t120` `T140` `t90` |
 
 ### Instrument Control
 | Command | Description | Example |
@@ -179,6 +180,13 @@ o4 c 'eg' d 'fac' e
 // Chords with Accidentals and Length
 o4 'c+4eg-' 'd+8f+a' 'e4g+b'.
 
+// Tempo Setting
+t120 o4 l8 cdefgab  // Play at 120 BPM
+T140 o4 l8 cdefgab  // Play at 140 BPM (uppercase T also works)
+
+// Changing Tempo Mid-Performance
+t120 o4 c d e f t90 g a b <c  // Slow down at "g"
+
 // Instrument Change (Timbre)
 @Synth cde @FMSynth efg @AMSynth abc
 
@@ -224,7 +232,6 @@ The following commands are commonly used in standard MML but are not yet impleme
 
 | Command | Description | Standard Example |
 |---------|-------------|------------------|
-| `t` `T` | Tempo setting (BPM) | `t120` `T140` |
 | `v` `V` | Volume setting (0-127) | `v100` `V80` |
 | `&` `^` | Tie (combines notes of the same pitch) | `c4&c4` `c4^c4` |
 | `q` `Q` | Gate time (percentage of note length, staccato control) | `q60` `Q80` |
