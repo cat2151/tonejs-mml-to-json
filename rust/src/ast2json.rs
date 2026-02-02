@@ -314,10 +314,11 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
 
             AstToken::Tempo(tempo) => {
                 // Set the tempo (BPM) for the Transport
+                // Transport settings are global and don't use a node in the audio graph
                 if let Some(bpm) = tempo.value {
                     commands.push(Command {
                         event_type: "set".to_string(),
-                        node_id: 0,  // Use node_id 0 for Transport commands
+                        node_id: 0,
                         node_type: Some("Transport.bpm.value".to_string()),
                         connect_to: None,
                         args: Some(serde_json::json!([bpm])),

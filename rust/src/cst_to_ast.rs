@@ -198,7 +198,7 @@ fn parse_tempo(node: &CSTNode) -> Result<TempoToken, String> {
         .and_then(|n| n.text.as_ref())
         .and_then(|t| t.parse::<u32>().ok());
     
-    let length = node.text.as_ref().map(|t| t.len()).unwrap_or(2);
+    let length = node.text.as_ref().map(|t| t.len()).unwrap_or(1);
     
     Ok(TempoToken {
         value,
