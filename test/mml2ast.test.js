@@ -506,4 +506,49 @@ describe('mml2ast', () => {
       expect(result[0].duration).toBe(4); // First number (4)
     });
   });
+
+  describe('Tempo command', () => {
+    it('should parse tempo command "t120"', () => {
+      const result = mml2ast('t120');
+      expect(result).toEqual([
+        { type: 'tempo', value: 120, length: 4 }
+      ]);
+    });
+
+    it('should parse tempo command with uppercase "T140"', () => {
+      const result = mml2ast('T140');
+      expect(result).toEqual([
+        { type: 'tempo', value: 140, length: 4 }
+      ]);
+    });
+
+    it('should parse tempo command without value "t"', () => {
+      const result = mml2ast('t');
+      expect(result).toEqual([
+        { type: 'tempo', value: null, length: 1 }
+      ]);
+    });
+
+    it('should parse tempo with notes "t120 o4 c"', () => {
+      const result = mml2ast('t120 o4 c');
+      expect(result).toHaveLength(3);
+      expect(result[0].type).toBe('tempo');
+      expect(result[0].value).toBe(120);
+      expect(result[1].type).toBe('octave');
+      expect(result[1].value).toBe(4);
+      expect(result[2].type).toBe('note');
+      expect(result[2].note).toBe('c');
+    });
+
+    it('should parse multiple tempo changes', () => {
+      const result = mml2ast('t120 c t140 d');
+      expect(result).toHaveLength(4);
+      expect(result[0].type).toBe('tempo');
+      expect(result[0].value).toBe(120);
+      expect(result[1].type).toBe('note');
+      expect(result[2].type).toBe('tempo');
+      expect(result[2].value).toBe(140);
+      expect(result[3].type).toBe('note');
+    });
+  });
 });

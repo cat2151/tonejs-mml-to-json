@@ -40,6 +40,10 @@
           },
           {
             "type": "SYMBOL",
+            "name": "tempo_command"
+          },
+          {
+            "type": "SYMBOL",
             "name": "track_separator"
           }
         ]
@@ -270,6 +274,40 @@
     "octave_down": {
       "type": "STRING",
       "value": ">"
+    },
+    "tempo_command": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "t"
+            },
+            {
+              "type": "STRING",
+              "value": "T"
+            }
+          ]
+        },
+        {
+          "type": "FIELD",
+          "name": "value",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "duration"
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          }
+        }
+      ]
     },
     "instrument_command": {
       "type": "SEQ",
