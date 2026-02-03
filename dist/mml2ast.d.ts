@@ -42,6 +42,16 @@ export interface InstrumentToken {
     args?: string;
     length: number;
 }
+export interface TempoToken {
+    type: 'tempo';
+    value: number | null;
+    length: number;
+}
+export interface KeyTransposeToken {
+    type: 'keyTranspose';
+    value: number | null;
+    length: number;
+}
 export interface ChordNote {
     note: string;
     accidental: string;
@@ -53,7 +63,7 @@ export interface ChordToken {
     dots: number;
     length: number;
 }
-export type ASTToken = NoteToken | ChordToken | RestToken | LengthToken | OctaveToken | OctaveUpToken | OctaveDownToken | InstrumentToken;
+export type ASTToken = NoteToken | ChordToken | RestToken | LengthToken | OctaveToken | OctaveUpToken | OctaveDownToken | InstrumentToken | TempoToken | KeyTransposeToken;
 /**
  * Initialize the Tree-sitter parser
  * This must be called before using mml2ast

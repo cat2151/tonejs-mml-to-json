@@ -54,6 +54,18 @@ export interface InstrumentToken {
   length: number;
 }
 
+export interface TempoToken {
+  type: 'tempo';
+  value: number | null;
+  length: number;
+}
+
+export interface KeyTransposeToken {
+  type: 'keyTranspose';
+  value: number | null;
+  length: number;
+}
+
 export interface ChordNote {
   note: string;
   accidental: string;
@@ -75,7 +87,9 @@ export type ASTToken =
   | OctaveToken 
   | OctaveUpToken 
   | OctaveDownToken 
-  | InstrumentToken;
+  | InstrumentToken
+  | TempoToken
+  | KeyTransposeToken;
 
 let parser: TreeSitter.Parser | null = null;
 let parserInitialized = false;
