@@ -102,10 +102,11 @@ pub fn convert_accidental(accidental: &str) -> String {
     }
 }
 
-/// Apply key transpose to a note
+/// Apply key transpose to a note with optional accidental
 /// 
 /// # Arguments
 /// * `note` - Base note character (c, d, e, f, g, a, b)
+/// * `accidental` - Accidental string (e.g., "+", "++", "-", "--")
 /// * `octave` - Current octave
 /// * `transpose` - Number of semitones to transpose (can be negative)
 /// 
@@ -113,10 +114,10 @@ pub fn convert_accidental(accidental: &str) -> String {
 /// Tuple of (new_note, new_accidental, new_octave)
 /// 
 /// # Notes
-/// - This function only transposes the base note. Any existing accidentals on the input note
-///   are ignored and should be handled separately by the caller.
+/// - This function incorporates the original accidental into the transposition calculation.
+/// - Uses O(1) arithmetic (div_euclid/rem_euclid) to handle large transpose values efficiently.
 /// - The resulting octave is clamped to the range [0, 10] to prevent invalid octave values.
-pub fn apply_transpose(note: char, octave: u32, transpose: i32) -> (char, String, u32) {
+pub fn apply_transpose(note: char, accidental: &str, octave: u32, transpose: i32) -> (char, String, u32) {
     // Convert note to semitone value (c=0, d=2, e=4, f=5, g=7, a=9, b=11)
     let note_to_semitone = |n: char| -> i32 {
         match n {
@@ -149,25 +150,29 @@ pub fn apply_transpose(note: char, octave: u32, transpose: i32) -> (char, String
         }
     };
     
-    // Calculate the new semitone value
-    let base_semitone = note_to_semitone(note);
-    let mut new_semitone = base_semitone + transpose;
+    // Convert accidental to semitone offset
+    let accidental_offset = if accidental.starts_with('+') {
+        accidental.len() as i32  // Each + is +1 semitone
+    } else if accidental.starts_with('-') {
+        -(accidental.len() as i32)  // Each - is -1 semitone
+    } else {
+        0
+    };
     
-    // Calculate octave changes
-    let mut new_octave = octave as i32;
-    while new_semitone < 0 {
-        new_semitone += 12;
-        new_octave -= 1;
-    }
-    while new_semitone >= 12 {
-        new_semitone -= 12;
-        new_octave += 1;
-    }
+    // Calculate total semitones: base note + accidental + transpose
+    let base_semitone = note_to_semitone(note);
+    let total_semitones = base_semitone + accidental_offset + transpose;
+    
+    // Use O(1) div_euclid/rem_euclid instead of while loops
+    let octave_shift = total_semitones.div_euclid(12);
+    let normalized_semitone = total_semitones.rem_euclid(12);
+    
+    let mut new_octave = octave as i32 + octave_shift;
     
     // Clamp octave to reasonable range (0-10)
     new_octave = new_octave.max(0).min(10);
     
-    let (new_note, new_accidental) = semitone_to_note(new_semitone);
+    let (new_note, new_accidental) = semitone_to_note(normalized_semitone);
     (new_note, new_accidental, new_octave as u32)
 }
 
@@ -223,33 +228,60 @@ mod tests {
     #[test]
     fn test_apply_transpose_basic() {
         // No transpose
-        assert_eq!(apply_transpose('c', 4, 0), ('c', "".to_string(), 4));
+        assert_eq!(apply_transpose('c', "", 4, 0), ('c', "".to_string(), 4));
         
         // Transpose up by 2 semitones (c -> d)
-        assert_eq!(apply_transpose('c', 4, 2), ('d', "".to_string(), 4));
+        assert_eq!(apply_transpose('c', "", 4, 2), ('d', "".to_string(), 4));
         
         // Transpose up by 1 semitone (c -> c#)
-        assert_eq!(apply_transpose('c', 4, 1), ('c', "#".to_string(), 4));
+        assert_eq!(apply_transpose('c', "", 4, 1), ('c', "#".to_string(), 4));
         
         // Transpose down by 1 semitone (c -> b in previous octave)
-        assert_eq!(apply_transpose('c', 4, -1), ('b', "".to_string(), 3));
+        assert_eq!(apply_transpose('c', "", 4, -1), ('b', "".to_string(), 3));
         
         // Transpose up by 12 semitones (c4 -> c5)
-        assert_eq!(apply_transpose('c', 4, 12), ('c', "".to_string(), 5));
+        assert_eq!(apply_transpose('c', "", 4, 12), ('c', "".to_string(), 5));
     }
 
     #[test]
     fn test_apply_transpose_complex() {
         // e + 3 semitones = g
-        assert_eq!(apply_transpose('e', 4, 3), ('g', "".to_string(), 4));
+        assert_eq!(apply_transpose('e', "", 4, 3), ('g', "".to_string(), 4));
         
         // a + 5 semitones = d in next octave
-        assert_eq!(apply_transpose('a', 4, 5), ('d', "".to_string(), 5));
+        assert_eq!(apply_transpose('a', "", 4, 5), ('d', "".to_string(), 5));
         
         // d - 2 semitones = c
-        assert_eq!(apply_transpose('d', 4, -2), ('c', "".to_string(), 4));
+        assert_eq!(apply_transpose('d', "", 4, -2), ('c', "".to_string(), 4));
         
         // b + 1 semitone = c in next octave
-        assert_eq!(apply_transpose('b', 4, 1), ('c', "".to_string(), 5));
+        assert_eq!(apply_transpose('b', "", 4, 1), ('c', "".to_string(), 5));
+    }
+
+    #[test]
+    fn test_apply_transpose_with_accidentals() {
+        // b- (Bb) + 2 semitones = c (natural)
+        assert_eq!(apply_transpose('b', "-", 4, 2), ('c', "".to_string(), 5));
+        
+        // c+ (C#) - 2 semitones = b (previous octave)
+        assert_eq!(apply_transpose('c', "+", 4, -2), ('b', "".to_string(), 3));
+        
+        // d- (Db) + 1 semitone = d (natural)
+        assert_eq!(apply_transpose('d', "-", 4, 1), ('d', "".to_string(), 4));
+        
+        // e- (Eb) - 3 semitones = c (natural)
+        assert_eq!(apply_transpose('e', "-", 4, -3), ('c', "".to_string(), 4));
+        
+        // a++ (A##) + 1 semitone = b (natural)
+        assert_eq!(apply_transpose('a', "++", 4, 1), ('b', "".to_string(), 4));
+    }
+
+    #[test]
+    fn test_apply_transpose_large_values() {
+        // Large positive transpose should not hang (O(1) complexity)
+        assert_eq!(apply_transpose('c', "", 4, 1000), ('g', "#".to_string(), 10));
+        
+        // Large negative transpose should not hang (O(1) complexity)
+        assert_eq!(apply_transpose('c', "", 4, -1000), ('e', "".to_string(), 0));
     }
 }

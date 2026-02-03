@@ -18,18 +18,6 @@ use crate::track::{split_into_tracks, has_chords};
 // Re-export Command for backward compatibility
 pub use crate::command::Command as ToneCommand;
 
-/// Combine original accidental with transpose accidental
-/// 
-/// When a note has both an original accidental (from the MML) and a transpose accidental
-/// (from the kt command), we prefer the transpose result for simplicity.
-fn combine_accidentals(original: &str, transpose: &str) -> String {
-    if !transpose.is_empty() {
-        transpose.to_string()
-    } else {
-        original.to_string()
-    }
-}
-
 /// Convert AST to Tone.js JSON format
 pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
     // Check if there are any track separators
@@ -195,20 +183,16 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
             AstToken::Note(note) => {
                 let ticks = calc_ticks(note.duration, note.dots, default_length, meas_tick);
                 
-                // Apply key transpose if set
-                let (final_note, transpose_accidental, final_octave) = if key_transpose != 0 {
-                    apply_transpose(note.note, octave, key_transpose)
+                // Apply key transpose with original accidental
+                let (final_note, final_accidental, final_octave) = if key_transpose != 0 {
+                    apply_transpose(note.note, &note.accidental, octave, key_transpose)
                 } else {
-                    (note.note, String::new(), octave)
+                    // No transpose: just convert accidental to sharp/flat notation
+                    let accidental = convert_accidental(&note.accidental);
+                    (note.note, accidental, octave)
                 };
-                
-                // Convert accidental to sharp/flat notation
-                let accidental = convert_accidental(&note.accidental);
-                
-                // Combine original accidental with transpose accidental
-                let combined_accidental = combine_accidentals(&accidental, &transpose_accidental);
 
-                let note_name = format!("{}{}{}", final_note, combined_accidental, final_octave);
+                let note_name = format!("{}{}{}", final_note, final_accidental, final_octave);
                 let duration = calc_duration(ticks);
                 let start = calc_start_tick(start_tick);
 
@@ -234,20 +218,16 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 // Build note names for all notes in the chord
                 let mut note_names = Vec::new();
                 for chord_note in &chord.notes {
-                    // Apply key transpose if set
-                    let (final_note, transpose_accidental, final_octave) = if key_transpose != 0 {
-                        apply_transpose(chord_note.note, octave, key_transpose)
+                    // Apply key transpose with original accidental
+                    let (final_note, final_accidental, final_octave) = if key_transpose != 0 {
+                        apply_transpose(chord_note.note, &chord_note.accidental, octave, key_transpose)
                     } else {
-                        (chord_note.note, String::new(), octave)
+                        // No transpose: just convert accidental to sharp/flat notation
+                        let accidental = convert_accidental(&chord_note.accidental);
+                        (chord_note.note, accidental, octave)
                     };
                     
-                    // Convert accidental to sharp/flat notation
-                    let accidental = convert_accidental(&chord_note.accidental);
-                    
-                    // Combine original accidental with transpose accidental
-                    let combined_accidental = combine_accidentals(&accidental, &transpose_accidental);
-                    
-                    let note_name = format!("{}{}{}", final_note, combined_accidental, final_octave);
+                    let note_name = format!("{}{}{}", final_note, final_accidental, final_octave);
                     note_names.push(note_name);
                 }
                 
@@ -363,9 +343,8 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
             
             AstToken::KeyTranspose(kt) => {
                 // Set the key transpose value (in semitones)
-                if let Some(value) = kt.value {
-                    key_transpose = value;
-                }
+                // If no value is provided (bare `kt`), reset transpose to 0
+                key_transpose = kt.value.unwrap_or(0);
             }
 
             AstToken::TrackSeparator(_) => {
