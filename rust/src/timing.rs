@@ -111,6 +111,11 @@ pub fn convert_accidental(accidental: &str) -> String {
 /// 
 /// # Returns
 /// Tuple of (new_note, new_accidental, new_octave)
+/// 
+/// # Notes
+/// - This function only transposes the base note. Any existing accidentals on the input note
+///   are ignored and should be handled separately by the caller.
+/// - The resulting octave is clamped to the range [0, 10] to prevent invalid octave values.
 pub fn apply_transpose(note: char, octave: u32, transpose: i32) -> (char, String, u32) {
     // Convert note to semitone value (c=0, d=2, e=4, f=5, g=7, a=9, b=11)
     let note_to_semitone = |n: char| -> i32 {

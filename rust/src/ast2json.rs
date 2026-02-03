@@ -18,6 +18,18 @@ use crate::track::{split_into_tracks, has_chords};
 // Re-export Command for backward compatibility
 pub use crate::command::Command as ToneCommand;
 
+/// Combine original accidental with transpose accidental
+/// 
+/// When a note has both an original accidental (from the MML) and a transpose accidental
+/// (from the kt command), we prefer the transpose result for simplicity.
+fn combine_accidentals(original: &str, transpose: &str) -> String {
+    if !transpose.is_empty() {
+        transpose.to_string()
+    } else {
+        original.to_string()
+    }
+}
+
 /// Convert AST to Tone.js JSON format
 pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
     // Check if there are any track separators
@@ -194,14 +206,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 let accidental = convert_accidental(&note.accidental);
                 
                 // Combine original accidental with transpose accidental
-                let combined_accidental = if !transpose_accidental.is_empty() && !accidental.is_empty() {
-                    // Both have accidentals - this is complex, just use transpose result
-                    transpose_accidental
-                } else if !transpose_accidental.is_empty() {
-                    transpose_accidental
-                } else {
-                    accidental
-                };
+                let combined_accidental = combine_accidentals(&accidental, &transpose_accidental);
 
                 let note_name = format!("{}{}{}", final_note, combined_accidental, final_octave);
                 let duration = calc_duration(ticks);
@@ -240,14 +245,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                     let accidental = convert_accidental(&chord_note.accidental);
                     
                     // Combine original accidental with transpose accidental
-                    let combined_accidental = if !transpose_accidental.is_empty() && !accidental.is_empty() {
-                        // Both have accidentals - this is complex, just use transpose result
-                        transpose_accidental.clone()
-                    } else if !transpose_accidental.is_empty() {
-                        transpose_accidental.clone()
-                    } else {
-                        accidental
-                    };
+                    let combined_accidental = combine_accidentals(&accidental, &transpose_accidental);
                     
                     let note_name = format!("{}{}{}", final_note, combined_accidental, final_octave);
                     note_names.push(note_name);
