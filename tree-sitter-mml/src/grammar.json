@@ -44,6 +44,10 @@
           },
           {
             "type": "SYMBOL",
+            "name": "key_transpose_command"
+          },
+          {
+            "type": "SYMBOL",
             "name": "track_separator"
           }
         ]
@@ -308,6 +312,44 @@
           }
         }
       ]
+    },
+    "key_transpose_command": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "kt"
+            },
+            {
+              "type": "STRING",
+              "value": "KT"
+            }
+          ]
+        },
+        {
+          "type": "FIELD",
+          "name": "value",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "signed_number"
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "signed_number": {
+      "type": "PATTERN",
+      "value": "-?[0-9]+"
     },
     "instrument_command": {
       "type": "SEQ",

@@ -102,6 +102,70 @@ pub fn convert_accidental(accidental: &str) -> String {
     }
 }
 
+/// Apply key transpose to a note
+/// 
+/// # Arguments
+/// * `note` - Base note character (c, d, e, f, g, a, b)
+/// * `octave` - Current octave
+/// * `transpose` - Number of semitones to transpose (can be negative)
+/// 
+/// # Returns
+/// Tuple of (new_note, new_accidental, new_octave)
+pub fn apply_transpose(note: char, octave: u32, transpose: i32) -> (char, String, u32) {
+    // Convert note to semitone value (c=0, d=2, e=4, f=5, g=7, a=9, b=11)
+    let note_to_semitone = |n: char| -> i32 {
+        match n {
+            'c' => 0,
+            'd' => 2,
+            'e' => 4,
+            'f' => 5,
+            'g' => 7,
+            'a' => 9,
+            'b' => 11,
+            _ => 0,
+        }
+    };
+    
+    let semitone_to_note = |s: i32| -> (char, String) {
+        match s {
+            0 => ('c', String::new()),
+            1 => ('c', "#".to_string()),
+            2 => ('d', String::new()),
+            3 => ('d', "#".to_string()),
+            4 => ('e', String::new()),
+            5 => ('f', String::new()),
+            6 => ('f', "#".to_string()),
+            7 => ('g', String::new()),
+            8 => ('g', "#".to_string()),
+            9 => ('a', String::new()),
+            10 => ('a', "#".to_string()),
+            11 => ('b', String::new()),
+            _ => ('c', String::new()),
+        }
+    };
+    
+    // Calculate the new semitone value
+    let base_semitone = note_to_semitone(note);
+    let mut new_semitone = base_semitone + transpose;
+    
+    // Calculate octave changes
+    let mut new_octave = octave as i32;
+    while new_semitone < 0 {
+        new_semitone += 12;
+        new_octave -= 1;
+    }
+    while new_semitone >= 12 {
+        new_semitone -= 12;
+        new_octave += 1;
+    }
+    
+    // Clamp octave to reasonable range (0-10)
+    new_octave = new_octave.max(0).min(10);
+    
+    let (new_note, new_accidental) = semitone_to_note(new_semitone);
+    (new_note, new_accidental, new_octave as u32)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -149,5 +213,38 @@ mod tests {
         assert_eq!(convert_accidental("++"), "##");
         assert_eq!(convert_accidental("-"), "b");
         assert_eq!(convert_accidental("--"), "bb");
+    }
+
+    #[test]
+    fn test_apply_transpose_basic() {
+        // No transpose
+        assert_eq!(apply_transpose('c', 4, 0), ('c', "".to_string(), 4));
+        
+        // Transpose up by 2 semitones (c -> d)
+        assert_eq!(apply_transpose('c', 4, 2), ('d', "".to_string(), 4));
+        
+        // Transpose up by 1 semitone (c -> c#)
+        assert_eq!(apply_transpose('c', 4, 1), ('c', "#".to_string(), 4));
+        
+        // Transpose down by 1 semitone (c -> b in previous octave)
+        assert_eq!(apply_transpose('c', 4, -1), ('b', "".to_string(), 3));
+        
+        // Transpose up by 12 semitones (c4 -> c5)
+        assert_eq!(apply_transpose('c', 4, 12), ('c', "".to_string(), 5));
+    }
+
+    #[test]
+    fn test_apply_transpose_complex() {
+        // e + 3 semitones = g
+        assert_eq!(apply_transpose('e', 4, 3), ('g', "".to_string(), 4));
+        
+        // a + 5 semitones = d in next octave
+        assert_eq!(apply_transpose('a', 4, 5), ('d', "".to_string(), 5));
+        
+        // d - 2 semitones = c
+        assert_eq!(apply_transpose('d', 4, -2), ('c', "".to_string(), 4));
+        
+        // b + 1 semitone = c in next octave
+        assert_eq!(apply_transpose('b', 4, 1), ('c', "".to_string(), 5));
     }
 }

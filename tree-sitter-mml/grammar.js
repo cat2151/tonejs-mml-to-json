@@ -14,6 +14,7 @@
  * - Octave: o (sets octave), < (octave up), > (octave down)
  * - Instrument: @ followed by instrument name (e.g., @Synth, @FMSynth)
  * - Tempo: t or T (sets BPM, e.g., t120, T140)
+ * - Key Transpose: kt (transposes subsequent notes, e.g., kt2, kt-3)
  * - Track separator: ; (for multi-track)
  * - Chords: 'notes' (e.g., 'ceg', 'c+eg-')
  */
@@ -38,6 +39,7 @@ module.exports = grammar({
         $.octave_down,
         $.instrument_command,
         $.tempo_command,
+        $.key_transpose_command,
         $.track_separator,
       )
     ),
@@ -98,6 +100,15 @@ module.exports = grammar({
       choice('t', 'T'),
       field('value', optional($.duration)),
     ),
+
+    // Key transpose command: kt followed by optional signed number (semitones)
+    key_transpose_command: $ => seq(
+      choice('kt', 'KT'),
+      field('value', optional($.signed_number)),
+    ),
+
+    // Signed number: optional minus sign followed by digits
+    signed_number: $ => /-?[0-9]+/,
 
     // Instrument command: @ followed by instrument name and optional JSON args
     instrument_command: $ => seq(

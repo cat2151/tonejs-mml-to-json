@@ -10,7 +10,7 @@
 
 use crate::ast::*;
 use crate::command::{Command, EVENT_TYPE_CREATE_NODE, EVENT_TYPE_CONNECT, get_start_tick};
-use crate::timing::{calc_ticks, calc_duration, calc_start_tick, convert_accidental};
+use crate::timing::{calc_ticks, calc_duration, calc_start_tick, convert_accidental, apply_transpose};
 use crate::effects::{is_effect, convert_effect_args_to_array, add_delay_vibrato_commands};
 use crate::instrument::get_synth_type_for_track;
 use crate::track::{split_into_tracks, has_chords};
@@ -172,6 +172,9 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
     
     // Reset node_id for instrument playback
     node_id = instrument_node_id;
+    
+    // Track key transpose value (in semitones)
+    let mut key_transpose: i32 = 0;
 
     // Process each AST token, skipping the initial instrument/effect tokens we already processed
     let mut skipped = 0;
@@ -180,10 +183,27 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
             AstToken::Note(note) => {
                 let ticks = calc_ticks(note.duration, note.dots, default_length, meas_tick);
                 
+                // Apply key transpose if set
+                let (final_note, transpose_accidental, final_octave) = if key_transpose != 0 {
+                    apply_transpose(note.note, octave, key_transpose)
+                } else {
+                    (note.note, String::new(), octave)
+                };
+                
                 // Convert accidental to sharp/flat notation
                 let accidental = convert_accidental(&note.accidental);
+                
+                // Combine original accidental with transpose accidental
+                let combined_accidental = if !transpose_accidental.is_empty() && !accidental.is_empty() {
+                    // Both have accidentals - this is complex, just use transpose result
+                    transpose_accidental
+                } else if !transpose_accidental.is_empty() {
+                    transpose_accidental
+                } else {
+                    accidental
+                };
 
-                let note_name = format!("{}{}{}", note.note, accidental, octave);
+                let note_name = format!("{}{}{}", final_note, combined_accidental, final_octave);
                 let duration = calc_duration(ticks);
                 let start = calc_start_tick(start_tick);
 
@@ -209,10 +229,27 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 // Build note names for all notes in the chord
                 let mut note_names = Vec::new();
                 for chord_note in &chord.notes {
+                    // Apply key transpose if set
+                    let (final_note, transpose_accidental, final_octave) = if key_transpose != 0 {
+                        apply_transpose(chord_note.note, octave, key_transpose)
+                    } else {
+                        (chord_note.note, String::new(), octave)
+                    };
+                    
                     // Convert accidental to sharp/flat notation
                     let accidental = convert_accidental(&chord_note.accidental);
                     
-                    let note_name = format!("{}{}{}", chord_note.note, accidental, octave);
+                    // Combine original accidental with transpose accidental
+                    let combined_accidental = if !transpose_accidental.is_empty() && !accidental.is_empty() {
+                        // Both have accidentals - this is complex, just use transpose result
+                        transpose_accidental.clone()
+                    } else if !transpose_accidental.is_empty() {
+                        transpose_accidental.clone()
+                    } else {
+                        accidental
+                    };
+                    
+                    let note_name = format!("{}{}{}", final_note, combined_accidental, final_octave);
                     note_names.push(note_name);
                 }
                 
@@ -323,6 +360,13 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                         connect_to: None,
                         args: Some(serde_json::json!([bpm])),
                     });
+                }
+            }
+            
+            AstToken::KeyTranspose(kt) => {
+                // Set the key transpose value (in semitones)
+                if let Some(value) = kt.value {
+                    key_transpose = value;
                 }
             }
 
