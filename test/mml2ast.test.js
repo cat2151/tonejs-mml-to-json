@@ -286,6 +286,66 @@ describe('mml2ast', () => {
     });
   });
 
+  describe('Tempo command', () => {
+    it('should parse tempo command "t120"', () => {
+      const result = mml2ast('t120');
+      expect(result).toEqual([
+        { type: 'tempo', value: 120, length: 4 }
+      ]);
+    });
+
+    it('should parse tempo command "T140"', () => {
+      const result = mml2ast('T140');
+      expect(result).toEqual([
+        { type: 'tempo', value: 140, length: 4 }
+      ]);
+    });
+
+    it('should parse tempo command without value "t"', () => {
+      const result = mml2ast('t');
+      expect(result).toEqual([
+        { type: 'tempo', value: null, length: 1 }
+      ]);
+    });
+  });
+
+  describe('Key transpose command', () => {
+    it('should parse key transpose command "kt2"', () => {
+      const result = mml2ast('kt2');
+      expect(result).toEqual([
+        { type: 'keyTranspose', value: 2, length: 3 }
+      ]);
+    });
+
+    it('should parse key transpose command with negative value "kt-3"', () => {
+      const result = mml2ast('kt-3');
+      expect(result).toEqual([
+        { type: 'keyTranspose', value: -3, length: 4 }
+      ]);
+    });
+
+    it('should parse uppercase key transpose command "KT5"', () => {
+      const result = mml2ast('KT5');
+      expect(result).toEqual([
+        { type: 'keyTranspose', value: 5, length: 3 }
+      ]);
+    });
+
+    it('should parse key transpose command without value "kt"', () => {
+      const result = mml2ast('kt');
+      expect(result).toEqual([
+        { type: 'keyTranspose', value: null, length: 2 }
+      ]);
+    });
+
+    it('should parse key transpose with zero "kt0"', () => {
+      const result = mml2ast('kt0');
+      expect(result).toEqual([
+        { type: 'keyTranspose', value: 0, length: 3 }
+      ]);
+    });
+  });
+
   describe('Complex MML sequences', () => {
     it('should parse "o4 l16 e"', () => {
       const result = mml2ast('o4 l16 e');

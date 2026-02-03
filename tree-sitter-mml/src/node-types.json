@@ -93,6 +93,22 @@
     }
   },
   {
+    "type": "key_transpose_command",
+    "named": true,
+    "fields": {
+      "value": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "signed_number",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "length_command",
     "named": true,
     "fields": {
@@ -218,6 +234,10 @@
           "named": true
         },
         {
+          "type": "key_transpose_command",
+          "named": true
+        },
+        {
           "type": "length_command",
           "named": true
         },
@@ -293,6 +313,10 @@
     "named": false
   },
   {
+    "type": "KT",
+    "named": false
+  },
+  {
     "type": "T",
     "named": false
   },
@@ -341,6 +365,10 @@
     "named": true
   },
   {
+    "type": "kt",
+    "named": false
+  },
+  {
     "type": "l",
     "named": false
   },
@@ -359,6 +387,10 @@
   {
     "type": "r",
     "named": false
+  },
+  {
+    "type": "signed_number",
+    "named": true
   },
   {
     "type": "t",
