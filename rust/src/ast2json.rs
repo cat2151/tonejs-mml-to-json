@@ -344,14 +344,14 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
             AstToken::Volume(volume) => {
                 // Set the volume for the current instrument node
                 // Volume is in MIDI format (0-127), but Tone.js uses decibels
-                // Convert MIDI volume (0-127) to decibels: db = 20 * log10(volume/127)
-                // But for simplicity, we'll use a linear mapping: db = (volume/127 * 30) - 30
-                // This gives us a range of -30dB to 0dB
+                // Convert MIDI volume to decibels:
+                // - Volume 0: -100dB (silence)
+                // - Volume 1-127: Linear mapping to -30dB to 0dB
                 if let Some(vol) = volume.value {
                     let db = if vol == 0 {
                         -100.0 // Silence
                     } else {
-                        // Linear mapping: 0-127 -> -30dB to 0dB
+                        // Linear mapping: 1-127 -> -30dB to 0dB
                         ((vol as f64 / 127.0) * 30.0) - 30.0
                     };
                     commands.push(Command {

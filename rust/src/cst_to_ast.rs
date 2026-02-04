@@ -127,13 +127,7 @@ fn parse_rest(node: &CSTNode) -> Result<RestToken, String> {
 }
 
 fn parse_length(node: &CSTNode) -> Result<LengthToken, String> {
-    // NOTE: Despite grammar specifying field('value', optional($.duration)),
-    // tree-sitter puts the duration node in children array, not in fields.value
-    let value = node.children.iter()
-        .find(|n| n.node_type == "duration")
-        .and_then(|n| n.text.as_ref())
-        .and_then(|t| t.parse::<u32>().ok());
-    
+    let value = extract_numeric_value(node);
     let length = node.text.as_ref().map(|t| t.len()).unwrap_or(2);
     
     Ok(LengthToken {
@@ -143,14 +137,7 @@ fn parse_length(node: &CSTNode) -> Result<LengthToken, String> {
 }
 
 fn parse_octave(node: &CSTNode) -> Result<OctaveToken, String> {
-    // NOTE: Despite grammar specifying field('value', optional($.duration)),
-    // tree-sitter puts the duration node in children array, not in fields.value
-    // The $.duration rule produces numeric tokens, which are appropriate for octave values
-    let value = node.children.iter()
-        .find(|n| n.node_type == "duration")
-        .and_then(|n| n.text.as_ref())
-        .and_then(|t| t.parse::<u32>().ok());
-    
+    let value = extract_numeric_value(node);
     let length = node.text.as_ref().map(|t| t.len()).unwrap_or(2);
     
     Ok(OctaveToken {
@@ -192,14 +179,18 @@ fn parse_instrument(node: &CSTNode) -> Result<InstrumentToken, String> {
     })
 }
 
-fn parse_tempo(node: &CSTNode) -> Result<TempoToken, String> {
-    // NOTE: Despite grammar specifying field('value', optional($.duration)),
-    // tree-sitter puts the duration node in children array, not in fields.value
-    let value = node.children.iter()
+// Helper function to extract numeric value from command nodes
+// NOTE: Despite grammar specifying field('value', optional($.duration)),
+// tree-sitter puts the duration node in children array, not in fields.value
+fn extract_numeric_value(node: &CSTNode) -> Option<u32> {
+    node.children.iter()
         .find(|n| n.node_type == "duration")
         .and_then(|n| n.text.as_ref())
-        .and_then(|t| t.parse::<u32>().ok());
-    
+        .and_then(|t| t.parse::<u32>().ok())
+}
+
+fn parse_tempo(node: &CSTNode) -> Result<TempoToken, String> {
+    let value = extract_numeric_value(node);
     let length = node.text.as_ref().map(|t| t.len()).unwrap_or(1);
     
     Ok(TempoToken {
@@ -209,13 +200,7 @@ fn parse_tempo(node: &CSTNode) -> Result<TempoToken, String> {
 }
 
 fn parse_volume(node: &CSTNode) -> Result<VolumeToken, String> {
-    // NOTE: Despite grammar specifying field('value', optional($.duration)),
-    // tree-sitter puts the duration node in children array, not in fields.value
-    let value = node.children.iter()
-        .find(|n| n.node_type == "duration")
-        .and_then(|n| n.text.as_ref())
-        .and_then(|t| t.parse::<u32>().ok());
-    
+    let value = extract_numeric_value(node);
     let length = node.text.as_ref().map(|t| t.len()).unwrap_or(1);
     
     Ok(VolumeToken {
