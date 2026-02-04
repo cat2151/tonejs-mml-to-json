@@ -13,7 +13,7 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(json[2]).toEqual({
         eventType: "triggerAttackRelease",
         nodeId: 0,
-        args: ["c4", "91i", "+0i"] // 96 * 0.95 = 91
+        args: ["c4", "96i", "+0i"] // 96 * 1.0 = 96 (q8)
       });
     });
 
@@ -26,7 +26,7 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(json[2]).toEqual({
         eventType: "triggerAttackRelease",
         nodeId: 0,
-        args: ["e4", "45i", "+0i"] // 48 * 0.95 = 45
+        args: ["e4", "48i", "+0i"] // 48 * 1.0 = 48 (q8)
       });
     });
 
@@ -51,9 +51,9 @@ describe('Integration: mml2ast + ast2json', () => {
       const json = ast2json(ast);
       
       expect(json).toHaveLength(5); // setup + 3 notes
-      expect(json[2].args).toEqual(["c4", "182i", "+0i"]); // 192 * 0.95 = 182
-      expect(json[3].args).toEqual(["d4", "91i", "+192i"]); // 96 * 0.95 = 91
-      expect(json[4].args).toEqual(["e4", "45i", "+288i"]); // 48 * 0.95 = 45
+      expect(json[2].args).toEqual(["c4", "192i", "+0i"]); // 192 * 1.0 = 192 (q8)
+      expect(json[3].args).toEqual(["d4", "96i", "+192i"]); // 96 * 1.0 = 96 (q8)
+      expect(json[4].args).toEqual(["e4", "48i", "+288i"]); // 48 * 1.0 = 48 (q8)
     });
 
     it('should convert MML with accidentals "c+ d e-" through full pipeline', () => {
@@ -83,9 +83,9 @@ describe('Integration: mml2ast + ast2json', () => {
       const json = ast2json(ast);
       
       expect(json).toHaveLength(5); // setup + 3 notes
-      expect(json[2].args[1]).toBe("91i"); // All eighth notes, 96 * 0.95 = 91
-      expect(json[3].args[1]).toBe("91i");
-      expect(json[4].args[1]).toBe("91i");
+      expect(json[2].args[1]).toBe("96i"); // All eighth notes, 96 * 1.0 = 96 (q8)
+      expect(json[3].args[1]).toBe("96i");
+      expect(json[4].args[1]).toBe("96i");
     });
 
     it('should convert MML with octave changes "o5 c < d > e" through full pipeline', () => {
@@ -107,8 +107,8 @@ describe('Integration: mml2ast + ast2json', () => {
       const json = ast2json(ast);
       
       expect(json).toHaveLength(4); // setup + 2 notes
-      expect(json[2].args[1]).toBe("273i"); // dotted quarter (192 * 1.5 * 0.95)
-      expect(json[3].args[1]).toBe("136i"); // dotted eighth (96 * 1.5 * 0.95 = 136.8 -> 136)
+      expect(json[2].args[1]).toBe("288i"); // dotted quarter (192 * 1.5 * 1.0 (q8))
+      expect(json[3].args[1]).toBe("144i"); // dotted eighth (96 * 1.5 * 1.0 (q8) = 144)
     });
 
     it('should convert complex MML sequence', () => {
@@ -129,9 +129,9 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(json[8].args[0]).toBe("b4");
       expect(json[9].args[0]).toBe("c3"); // > decreases octave (project convention)
       
-      // Verify all are eighth notes, 96 * 0.95 = 91
+      // Verify all are eighth notes, 96 * 1.0 = 96 (q8)
       for (let i = 2; i < 10; i++) {
-        expect(json[i].args[1]).toBe("91i");
+        expect(json[i].args[1]).toBe("96i");
       }
       
       // Verify timing progression (96 ticks per eighth note)
@@ -171,7 +171,7 @@ describe('Integration: mml2ast + ast2json', () => {
           expect(event).toHaveProperty('args');
           expect(event.args).toHaveLength(3);
           // args[0]: note (e.g., "c4")
-          // args[1]: duration (e.g., "182i")
+          // args[1]: duration (e.g., "192i")
           // args[2]: start time (e.g., "+0i")
           expect(typeof event.args[0]).toBe('string');
           expect(typeof event.args[1]).toBe('string');
@@ -226,7 +226,7 @@ describe('Integration: mml2ast + ast2json', () => {
         },
         {
           mml: 'l16 c d e',
-          expectedDuration: '45i', // 48 * 0.95 = 45
+          expectedDuration: '48i', // 48 * 1.0 = 48 (q8)
           description: 'with default length'
         }
       ];
@@ -292,11 +292,11 @@ describe('Integration: mml2ast + ast2json', () => {
       
       // Track 1 notes should have eighth note duration
       const track1Notes = notes.filter(n => n.nodeId === 0);
-      track1Notes.forEach(n => expect(n.args[1]).toBe('91i')); // 96 * 0.95 = 91
+      track1Notes.forEach(n => expect(n.args[1]).toBe('96i')); // 96 * 1.0 = 96 (q8)
       
       // Track 2 notes should have sixteenth note duration
       const track2Notes = notes.filter(n => n.nodeId === 100);
-      track2Notes.forEach(n => expect(n.args[1]).toBe('45i')); // 48 * 0.95 = 45
+      track2Notes.forEach(n => expect(n.args[1]).toBe('48i')); // 48 * 1.0 = 48 (q8)
     });
 
     it('should handle three tracks', () => {
@@ -370,7 +370,7 @@ describe('Integration: mml2ast + ast2json', () => {
       const json = ast2json(ast);
       
       const chordEvent = json[2];
-      expect(chordEvent.args[1]).toBe('273i'); // 192 * 1.5 * 0.95 = 273
+      expect(chordEvent.args[1]).toBe('288i'); // 192 * 1.5 * 1.0 (q8) = 288
     });
 
     it('should convert mixed notes and chords', () => {
@@ -444,12 +444,12 @@ describe('Integration: mml2ast + ast2json', () => {
       // First chord: C# E Gb, eighth note (8 inside quotes)
       let notes = events[0].args[0];
       expect(notes).toEqual(['c#4', 'e4', 'gb4']);
-      expect(events[0].args[1]).toBe('91i'); // 96 * 0.95 = 91
+      expect(events[0].args[1]).toBe('96i'); // 96 * 1.0 = 96 (q8)
       
       // Second chord: D# F# A, quarter note (from default l4)
       notes = events[1].args[0];
       expect(notes).toEqual(['d#4', 'f#4', 'a4']);
-      expect(events[1].args[1]).toBe('182i'); // 192 * 0.95 = 182
+      expect(events[1].args[1]).toBe('192i'); // 192 * 1.0 = 192 (q8)
       
       // Third chord: E G# B, quarter note
       notes = events[2].args[0];
