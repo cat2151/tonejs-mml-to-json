@@ -1218,5 +1218,31 @@ describe('ast2json', () => {
       expect(result[1].eventType).toBe("connect");
       expect(result[2].eventType).toBe("triggerAttackRelease");
     });
+
+    it('should clamp volume values above 127 to prevent distortion', () => {
+      const ast = [
+        { type: 'volume', value: 255, length: 4 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result).toHaveLength(3);
+      expect(result[2].eventType).toBe("set");
+      expect(result[2].nodeType).toBe("volume.value");
+      // Volume 255 should be clamped to 127, which maps to 0dB
+      expect(result[2].args[0]).toBe(0);
+    });
+
+    it('should clamp volume values above 127 (e.g., 200) to maximum', () => {
+      const ast = [
+        { type: 'volume', value: 200, length: 4 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result).toHaveLength(3);
+      expect(result[2].eventType).toBe("set");
+      expect(result[2].nodeType).toBe("volume.value");
+      // Volume 200 should be clamped to 127, which maps to 0dB
+      expect(result[2].args[0]).toBe(0);
+    });
   });
 });
