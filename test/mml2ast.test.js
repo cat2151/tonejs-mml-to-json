@@ -656,5 +656,24 @@ describe('mml2ast', () => {
       expect(result[2].value).toBe(140);
       expect(result[3].type).toBe('note');
     });
+
+    it('should NOT parse uppercase tempo command "T120"', () => {
+      // Uppercase T should not be recognized as a tempo command
+      const result = mml2ast('T120');
+      // It should either be empty or parse differently, but not as a tempo
+      expect(result.length).toBe(0); // No valid tokens parsed
+    });
+
+    it('should NOT parse uppercase volume command "V100"', () => {
+      // Uppercase V should not be recognized as a volume command
+      const result = mml2ast('V100');
+      expect(result.length).toBe(0); // No valid tokens parsed
+    });
+
+    it('should NOT parse uppercase gate time command "Q80"', () => {
+      // Uppercase Q should not be recognized as a gate time command
+      const result = mml2ast('Q80');
+      expect(result.length).toBe(0); // No valid tokens parsed
+    });
   });
 });

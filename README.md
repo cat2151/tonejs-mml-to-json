@@ -118,13 +118,13 @@ Converts an Abstract Syntax Tree (AST) into Tone.js JSON format.
 | Command | Description | Example |
 |---------|-------------|---------|
 | `lNumber` | Set default note length<br>_(Applied if length is not specified for subsequent notes)_ | `l8` `l16` `l4` |
-| `tNumber` `TNumber` | Set tempo (BPM - Beats Per Minute)<br>_Both lowercase `t` and uppercase `T` are supported_ | `t120` `T140` `t90` |
-| `vNumber` `VNumber` | Set volume (0-127)<br>_MIDI volume format, both lowercase `v` and uppercase `V` are supported_ | `v100` `V80` `v127` |
-| `qNumber` `QNumber` | Gate time (percentage of note length, 0-100)<br>_Controls staccato, both lowercase `q` and uppercase `Q` are supported<br>100=legato (full duration), 95=default (slight gap), 80=staccato (short)_ | `q100` `Q80` `q60` |
+| `tNumber` | Set tempo (BPM - Beats Per Minute) | `t120` `t140` `t90` |
+| `vNumber` | Set volume (0-127)<br>_MIDI volume format_ | `v100` `v80` `v127` |
+| `qNumber` | Gate time (percentage of note length, 0-100)<br>_Controls staccato<br>100=legato (full duration), 95=default (slight gap), 80=staccato (short)_ | `q100` `q80` `q60` |
 |---------|------|-----|
 | `lNumber` | Sets the default note length<br>(Applies to subsequent notes if no length is specified) | `l8` `l16` `l4` |
-| `tNumber` `TNumber` | Sets the tempo (BPM - Beats Per Minute)<br>Both lowercase `t` and uppercase `T` can be used | `t120` `T140` `t90` |
-| `vNumber` `VNumber` | Sets the volume (0-127)<br>MIDI volume format; both lowercase `v` and uppercase `V` can be used | `v100` `V80` `v127` |
+| `tNumber` | Sets the tempo (BPM - Beats Per Minute) | `t120` `t140` `t90` |
+| `vNumber` | Sets the volume (0-127)<br>MIDI volume format | `v100` `v80` `v127` |
 
 ### Timbre Control
 | Command | Description | Example |
@@ -191,14 +191,12 @@ o4 'c+4eg-' 'd+8f+a' 'e4g+b'.
 
 // Tempo setting
 t120 o4 l8 cdefgab  // Play at 120 BPM
-T140 o4 l8 cdefgab  // Play at 140 BPM (uppercase T can also be used)
 
 // Tempo change during playback
 t120 o4 c d e f t90 g a b <c  // Slows down from "g"
 
 // Volume setting
 v100 o4 l8 cdefgab  // Play at volume 100 (0-127)
-V80 o4 l8 cdefgab   // Play at volume 80 (uppercase V can also be used)
 
 // Volume change during playback
 v127 o4 c d e f v60 g a b <c  // Quieter from "g"
@@ -264,8 +262,8 @@ The following commands are commonly used in standard MML but are not yet impleme
 | Command | Description | Standard Example |
 |---------|-------------|------------------|
 | `&` `^` | Tie (combines notes of the same pitch) | `c4&c4` `c4^c4` |
-| `p` `P` | Pan (position) setting | `p64` `P0` |
-| `u` `U` | Velocity (attack strength) | `u120` |
+| `p` | Pan (position) setting | `p64` `p0` |
+| `u` | Velocity (attack strength) | `u120` |
 | `[` `]` | Loop (repetition) | `[cde]4` |
 
 **⚠️ Important Notes**: 
