@@ -109,12 +109,12 @@
   <textarea id="textarea2" rows="25" cols="80"></textarea><br>
   <fieldset lang="ja">
     <legend>JSON側のtextareaの編集時の挙動:</legend>
-    <label>
-      <input type="radio" name="jsonEditMode" value="manual">
+    <label for="jsonEditModeManual">
+      <input type="radio" id="jsonEditModeManual" name="jsonEditMode" value="manual">
       CTRL+S (CMD+S on Mac) または SHIFT+ENTER で反映
     </label><br>
-    <label>
-      <input type="radio" name="jsonEditMode" value="debounce" checked>
+    <label for="jsonEditModeDebounce">
+      <input type="radio" id="jsonEditModeDebounce" name="jsonEditMode" value="debounce" checked>
       1秒のデバウンスで反映（デフォルト）
     </label>
   </fieldset>
