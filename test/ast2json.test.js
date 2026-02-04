@@ -76,7 +76,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result[2].args[1]).toBe("48i"); // 192*4/16 = 48, * 0.95 = 45
+      expect(result[2].args[1]).toBe("48i"); // 192*4/16 = 48 with 100% gate time (q8)
     });
   });
 
@@ -126,8 +126,8 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      // Quarter note (192) * 1.75 = 336, minus 10 = 326
-      expect(result[2].args[1]).toBe("336i"); // 336 * 0.95 = 319
+      // Quarter note (192) * 1.75 = 336 with 100% gate time (q8)
+      expect(result[2].args[1]).toBe("336i");
     });
   });
 
@@ -168,9 +168,9 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       expect(result).toHaveLength(4); // setup + 2 notes
-      // Both notes should be 16th notes (48 ticks, 38 duration)
-      expect(result[2].args[1]).toBe("48i"); // 48 * 0.95 = 45
-      expect(result[3].args[1]).toBe("48i"); // 48 * 0.95 = 45
+      // Both notes should be 16th notes (48 ticks) with 100% gate time (q8)
+      expect(result[2].args[1]).toBe("48i");
+      expect(result[3].args[1]).toBe("48i");
     });
 
     it('should allow notes to override default length', () => {
@@ -407,7 +407,7 @@ describe('ast2json', () => {
       
       expect(result).toHaveLength(3); // setup + 1 note
       expect(result[2].args[0]).toBe("e4");
-      expect(result[2].args[1]).toBe("48i"); // 16th note, 48 * 0.95 = 45
+      expect(result[2].args[1]).toBe("48i"); // 16th note, 48 ticks with 100% gate time (q8)
       expect(result[2].args[2]).toBe("+0i");
     });
 
