@@ -1322,5 +1322,56 @@ describe('ast2json', () => {
       expect(result[3].args).toEqual(["d4", "76i", "+192i"]); // 96 * 0.8 = 76
       expect(result[4].args).toEqual(["e4", "153i", "+288i"]); // 192 * 0.8 = 153
     });
+
+    it('should handle gate time 0% edge case (minimum 1 tick)', () => {
+      const ast = [
+        { type: 'gateTime', value: 0, length: 2 },
+        { type: 'note', note: 'c', accidental: '', duration: 4, dots: 0, length: 2 }
+      ];
+      const result = ast2json(ast);
+      
+      // Gate time 0% results in 0 ticks, but is clamped to minimum 1 tick
+      expect(result).toHaveLength(3);
+      expect(result[2].eventType).toBe("triggerAttackRelease");
+      expect(result[2].args).toEqual(["c4", "1i", "+0i"]);
+    });
+
+    it('should handle gate time > 100% (no reduction)', () => {
+      const ast = [
+        { type: 'gateTime', value: 120, length: 4 },
+        { type: 'note', note: 'c', accidental: '', duration: 4, dots: 0, length: 2 }
+      ];
+      const result = ast2json(ast);
+      
+      // Gate time >= 100% produces full duration with no reduction
+      expect(result).toHaveLength(3);
+      expect(result[2].eventType).toBe("triggerAttackRelease");
+      expect(result[2].args).toEqual(["c4", "192i", "+0i"]);
+    });
+
+    it('should apply gate time to chords', () => {
+      const ast = [
+        { type: 'gateTime', value: 80, length: 3 },
+        { 
+          type: 'chord', 
+          notes: [
+            { note: 'c', accidental: '' },
+            { note: 'e', accidental: '' },
+            { note: 'g', accidental: '' }
+          ],
+          duration: 4, 
+          dots: 0, 
+          length: 7 
+        }
+      ];
+      const result = ast2json(ast);
+      
+      // Chord with gate time 80%: 192 ticks * 0.8 = 153 ticks
+      expect(result).toHaveLength(3);
+      expect(result[2].eventType).toBe("triggerAttackRelease");
+      expect(result[2].args[0]).toEqual(['c4', 'e4', 'g4']); // chord notes
+      expect(result[2].args[1]).toBe('153i'); // duration with 80% gate time
+      expect(result[2].args[2]).toBe('+0i'); // start time
+    });
   });
 });
