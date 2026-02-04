@@ -67,6 +67,22 @@
     }
   },
   {
+    "type": "gate_time_command",
+    "named": true,
+    "fields": {
+      "value": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "duration",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "instrument_command",
     "named": true,
     "fields": {
@@ -230,6 +246,10 @@
           "named": true
         },
         {
+          "type": "gate_time_command",
+          "named": true
+        },
+        {
           "type": "instrument_command",
           "named": true
         },
@@ -337,6 +357,10 @@
     "named": false
   },
   {
+    "type": "Q",
+    "named": false
+  },
+  {
     "type": "T",
     "named": false
   },
@@ -407,6 +431,10 @@
   {
     "type": "octave_up",
     "named": true
+  },
+  {
+    "type": "q",
+    "named": false
   },
   {
     "type": "r",

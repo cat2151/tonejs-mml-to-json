@@ -48,6 +48,10 @@
           },
           {
             "type": "SYMBOL",
+            "name": "gate_time_command"
+          },
+          {
+            "type": "SYMBOL",
             "name": "key_transpose_command"
           },
           {
@@ -330,6 +334,40 @@
             {
               "type": "STRING",
               "value": "V"
+            }
+          ]
+        },
+        {
+          "type": "FIELD",
+          "name": "value",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "duration"
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "gate_time_command": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "q"
+            },
+            {
+              "type": "STRING",
+              "value": "Q"
             }
           ]
         },

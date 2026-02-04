@@ -15,6 +15,7 @@
  * - Instrument: @ followed by instrument name (e.g., @Synth, @FMSynth)
  * - Tempo: t or T (sets BPM, e.g., t120, T140)
  * - Volume: v or V (sets volume 0-127, e.g., v100, V80)
+ * - Gate Time: q or Q (gate time percentage, e.g., q60, Q80)
  * - Key Transpose: kt (transposes subsequent notes, e.g., kt2, kt-3)
  * - Track separator: ; (for multi-track)
  * - Chords: 'notes' (e.g., 'ceg', 'c+eg-')
@@ -41,6 +42,7 @@ module.exports = grammar({
         $.instrument_command,
         $.tempo_command,
         $.volume_command,
+        $.gate_time_command,
         $.key_transpose_command,
         $.track_separator,
       )
@@ -106,6 +108,12 @@ module.exports = grammar({
     // Volume command: v or V followed by number (0-127)
     volume_command: $ => seq(
       choice('v', 'V'),
+      field('value', optional($.duration)),
+    ),
+
+    // Gate time command: q or Q followed by number (percentage)
+    gate_time_command: $ => seq(
+      choice('q', 'Q'),
       field('value', optional($.duration)),
     ),
 

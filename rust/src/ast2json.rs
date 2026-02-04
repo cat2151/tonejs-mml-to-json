@@ -70,6 +70,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
     let mut start_tick = 0;
     let mut default_length = 8; // default note length (eighth note)
     let mut octave = 4; // default octave 4
+    let mut gate_time = 95; // default gate time (95%, creating slight gaps between notes)
     let mut node_id = track_node_id; // Start with track's base node_id
     
     // Collect initial instrument and effects before any notes
@@ -193,7 +194,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 };
 
                 let note_name = format!("{}{}{}", final_note, final_accidental, final_octave);
-                let duration = calc_duration(ticks);
+                let duration = calc_duration(ticks, gate_time);
                 let start = calc_start_tick(start_tick);
 
                 commands.push(Command {
@@ -231,7 +232,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                     note_names.push(note_name);
                 }
                 
-                let duration = calc_duration(ticks);
+                let duration = calc_duration(ticks, gate_time);
                 let start = calc_start_tick(start_tick);
 
                 // All polyphonic instruments (Sampler, PolySynth, etc.) use array format for chords
@@ -366,6 +367,16 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 }
             }
             
+            AstToken::GateTime(gt) => {
+                // Set the gate time percentage (0-100)
+                // This controls how much of the note's duration is actually played
+                // - 100: Full duration (legato)
+                // - 95: Default (slight gap between notes)
+                // - 80: Staccato (short notes)
+                // If no value is provided (bare `q`), reset to default 95%
+                gate_time = gt.value.unwrap_or(95);
+            }
+            
             AstToken::KeyTranspose(kt) => {
                 // Set the key transpose value (in semitones)
                 // If no value is provided (bare `kt`), reset transpose to 0
@@ -403,7 +414,7 @@ mod tests {
         let ast = mml2ast("c4").unwrap();
         let result = ast2json(&ast).unwrap();
         let args = result[2].args.as_ref().unwrap().as_array().unwrap();
-        assert_eq!(args[1].as_str().unwrap(), "182i"); // 192 - 10
+        assert_eq!(args[1].as_str().unwrap(), "182i"); // 192 * 0.95 = 182
     }
 
     #[test]

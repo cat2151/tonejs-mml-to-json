@@ -32,7 +32,7 @@ describe('ast2json', () => {
       expect(result[2]).toEqual({
         eventType: "triggerAttackRelease",
         nodeId: 0,
-        args: ["c4", "86i", "+0i"]
+        args: ["c4", "91i", "+0i"] // 96 * 0.95 = 91 (default eighth note with 95% gate time)
       });
     });
 
@@ -67,7 +67,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result[2].args[1]).toBe("86i"); // 192*4/8 = 96, minus 10 = 86
+      expect(result[2].args[1]).toBe("91i"); // 192*4/8 = 96, * 0.95 = 91
     });
 
     it('should convert note with sixteenth note duration', () => {
@@ -76,7 +76,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result[2].args[1]).toBe("38i"); // 192*4/16 = 48, minus 10 = 38
+      expect(result[2].args[1]).toBe("45i"); // 192*4/16 = 48, * 0.95 = 45
     });
   });
 
@@ -116,8 +116,8 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      // Quarter note (192) * 1.5 = 288, minus 10 = 278
-      expect(result[2].args[1]).toBe("278i");
+      // Quarter note (192) * 1.5 = 288, * 0.95 = 273
+      expect(result[2].args[1]).toBe("273i");
     });
 
     it('should convert double dotted note (2 dots)', () => {
@@ -127,7 +127,7 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Quarter note (192) * 1.75 = 336, minus 10 = 326
-      expect(result[2].args[1]).toBe("326i");
+      expect(result[2].args[1]).toBe("319i"); // 336 * 0.95 = 319
     });
   });
 
@@ -169,8 +169,8 @@ describe('ast2json', () => {
       
       expect(result).toHaveLength(4); // setup + 2 notes
       // Both notes should be 16th notes (48 ticks, 38 duration)
-      expect(result[2].args[1]).toBe("38i");
-      expect(result[3].args[1]).toBe("38i");
+      expect(result[2].args[1]).toBe("45i"); // 48 * 0.95 = 45
+      expect(result[3].args[1]).toBe("45i"); // 48 * 0.95 = 45
     });
 
     it('should allow notes to override default length', () => {
@@ -181,7 +181,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result[2].args[1]).toBe("86i"); // c uses l8
+      expect(result[2].args[1]).toBe("91i"); // c uses l8, 96 * 0.95 = 91
       expect(result[3].args[1]).toBe("182i"); // d4 overrides to quarter note
     });
   });
@@ -407,7 +407,7 @@ describe('ast2json', () => {
       
       expect(result).toHaveLength(3); // setup + 1 note
       expect(result[2].args[0]).toBe("e4");
-      expect(result[2].args[1]).toBe("38i"); // 16th note
+      expect(result[2].args[1]).toBe("45i"); // 16th note, 48 * 0.95 = 45
       expect(result[2].args[2]).toBe("+0i");
     });
 
@@ -436,10 +436,10 @@ describe('ast2json', () => {
       
       expect(result).toHaveLength(4); // setup + 2 notes
       expect(result[2].args[0]).toBe("c#5");
-      expect(result[2].args[1]).toBe("278i"); // dotted quarter
+      expect(result[2].args[1]).toBe("273i"); // dotted quarter, 288 * 0.95 = 273
       expect(result[2].args[2]).toBe("+0i");
       expect(result[3].args[0]).toBe("e5");
-      expect(result[3].args[1]).toBe("86i"); // eighth note (l8)
+      expect(result[3].args[1]).toBe("91i"); // eighth note (l8), 96 * 0.95 = 91
       expect(result[3].args[2]).toBe("+384i"); // after dotted quarter (288) + eighth rest (96)
     });
   });
@@ -511,8 +511,8 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       const notes = result.filter(e => e.eventType === 'triggerAttackRelease');
-      expect(notes[0].args[1]).toBe('86i');  // 96 - 10
-      expect(notes[1].args[1]).toBe('38i');  // 48 - 10
+      expect(notes[0].args[1]).toBe('91i');  // 96 * 0.95 = 91
+      expect(notes[1].args[1]).toBe('45i');  // 48 * 0.95 = 45
     });
 
     it('should start all tracks at time +0i', () => {
@@ -679,8 +679,8 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      // Duration with dot: 192 * 1.5 = 288, minus gate time 10 = 278
-      expect(result[2].args[1]).toBe('278i');
+      // Duration with dot: 192 * 1.5 = 288, * 0.95 = 273
+      expect(result[2].args[1]).toBe('273i');
     });
 
     it('should handle multi-track with chords in one track', () => {
@@ -1251,6 +1251,76 @@ describe('ast2json', () => {
         // All values above 127 should be clamped to 127, which maps to 0dB
         expect(result[2].args[0]).toBe(0);
       });
+    });
+  });
+
+  describe('Gate time command', () => {
+    it('should apply gate time 80% to note duration', () => {
+      const ast = [
+        { type: 'gateTime', value: 80, length: 3 },
+        { type: 'note', note: 'c', accidental: '', duration: 4, dots: 0, length: 2 }
+      ];
+      const result = ast2json(ast);
+      
+      // Note: 192 ticks * 0.8 = 153.6 -> 153 ticks
+      expect(result).toHaveLength(3);
+      expect(result[2].eventType).toBe("triggerAttackRelease");
+      expect(result[2].args).toEqual(["c4", "153i", "+0i"]);
+    });
+
+    it('should apply gate time 100% (full duration)', () => {
+      const ast = [
+        { type: 'gateTime', value: 100, length: 4 },
+        { type: 'note', note: 'c', accidental: '', duration: 4, dots: 0, length: 2 }
+      ];
+      const result = ast2json(ast);
+      
+      // Note: 192 ticks * 1.0 = 192 ticks (no reduction)
+      expect(result).toHaveLength(3);
+      expect(result[2].eventType).toBe("triggerAttackRelease");
+      expect(result[2].args).toEqual(["c4", "192i", "+0i"]);
+    });
+
+    it('should apply gate time 50% (very short)', () => {
+      const ast = [
+        { type: 'gateTime', value: 50, length: 3 },
+        { type: 'note', note: 'c', accidental: '', duration: 4, dots: 0, length: 2 }
+      ];
+      const result = ast2json(ast);
+      
+      // Note: 192 ticks * 0.5 = 96 ticks
+      expect(result).toHaveLength(3);
+      expect(result[2].eventType).toBe("triggerAttackRelease");
+      expect(result[2].args).toEqual(["c4", "96i", "+0i"]);
+    });
+
+    it('should reset gate time to default 95% when no value provided', () => {
+      const ast = [
+        { type: 'gateTime', value: 50, length: 3 },
+        { type: 'note', note: 'c', accidental: '', duration: 4, dots: 0, length: 2 },
+        { type: 'gateTime', value: null, length: 1 },
+        { type: 'note', note: 'd', accidental: '', duration: 4, dots: 0, length: 2 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result).toHaveLength(4);
+      expect(result[2].args).toEqual(["c4", "96i", "+0i"]); // 50%
+      expect(result[3].args).toEqual(["d4", "182i", "+192i"]); // 95% (default)
+    });
+
+    it('should apply gate time to multiple notes', () => {
+      const ast = [
+        { type: 'gateTime', value: 80, length: 3 },
+        { type: 'note', note: 'c', accidental: '', duration: 4, dots: 0, length: 2 },
+        { type: 'note', note: 'd', accidental: '', duration: 8, dots: 0, length: 2 },
+        { type: 'note', note: 'e', accidental: '', duration: 4, dots: 0, length: 2 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result).toHaveLength(5);
+      expect(result[2].args).toEqual(["c4", "153i", "+0i"]); // 192 * 0.8 = 153
+      expect(result[3].args).toEqual(["d4", "76i", "+192i"]); // 96 * 0.8 = 76
+      expect(result[4].args).toEqual(["e4", "153i", "+288i"]); // 192 * 0.8 = 153
     });
   });
 });
