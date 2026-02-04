@@ -294,12 +294,7 @@ describe('mml2ast', () => {
       ]);
     });
 
-    it('should parse tempo command "T140"', () => {
-      const result = mml2ast('T140');
-      expect(result).toEqual([
-        { type: 'tempo', value: 140, length: 4 }
-      ]);
-    });
+
 
     it('should parse tempo command without value "t"', () => {
       const result = mml2ast('t');
@@ -317,12 +312,7 @@ describe('mml2ast', () => {
       ]);
     });
 
-    it('should parse volume command "V80"', () => {
-      const result = mml2ast('V80');
-      expect(result).toEqual([
-        { type: 'volume', value: 80, length: 3 }
-      ]);
-    });
+
 
     it('should parse volume command without value "v"', () => {
       const result = mml2ast('v');
@@ -354,12 +344,7 @@ describe('mml2ast', () => {
       ]);
     });
 
-    it('should parse gate time command "Q80"', () => {
-      const result = mml2ast('Q80');
-      expect(result).toEqual([
-        { type: 'gateTime', value: 80, length: 3 }
-      ]);
-    });
+
 
     it('should parse gate time command without value "q"', () => {
       const result = mml2ast('q');
@@ -641,12 +626,7 @@ describe('mml2ast', () => {
       ]);
     });
 
-    it('should parse tempo command with uppercase "T140"', () => {
-      const result = mml2ast('T140');
-      expect(result).toEqual([
-        { type: 'tempo', value: 140, length: 4 }
-      ]);
-    });
+
 
     it('should parse tempo command without value "t"', () => {
       const result = mml2ast('t');

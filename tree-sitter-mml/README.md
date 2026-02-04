@@ -45,9 +45,9 @@ This grammar supports the following MML commands:
 - **Rest**: `r`
 - **Length**: `l` (sets default note length)
 - **Octave**: `o` (sets octave), `<` (octave up), `>` (octave down)
-- **Tempo**: `t` or `T` (sets BPM, e.g., `t120`, `T140`)
-- **Volume**: `v` or `V` (sets volume 0-127, e.g., `v100`, `V80`)
-- **Gate Time**: `q` or `Q` (sets gate time 0-100, e.g., `q80`, `Q95`)
+- **Tempo**: `t` (sets BPM, e.g., `t120`)
+- **Volume**: `v` (sets volume 0-127, e.g., `v100`)
+- **Gate Time**: `q` (sets gate time 0-100, e.g., `q80`)
 - **Instrument**: `@` followed by instrument name (e.g., `@Synth`, `@FMSynth`)
 - **Track separator**: `;` (for multi-track)
 - **Chords**: `'notes'` (e.g., `'ceg'`, `'c+eg-'`)

@@ -13,9 +13,9 @@
  * - Length: l (sets default note length)
  * - Octave: o (sets octave), < (octave up), > (octave down)
  * - Instrument: @ followed by instrument name (e.g., @Synth, @FMSynth)
- * - Tempo: t or T (sets BPM, e.g., t120, T140)
- * - Volume: v or V (sets volume 0-127, e.g., v100, V80)
- * - Gate Time: q or Q (gate time percentage, e.g., q60, Q80)
+ * - Tempo: t (sets BPM, e.g., t120)
+ * - Volume: v (sets volume 0-127, e.g., v100)
+ * - Gate Time: q (gate time percentage, e.g., q60)
  * - Key Transpose: kt (transposes subsequent notes, e.g., kt2, kt-3)
  * - Track separator: ; (for multi-track)
  * - Chords: 'notes' (e.g., 'ceg', 'c+eg-')
@@ -99,21 +99,21 @@ module.exports = grammar({
     // Octave down: >
     octave_down: $ => '>',
 
-    // Tempo command: t or T followed by number (BPM)
+    // Tempo command: t followed by number (BPM)
     tempo_command: $ => seq(
-      choice('t', 'T'),
+      't',
       field('value', optional($.duration)),
     ),
 
-    // Volume command: v or V followed by number (0-127)
+    // Volume command: v followed by number (0-127)
     volume_command: $ => seq(
-      choice('v', 'V'),
+      'v',
       field('value', optional($.duration)),
     ),
 
-    // Gate time command: q or Q followed by number (percentage)
+    // Gate time command: q followed by number (percentage)
     gate_time_command: $ => seq(
-      choice('q', 'Q'),
+      'q',
       field('value', optional($.duration)),
     ),
 
