@@ -1235,10 +1235,10 @@ describe('ast2json', () => {
     it('should clamp various volume values above 127', () => {
       // Test multiple values above 127 to ensure consistent clamping
       const testCases = [
-        { value: 128, expected: 0 },  // Just above max
-        { value: 200, expected: 0 },  // Moderately above
-        { value: 300, expected: 0 },  // Well above max
-        { value: 1000, expected: 0 }, // Far above max
+        { value: 128 },  // Just above max
+        { value: 200 },  // Moderately above
+        { value: 300 },  // Well above max
+        { value: 1000 }, // Far above max
       ];
 
       testCases.forEach(({ value }) => {
