@@ -357,7 +357,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                         // Convert v0-15 to dB scale where:
                         // v8 = -6dB, v15 = 0dB
                         // Using linear interpolation in dB space:
-                        // For v1-15: db = (v - 15) * (6.0 / 7.0)
+                        // For v1-15 (v0 is special-cased above): db = (v - 15) * (6.0 / 7.0)
                         // This gives: v8 → (8-15)*(6/7) = -7*(6/7) = -6dB, v15 → 0dB
                         (clamped_vol as f64 - 15.0) * (6.0 / 7.0)
                     };
