@@ -116,6 +116,7 @@ Converts an Abstract Syntax Tree (AST) to Tone.js JSON format.
 |---------|-------------|---------|
 | `lNumber` | Set default note length<br>_(Applied if length is not specified for subsequent notes)_ | `l8` `l16` `l4` |
 | `tNumber` `TNumber` | Set tempo (BPM - Beats Per Minute)<br>_Both lowercase `t` and uppercase `T` are supported_ | `t120` `T140` `t90` |
+| `vNumber` `VNumber` | Set volume (0-127)<br>_MIDI volume format, both lowercase `v` and uppercase `V` are supported_ | `v100` `V80` `v127` |
 
 ### Instrument Control
 | Command | Description | Example |
@@ -187,6 +188,16 @@ T140 o4 l8 cdefgab  // Play at 140 BPM (uppercase T also works)
 // Changing Tempo Mid-Performance
 t120 o4 c d e f t90 g a b <c  // Slow down at "g"
 
+// Volume Setting
+v100 o4 l8 cdefgab  // Play at volume 100 (out of 127)
+V80 o4 l8 cdefgab   // Play at volume 80 (uppercase V also works)
+
+// Changing Volume Mid-Performance
+v127 o4 c d e f v60 g a b <c  // Quieter at "g"
+
+// Combining Tempo and Volume
+t120 v100 o4 l8 cdefgab  // Set both tempo and volume
+
 // Instrument Change (Timbre)
 @Synth cde @FMSynth efg @AMSynth abc
 
@@ -232,7 +243,6 @@ The following commands are commonly used in standard MML but are not yet impleme
 
 | Command | Description | Standard Example |
 |---------|-------------|------------------|
-| `v` `V` | Volume setting (0-127) | `v100` `V80` |
 | `&` `^` | Tie (combines notes of the same pitch) | `c4&c4` `c4^c4` |
 | `q` `Q` | Gate time (percentage of note length, staccato control) | `q60` `Q80` |
 | `p` `P` | Pan (position) setting | `p64` `P0` |
