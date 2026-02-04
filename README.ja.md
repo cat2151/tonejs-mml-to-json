@@ -1,6 +1,6 @@
 # tonejs-mml-to-json
 
-**MML to Tone.js JSON Sequencer Format Converter**
+**`MML` to `Tone.js JSON Sequencer Format` Converter**
 
 <p align="left">
   <a href="https://deepwiki.com/cat2151/tonejs-mml-to-json"><img src="https://img.shields.io/badge/DeepWiki-Documentation-blue?logo=book" alt="DeepWiki"></a>
@@ -8,6 +8,9 @@
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
   <a href="https://cat2151.github.io/tonejs-mml-to-json/index.html"><img src="https://img.shields.io/badge/🚀-Live%20Demo-brightgreen.svg" alt="Demo"></a>
 </p>
+
+## 状況
+- このドキュメントには、応急のAI生成文章が含まれており、読みづらいです。今後、人間の手で読みやすく修正していく予定です。
 
 ## 実装方針
 このプロジェクトは **Tree-sitter** を使用してMMLをパースします。
