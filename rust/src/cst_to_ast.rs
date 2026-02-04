@@ -50,6 +50,7 @@ fn parse_cst_node(node: &CSTNode) -> Result<Option<AstToken>, String> {
         "octave_down" => Ok(Some(AstToken::OctaveDown(parse_octave_down(node)?))),
         "instrument_command" => Ok(Some(AstToken::Instrument(parse_instrument(node)?))),
         "tempo_command" => Ok(Some(AstToken::Tempo(parse_tempo(node)?))),
+        "volume_command" => Ok(Some(AstToken::Volume(parse_volume(node)?))),
         "key_transpose_command" => Ok(Some(AstToken::KeyTranspose(parse_key_transpose(node)?))),
         "chord" => Ok(Some(AstToken::Chord(parse_chord(node)?))),
         "track_separator" => Ok(Some(AstToken::TrackSeparator(parse_track_separator(node)?))),
@@ -202,6 +203,22 @@ fn parse_tempo(node: &CSTNode) -> Result<TempoToken, String> {
     let length = node.text.as_ref().map(|t| t.len()).unwrap_or(1);
     
     Ok(TempoToken {
+        value,
+        length,
+    })
+}
+
+fn parse_volume(node: &CSTNode) -> Result<VolumeToken, String> {
+    // NOTE: Despite grammar specifying field('value', optional($.duration)),
+    // tree-sitter puts the duration node in children array, not in fields.value
+    let value = node.children.iter()
+        .find(|n| n.node_type == "duration")
+        .and_then(|n| n.text.as_ref())
+        .and_then(|t| t.parse::<u32>().ok());
+    
+    let length = node.text.as_ref().map(|t| t.len()).unwrap_or(1);
+    
+    Ok(VolumeToken {
         value,
         length,
     })

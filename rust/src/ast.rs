@@ -13,6 +13,7 @@ pub enum AstToken {
     OctaveDown(OctaveDownToken),
     Instrument(InstrumentToken),
     Tempo(TempoToken),
+    Volume(VolumeToken),
     KeyTranspose(KeyTransposeToken),
     TrackSeparator(TrackSeparatorToken),
 }
@@ -95,6 +96,13 @@ pub struct TempoToken {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct VolumeToken {
+    pub value: Option<u32>,
+    pub length: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct KeyTransposeToken {
     pub value: Option<i32>,
     pub length: usize,
@@ -118,6 +126,7 @@ impl AstToken {
             AstToken::OctaveDown(t) => t.length,
             AstToken::Instrument(t) => t.length,
             AstToken::Tempo(t) => t.length,
+            AstToken::Volume(t) => t.length,
             AstToken::KeyTranspose(t) => t.length,
             AstToken::TrackSeparator(t) => t.length,
         }

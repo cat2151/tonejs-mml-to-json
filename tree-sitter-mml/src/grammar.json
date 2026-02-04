@@ -44,6 +44,10 @@
           },
           {
             "type": "SYMBOL",
+            "name": "volume_command"
+          },
+          {
+            "type": "SYMBOL",
             "name": "key_transpose_command"
           },
           {
@@ -292,6 +296,40 @@
             {
               "type": "STRING",
               "value": "T"
+            }
+          ]
+        },
+        {
+          "type": "FIELD",
+          "name": "value",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "duration"
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "volume_command": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "v"
+            },
+            {
+              "type": "STRING",
+              "value": "V"
             }
           ]
         },
