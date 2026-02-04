@@ -10,6 +10,9 @@ Thumbs.db
 # TypeScript build output (keep dist/ for CDN usage)
 *.tsbuildinfo
 
+# External libraries (built from node_modules during build)
+dist/libs/
+
 # コールグラフ
 codeql-db
 

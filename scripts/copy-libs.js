@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdirSync, copyFileSync } from 'fs';
+import { mkdirSync, copyFileSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -13,9 +13,23 @@ mkdirSync(libsDir, { recursive: true });
 // Copy tonejs-json-sequencer
 const source = join(projectRoot, 'node_modules', 'tonejs-json-sequencer', 'dist', 'index.mjs');
 const dest = join(libsDir, 'tonejs-json-sequencer.mjs');
+if (!existsSync(source)) {
+  console.error('✗ tonejs-json-sequencer main module not found.');
+  console.error(`  Expected at: ${source}`);
+  console.error('  Please ensure tonejs-json-sequencer is installed and its dist/index.mjs path is correct.');
+  process.exit(1);
+}
 copyFileSync(source, dest);
 
-console.log('✓ Copied tonejs-json-sequencer to dist/libs');
+const sourceTypes = join(projectRoot, 'node_modules', 'tonejs-json-sequencer', 'dist', 'index.d.ts');
+const destTypes = join(libsDir, 'tonejs-json-sequencer.d.ts');
+if (existsSync(sourceTypes)) {
+  copyFileSync(sourceTypes, destTypes);
+  console.log('✓ Copied tonejs-json-sequencer (.mjs and .d.ts) to dist/libs');
+} else {
+  console.log('✓ Copied tonejs-json-sequencer (.mjs) to dist/libs');
+  console.log('⚠ TypeScript definitions (.d.ts) not found, skipping');
+}
 
 // Create dist/tree-sitter-mml directory
 const treeSitterDir = join(projectRoot, 'dist', 'tree-sitter-mml');
