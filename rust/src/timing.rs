@@ -11,10 +11,6 @@
 const SINGLE_DOT_MULTIPLIER: f64 = 1.5;
 const DOUBLE_DOT_MULTIPLIER: f64 = 1.75;
 
-// Gate time constants
-const GATE_TIME_REDUCTION: u32 = 10;
-const MIN_DURATION_FOR_GATE: u32 = 20;
-
 /// Calculate ticks for a note based on duration and dots
 /// 
 /// # Arguments
@@ -55,20 +51,25 @@ pub fn calc_ticks(duration: Option<u32>, dots: u32, default_length: u32, meas_ti
 
 /// Calculate duration string from ticks, applying gate time reduction
 /// 
-/// Gate time adjustment: subtract 10 ticks from durations >= 20 
-/// to create a slight gap between notes (equivalent to 'q' quantize command).
-/// This prevents notes from bleeding together and makes the music sound more natural.
+/// Gate time adjustment: reduces note duration based on gate_time percentage.
+/// Default gate time is ~95% (10 tick reduction from 192 ticks).
+/// This creates a slight gap between notes (equivalent to 'q' quantize command).
 /// 
 /// # Arguments
 /// * `ticks` - Number of ticks for the note
+/// * `gate_time` - Gate time percentage (0-100), where 100 means full duration
 /// 
 /// # Returns
 /// Duration string in the format "NNNi" (e.g., "192i")
-pub fn calc_duration(ticks: u32) -> String {
-    let mut duration = ticks;
-    if duration >= MIN_DURATION_FOR_GATE {
-        duration -= GATE_TIME_REDUCTION;
-    }
+pub fn calc_duration(ticks: u32, gate_time: u32) -> String {
+    let duration = if gate_time >= 100 {
+        // 100% or more: no reduction
+        ticks
+    } else {
+        // Apply gate time percentage
+        let effective_duration = (ticks as f64 * gate_time as f64 / 100.0) as u32;
+        effective_duration.max(1) // Ensure at least 1 tick
+    };
     format!("{}i", duration)
 }
 
@@ -204,9 +205,20 @@ mod tests {
 
     #[test]
     fn test_calc_duration() {
-        assert_eq!(calc_duration(192), "182i"); // 192 - 10 = 182
-        assert_eq!(calc_duration(96), "86i");   // 96 - 10 = 86
-        assert_eq!(calc_duration(10), "10i");   // No reduction for < 20
+        // Default gate time ~95% (approximately 182/192 = 94.8%)
+        assert_eq!(calc_duration(192, 95), "182i"); // 192 * 0.95 = 182.4 -> 182
+        assert_eq!(calc_duration(96, 95), "91i");   // 96 * 0.95 = 91.2 -> 91
+        assert_eq!(calc_duration(10, 95), "9i");    // 10 * 0.95 = 9.5 -> 9
+        
+        // 100% gate time - full duration
+        assert_eq!(calc_duration(192, 100), "192i");
+        assert_eq!(calc_duration(96, 100), "96i");
+        
+        // 80% gate time - staccato
+        assert_eq!(calc_duration(192, 80), "153i"); // 192 * 0.8 = 153.6 -> 153
+        
+        // 50% gate time - very short
+        assert_eq!(calc_duration(192, 50), "96i");
     }
 
     #[test]

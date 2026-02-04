@@ -346,6 +346,35 @@ describe('mml2ast', () => {
     });
   });
 
+  describe('Gate time command', () => {
+    it('should parse gate time command "q60"', () => {
+      const result = mml2ast('q60');
+      expect(result).toEqual([
+        { type: 'gateTime', value: 60, length: 3 }
+      ]);
+    });
+
+    it('should parse gate time command "Q80"', () => {
+      const result = mml2ast('Q80');
+      expect(result).toEqual([
+        { type: 'gateTime', value: 80, length: 3 }
+      ]);
+    });
+
+    it('should parse gate time command without value "q"', () => {
+      const result = mml2ast('q');
+      expect(result).toEqual([
+        { type: 'gateTime', value: null, length: 1 }
+      ]);
+    });
+
+    it('should parse gate time with various values', () => {
+      expect(mml2ast('q0')).toEqual([{ type: 'gateTime', value: 0, length: 2 }]);
+      expect(mml2ast('q50')).toEqual([{ type: 'gateTime', value: 50, length: 3 }]);
+      expect(mml2ast('q100')).toEqual([{ type: 'gateTime', value: 100, length: 4 }]);
+    });
+  });
+
   describe('Key transpose command', () => {
     it('should parse key transpose command "kt2"', () => {
       const result = mml2ast('kt2');

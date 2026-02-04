@@ -116,6 +116,11 @@ Converts an Abstract Syntax Tree (AST) into Tone.js JSON format.
 
 ### Default Settings
 | Command | Description | Example |
+|---------|-------------|---------|
+| `lNumber` | Set default note length<br>_(Applied if length is not specified for subsequent notes)_ | `l8` `l16` `l4` |
+| `tNumber` `TNumber` | Set tempo (BPM - Beats Per Minute)<br>_Both lowercase `t` and uppercase `T` are supported_ | `t120` `T140` `t90` |
+| `vNumber` `VNumber` | Set volume (0-127)<br>_MIDI volume format, both lowercase `v` and uppercase `V` are supported_ | `v100` `V80` `v127` |
+| `qNumber` `QNumber` | Gate time (percentage of note length, 0-100)<br>_Controls staccato, both lowercase `q` and uppercase `Q` are supported<br>100=legato (full duration), 95=default (slight gap), 80=staccato (short)_ | `q100` `Q80` `q60` |
 |---------|------|-----|
 | `lNumber` | Sets the default note length<br>(Applies to subsequent notes if no length is specified) | `l8` `l16` `l4` |
 | `tNumber` `TNumber` | Sets the tempo (BPM - Beats Per Minute)<br>Both lowercase `t` and uppercase `T` can be used | `t120` `T140` `t90` |
@@ -201,7 +206,19 @@ v127 o4 c d e f v60 g a b <c  // Quieter from "g"
 // Combination of tempo and volume
 t120 v100 o4 l8 cdefgab  // Sets both tempo and volume
 
-// Instrument change (timbre)
+// Gate Time Setting (Staccato Control)
+q100 o4 l8 cdefgab  // 100% gate time - legato (full duration)
+q95 o4 l8 cdefgab   // 95% gate time - default (slight gap between notes)
+q80 o4 l8 cdefgab   // 80% gate time - staccato (shorter notes)
+q50 o4 l8 cdefgab   // 50% gate time - very short staccato
+
+// Changing Gate Time Mid-Performance
+q100 o4 c d e f q80 g a b <c  // Smooth notes, then staccato at "g"
+
+// Combining Tempo, Volume, and Gate Time
+t120 v100 q95 o4 l8 cdefgab  // Set tempo, volume, and gate time
+
+// Instrument Change (Timbre)
 @Synth cde @FMSynth efg @AMSynth abc
 
 // Different instrument types
@@ -245,9 +262,8 @@ t120 v100 o4 l8 cdefgab  // Sets both tempo and volume
 The following commands are commonly used in standard MML but are not yet implemented in this library. They may be implemented in future versions.
 
 | Command | Description | Standard Example |
-|---------|------|-----------|
-| `&` `^` | Tie (connects notes of the same pitch) | `c4&c4` `c4^c4` |
-| `q` `Q` | Gate time (percentage of note length, staccato control) | `q60` `Q80` |
+|---------|-------------|------------------|
+| `&` `^` | Tie (combines notes of the same pitch) | `c4&c4` `c4^c4` |
 | `p` `P` | Pan (position) setting | `p64` `P0` |
 | `u` `U` | Velocity (attack strength) | `u120` |
 | `[` `]` | Loop (repetition) | `[cde]4` |
