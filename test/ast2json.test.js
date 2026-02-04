@@ -1361,4 +1361,112 @@ describe('ast2json', () => {
       expect(result[2].args[2]).toBe('+0i'); // start time
     });
   });
+
+  describe('mmlabc dialect specifications', () => {
+    describe('q (gate time) mmlabc dialect', () => {
+      it('should have q4 at 50% duration', () => {
+        const ast = [
+          { type: 'gateTime', value: 4, length: 2 },
+          { type: 'note', note: 'c', accidental: '', duration: 4, dots: 0, length: 2 }
+        ];
+        const result = ast2json(ast);
+        
+        // q4 = 50% → 192 ticks * 0.5 = 96 ticks
+        expect(result).toHaveLength(3);
+        expect(result[2].args[1]).toBe('96i');
+      });
+
+      it('should have q8 at 100% duration (max)', () => {
+        const ast = [
+          { type: 'gateTime', value: 8, length: 2 },
+          { type: 'note', note: 'c', accidental: '', duration: 4, dots: 0, length: 2 }
+        ];
+        const result = ast2json(ast);
+        
+        // q8 = 100% → 192 ticks * 1.0 = 192 ticks (full duration)
+        expect(result).toHaveLength(3);
+        expect(result[2].args[1]).toBe('192i');
+      });
+
+      it('should use q8 (100%) as default when no q command is specified', () => {
+        const ast = [
+          { type: 'note', note: 'c', accidental: '', duration: 4, dots: 0, length: 2 }
+        ];
+        const result = ast2json(ast);
+        
+        // Default should be q8 = 100% → 192 ticks
+        expect(result).toHaveLength(3);
+        expect(result[2].args[1]).toBe('192i');
+      });
+
+      it('should reset to q8 (100%) when bare q is specified', () => {
+        const ast = [
+          { type: 'gateTime', value: 4, length: 2 },
+          { type: 'note', note: 'c', accidental: '', duration: 4, dots: 0, length: 2 },
+          { type: 'gateTime', value: null, length: 1 },
+          { type: 'note', note: 'd', accidental: '', duration: 4, dots: 0, length: 2 }
+        ];
+        const result = ast2json(ast);
+        
+        expect(result).toHaveLength(4);
+        expect(result[2].args[1]).toBe('96i'); // q4 = 50%
+        expect(result[3].args[1]).toBe('192i'); // bare q resets to q8 = 100%
+      });
+    });
+
+    describe('v (volume) mmlabc dialect', () => {
+      it('should have v0 at -100dB (silence)', () => {
+        const ast = [
+          { type: 'volume', value: 0, length: 2 }
+        ];
+        const result = ast2json(ast);
+        
+        expect(result).toHaveLength(3);
+        expect(result[2].eventType).toBe("set");
+        expect(result[2].nodeType).toBe("volume.value");
+        expect(result[2].args[0]).toBe(-100);
+      });
+
+      it('should have v8 at -6dB', () => {
+        const ast = [
+          { type: 'volume', value: 8, length: 2 }
+        ];
+        const result = ast2json(ast);
+        
+        expect(result).toHaveLength(3);
+        expect(result[2].eventType).toBe("set");
+        expect(result[2].nodeType).toBe("volume.value");
+        expect(result[2].args[0]).toBeCloseTo(-6, 2);
+      });
+
+      it('should have v15 at 0dB (max)', () => {
+        const ast = [
+          { type: 'volume', value: 15, length: 3 }
+        ];
+        const result = ast2json(ast);
+        
+        expect(result).toHaveLength(3);
+        expect(result[2].eventType).toBe("set");
+        expect(result[2].nodeType).toBe("volume.value");
+        expect(result[2].args[0]).toBe(0);
+      });
+
+      it('should scale v values between 1-15 linearly in dB space', () => {
+        // Test some intermediate values to verify the formula
+        const testCases = [
+          { v: 1, expectedDb: -12 },  // (1-15)*(6/7) = -12
+          { v: 5, expectedDb: -8.57 },  // (5-15)*(6/7) ≈ -8.57
+          { v: 12, expectedDb: -2.57 }, // (12-15)*(6/7) ≈ -2.57
+        ];
+
+        testCases.forEach(({ v, expectedDb }) => {
+          const ast = [{ type: 'volume', value: v, length: 2 }];
+          const result = ast2json(ast);
+          
+          expect(result).toHaveLength(3);
+          expect(result[2].args[0]).toBeCloseTo(expectedDb, 2);
+        });
+      });
+    });
+  });
 });
