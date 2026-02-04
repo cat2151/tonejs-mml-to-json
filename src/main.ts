@@ -157,6 +157,8 @@ window.addEventListener("load", () => {
       await Tone.start();
       play(true);
     };
+    // Set focus to the play button after page load
+    button.focus();
   }
 
   // Wait for WASM to be ready before initial play

@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>tonejs-mml-to-json Demo</title>
   <script type="importmap">
   {
     "imports": {
@@ -9,6 +13,92 @@
     }
   }
   </script>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+
+    /* Light mode (default) */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 20px;
+      background-color: #ffffff;
+      color: #000000;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    textarea {
+      background-color: #ffffff;
+      color: #000000;
+      border: 1px solid #ccc;
+      transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+    }
+
+    fieldset {
+      border: 1px solid #ccc;
+      transition: border-color 0.3s;
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+      }
+
+      textarea {
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+        border: 1px solid #444;
+      }
+
+      fieldset {
+        border: 1px solid #444;
+      }
+
+      legend {
+        color: #e0e0e0;
+      }
+
+      select, button {
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+        border: 1px solid #444;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #3a3a3a;
+      }
+    }
+
+    /* GitHub link styling */
+    .github-link {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      font-size: 12px;
+      opacity: 0.5;
+      transition: opacity 0.3s;
+      z-index: 1000;
+    }
+
+    .github-link:hover {
+      opacity: 1;
+    }
+
+    .github-link a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .github-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
   <label for="demoSelect">Select Demo: </label>
@@ -20,14 +110,17 @@
   <fieldset lang="ja">
     <legend>JSON側のtextareaの編集時の挙動:</legend>
     <label>
-      <input type="radio" name="jsonEditMode" value="manual" checked>
-      CTRL+S (CMD+S on Mac) または SHIFT+ENTER で反映（デフォルト）
+      <input type="radio" name="jsonEditMode" value="manual">
+      CTRL+S (CMD+S on Mac) または SHIFT+ENTER で反映
     </label><br>
     <label>
-      <input type="radio" name="jsonEditMode" value="debounce">
-      1秒のデバウンスで反映
+      <input type="radio" name="jsonEditMode" value="debounce" checked>
+      1秒のデバウンスで反映（デフォルト）
     </label>
   </fieldset>
+  <div class="github-link">
+    <a href="https://github.com/cat2151/tonejs-mml-to-json" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
   <script src="https://unpkg.com/tone@15.0.4/build/Tone.js"></script>
   <script type="module" src="../dist/mml2json-wasm.js"></script>
   <script type="module" src="../dist/play.js"></script>
