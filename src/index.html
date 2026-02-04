@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>tonejs-mml-to-json Demo</title>
+  <link rel="stylesheet" href="style.css">
   <script type="importmap">
   {
     "imports": {
@@ -19,15 +24,18 @@
   <textarea id="textarea2" rows="25" cols="80"></textarea><br>
   <fieldset lang="ja">
     <legend>JSON側のtextareaの編集時の挙動:</legend>
-    <label>
-      <input type="radio" name="jsonEditMode" value="manual" checked>
-      CTRL+S (CMD+S on Mac) または SHIFT+ENTER で反映（デフォルト）
+    <label for="jsonEditModeManual">
+      <input type="radio" id="jsonEditModeManual" name="jsonEditMode" value="manual">
+      CTRL+S (CMD+S on Mac) または SHIFT+ENTER で反映
     </label><br>
-    <label>
-      <input type="radio" name="jsonEditMode" value="debounce">
-      1秒のデバウンスで反映
+    <label for="jsonEditModeDebounce">
+      <input type="radio" id="jsonEditModeDebounce" name="jsonEditMode" value="debounce" checked>
+      1秒のデバウンスで反映（デフォルト）
     </label>
   </fieldset>
+  <div class="github-link">
+    <a href="https://github.com/cat2151/tonejs-mml-to-json" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
   <script src="https://unpkg.com/tone@15.0.4/build/Tone.js"></script>
   <script type="module" src="../dist/mml2json-wasm.js"></script>
   <script type="module" src="../dist/play.js"></script>
