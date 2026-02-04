@@ -15,6 +15,10 @@ const source = join(projectRoot, 'node_modules', 'tonejs-json-sequencer', 'dist'
 const dest = join(libsDir, 'tonejs-json-sequencer.mjs');
 copyFileSync(source, dest);
 
+const sourceTypes = join(projectRoot, 'node_modules', 'tonejs-json-sequencer', 'dist', 'index.d.ts');
+const destTypes = join(libsDir, 'tonejs-json-sequencer.d.ts');
+copyFileSync(sourceTypes, destTypes);
+
 console.log('✓ Copied tonejs-json-sequencer to dist/libs');
 
 // Create dist/tree-sitter-mml directory

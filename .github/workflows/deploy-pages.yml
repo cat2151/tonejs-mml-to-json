@@ -47,6 +47,9 @@ jobs:
       - name: Build TypeScript
         run: npm run build:ts
 
+      - name: Build libs
+        run: npm run build:libs
+
       - name: Prepare deployment artifact
         run: |
           mkdir -p site
