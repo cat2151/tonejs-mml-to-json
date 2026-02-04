@@ -341,6 +341,31 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                 }
             }
             
+            AstToken::Volume(volume) => {
+                // Set the volume for the current instrument node
+                // Volume is in MIDI format (0-127), but Tone.js uses decibels
+                // Convert MIDI volume to decibels:
+                // - Volume 0: -100dB (silence)
+                // - Volume 1-127: Linear mapping to -30dB to 0dB
+                if let Some(vol) = volume.value {
+                    // Clamp volume to valid MIDI range (0-127) to prevent distortion
+                    let clamped_vol = vol.min(127);
+                    let db = if clamped_vol == 0 {
+                        -100.0 // Silence
+                    } else {
+                        // Linear mapping: 1-127 -> -30dB to 0dB
+                        ((clamped_vol as f64 / 127.0) * 30.0) - 30.0
+                    };
+                    commands.push(Command {
+                        event_type: "set".to_string(),
+                        node_id,
+                        node_type: Some("volume.value".to_string()),
+                        connect_to: None,
+                        args: Some(serde_json::json!([db])),
+                    });
+                }
+            }
+            
             AstToken::KeyTranspose(kt) => {
                 // Set the key transpose value (in semitones)
                 // If no value is provided (bare `kt`), reset transpose to 0

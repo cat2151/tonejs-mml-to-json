@@ -14,6 +14,7 @@
  * - Octave: o (sets octave), < (octave up), > (octave down)
  * - Instrument: @ followed by instrument name (e.g., @Synth, @FMSynth)
  * - Tempo: t or T (sets BPM, e.g., t120, T140)
+ * - Volume: v or V (sets volume 0-127, e.g., v100, V80)
  * - Key Transpose: kt (transposes subsequent notes, e.g., kt2, kt-3)
  * - Track separator: ; (for multi-track)
  * - Chords: 'notes' (e.g., 'ceg', 'c+eg-')
@@ -39,6 +40,7 @@ module.exports = grammar({
         $.octave_down,
         $.instrument_command,
         $.tempo_command,
+        $.volume_command,
         $.key_transpose_command,
         $.track_separator,
       )
@@ -98,6 +100,12 @@ module.exports = grammar({
     // Tempo command: t or T followed by number (BPM)
     tempo_command: $ => seq(
       choice('t', 'T'),
+      field('value', optional($.duration)),
+    ),
+
+    // Volume command: v or V followed by number (0-127)
+    volume_command: $ => seq(
+      choice('v', 'V'),
       field('value', optional($.duration)),
     ),
 

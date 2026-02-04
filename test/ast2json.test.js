@@ -1124,4 +1124,133 @@ describe('ast2json', () => {
       expect(result[2].eventType).toBe("triggerAttackRelease");
     });
   });
+
+  describe('Volume command', () => {
+    it('should convert volume AST to JSON command', () => {
+      const ast = [
+        { type: 'volume', value: 100, length: 4 }
+      ];
+      const result = ast2json(ast);
+      
+      // Should have setup commands + volume command
+      expect(result).toHaveLength(3);
+      expect(result[0].eventType).toBe("createNode");
+      expect(result[1].eventType).toBe("connect");
+      expect(result[2].eventType).toBe("set");
+      expect(result[2].nodeType).toBe("volume.value");
+      // Volume 100 (out of 127) should map to approximately -6.38dB
+      // Formula: (100/127 * 30) - 30 ≈ -6.38
+      expect(result[2].args[0]).toBeCloseTo(-6.38, 2);
+    });
+
+    it('should convert maximum volume correctly', () => {
+      const ast = [
+        { type: 'volume', value: 127, length: 4 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result).toHaveLength(3);
+      expect(result[2].eventType).toBe("set");
+      expect(result[2].nodeType).toBe("volume.value");
+      // Volume 127 should map to 0dB
+      expect(result[2].args[0]).toBe(0);
+    });
+
+    it('should convert minimum volume correctly', () => {
+      const ast = [
+        { type: 'volume', value: 0, length: 2 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result).toHaveLength(3);
+      expect(result[2].eventType).toBe("set");
+      expect(result[2].nodeType).toBe("volume.value");
+      // Volume 0 should map to -100dB (silence)
+      expect(result[2].args[0]).toBe(-100);
+    });
+
+    it('should convert volume with notes', () => {
+      const ast = [
+        { type: 'volume', value: 80, length: 3 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result).toHaveLength(4); // setup + volume + note
+      expect(result[2].eventType).toBe("set");
+      expect(result[2].nodeType).toBe("volume.value");
+      expect(result[3].eventType).toBe("triggerAttackRelease");
+      expect(result[3].args[0]).toBe("c4");
+    });
+
+    it('should handle multiple volume changes', () => {
+      const ast = [
+        { type: 'volume', value: 100, length: 4 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 },
+        { type: 'volume', value: 60, length: 3 },
+        { type: 'note', note: 'd', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result).toHaveLength(6); // setup + volume + note + volume + note
+      
+      // First volume
+      expect(result[2].eventType).toBe("set");
+      expect(result[2].nodeType).toBe("volume.value");
+      expect(result[2].args[0]).toBeCloseTo(-6.38, 2);
+      
+      // Second volume
+      expect(result[4].eventType).toBe("set");
+      expect(result[4].nodeType).toBe("volume.value");
+      expect(result[4].args[0]).toBeCloseTo(-15.83, 2);
+    });
+
+    it('should ignore volume without value', () => {
+      const ast = [
+        { type: 'volume', value: null, length: 1 },
+        { type: 'note', note: 'c', accidental: '', duration: null, dots: 0, length: 1 }
+      ];
+      const result = ast2json(ast);
+      
+      // Should have setup + note, but no volume command
+      expect(result).toHaveLength(3);
+      expect(result[0].eventType).toBe("createNode");
+      expect(result[1].eventType).toBe("connect");
+      expect(result[2].eventType).toBe("triggerAttackRelease");
+    });
+
+    it('should clamp volume values above 127 to MIDI maximum', () => {
+      const ast = [
+        { type: 'volume', value: 255, length: 4 }
+      ];
+      const result = ast2json(ast);
+      
+      expect(result).toHaveLength(3);
+      expect(result[2].eventType).toBe("set");
+      expect(result[2].nodeType).toBe("volume.value");
+      // Volume 255 should be clamped to 127, which maps to 0dB
+      expect(result[2].args[0]).toBe(0);
+    });
+
+    it('should clamp various volume values above 127', () => {
+      // Test multiple values above 127 to ensure consistent clamping
+      const testCases = [
+        { value: 128 },  // Just above max
+        { value: 200 },  // Moderately above
+        { value: 300 },  // Well above max
+        { value: 1000 }, // Far above max
+      ];
+
+      testCases.forEach(({ value }) => {
+        const ast = [{ type: 'volume', value, length: 4 }];
+        const result = ast2json(ast);
+        
+        expect(result).toHaveLength(3);
+        expect(result[2].eventType).toBe("set");
+        expect(result[2].nodeType).toBe("volume.value");
+        // All values above 127 should be clamped to 127, which maps to 0dB
+        expect(result[2].args[0]).toBe(0);
+      });
+    });
+  });
 });

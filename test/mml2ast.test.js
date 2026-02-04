@@ -309,6 +309,43 @@ describe('mml2ast', () => {
     });
   });
 
+  describe('Volume command', () => {
+    it('should parse volume command "v100"', () => {
+      const result = mml2ast('v100');
+      expect(result).toEqual([
+        { type: 'volume', value: 100, length: 4 }
+      ]);
+    });
+
+    it('should parse volume command "V80"', () => {
+      const result = mml2ast('V80');
+      expect(result).toEqual([
+        { type: 'volume', value: 80, length: 3 }
+      ]);
+    });
+
+    it('should parse volume command without value "v"', () => {
+      const result = mml2ast('v');
+      expect(result).toEqual([
+        { type: 'volume', value: null, length: 1 }
+      ]);
+    });
+    
+    it('should parse volume command with minimum value "v0"', () => {
+      const result = mml2ast('v0');
+      expect(result).toEqual([
+        { type: 'volume', value: 0, length: 2 }
+      ]);
+    });
+    
+    it('should parse volume command with maximum value "v127"', () => {
+      const result = mml2ast('v127');
+      expect(result).toEqual([
+        { type: 'volume', value: 127, length: 4 }
+      ]);
+    });
+  });
+
   describe('Key transpose command', () => {
     it('should parse key transpose command "kt2"', () => {
       const result = mml2ast('kt2');

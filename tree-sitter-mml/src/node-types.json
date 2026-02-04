@@ -268,12 +268,32 @@
         {
           "type": "track_separator",
           "named": true
+        },
+        {
+          "type": "volume_command",
+          "named": true
         }
       ]
     }
   },
   {
     "type": "tempo_command",
+    "named": true,
+    "fields": {
+      "value": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "duration",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "volume_command",
     "named": true,
     "fields": {
       "value": {
@@ -318,6 +338,10 @@
   },
   {
     "type": "T",
+    "named": false
+  },
+  {
+    "type": "V",
     "named": false
   },
   {
@@ -399,5 +423,9 @@
   {
     "type": "track_separator",
     "named": true
+  },
+  {
+    "type": "v",
+    "named": false
   }
 ]
