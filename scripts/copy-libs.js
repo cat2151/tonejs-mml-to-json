@@ -13,6 +13,12 @@ mkdirSync(libsDir, { recursive: true });
 // Copy tonejs-json-sequencer
 const source = join(projectRoot, 'node_modules', 'tonejs-json-sequencer', 'dist', 'index.mjs');
 const dest = join(libsDir, 'tonejs-json-sequencer.mjs');
+if (!existsSync(source)) {
+  console.error('✗ tonejs-json-sequencer main module not found.');
+  console.error(`  Expected at: ${source}`);
+  console.error('  Please ensure tonejs-json-sequencer is installed and its dist/index.mjs path is correct.');
+  process.exit(1);
+}
 copyFileSync(source, dest);
 
 const sourceTypes = join(projectRoot, 'node_modules', 'tonejs-json-sequencer', 'dist', 'index.d.ts');
