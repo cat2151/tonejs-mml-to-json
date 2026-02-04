@@ -1219,7 +1219,7 @@ describe('ast2json', () => {
       expect(result[2].eventType).toBe("triggerAttackRelease");
     });
 
-    it('should clamp volume values above 127 to prevent distortion', () => {
+    it('should clamp volume values above 127 to MIDI maximum', () => {
       const ast = [
         { type: 'volume', value: 255, length: 4 }
       ];
@@ -1232,17 +1232,25 @@ describe('ast2json', () => {
       expect(result[2].args[0]).toBe(0);
     });
 
-    it('should clamp volume values above 127 (e.g., 200) to maximum', () => {
-      const ast = [
-        { type: 'volume', value: 200, length: 4 }
+    it('should clamp various volume values above 127', () => {
+      // Test multiple values above 127 to ensure consistent clamping
+      const testCases = [
+        { value: 128, expected: 0 },  // Just above max
+        { value: 200, expected: 0 },  // Moderately above
+        { value: 300, expected: 0 },  // Well above max
+        { value: 1000, expected: 0 }, // Far above max
       ];
-      const result = ast2json(ast);
-      
-      expect(result).toHaveLength(3);
-      expect(result[2].eventType).toBe("set");
-      expect(result[2].nodeType).toBe("volume.value");
-      // Volume 200 should be clamped to 127, which maps to 0dB
-      expect(result[2].args[0]).toBe(0);
+
+      testCases.forEach(({ value }) => {
+        const ast = [{ type: 'volume', value, length: 4 }];
+        const result = ast2json(ast);
+        
+        expect(result).toHaveLength(3);
+        expect(result[2].eventType).toBe("set");
+        expect(result[2].nodeType).toBe("volume.value");
+        // All values above 127 should be clamped to 127, which maps to 0dB
+        expect(result[2].args[0]).toBe(0);
+      });
     });
   });
 });
