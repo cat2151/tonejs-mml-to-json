@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdirSync, copyFileSync } from 'fs';
+import { mkdirSync, copyFileSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -17,9 +17,13 @@ copyFileSync(source, dest);
 
 const sourceTypes = join(projectRoot, 'node_modules', 'tonejs-json-sequencer', 'dist', 'index.d.ts');
 const destTypes = join(libsDir, 'tonejs-json-sequencer.d.ts');
-copyFileSync(sourceTypes, destTypes);
-
-console.log('✓ Copied tonejs-json-sequencer to dist/libs');
+if (existsSync(sourceTypes)) {
+  copyFileSync(sourceTypes, destTypes);
+  console.log('✓ Copied tonejs-json-sequencer (.mjs and .d.ts) to dist/libs');
+} else {
+  console.log('✓ Copied tonejs-json-sequencer (.mjs) to dist/libs');
+  console.log('⚠ TypeScript definitions (.d.ts) not found, skipping');
+}
 
 // Create dist/tree-sitter-mml directory
 const treeSitterDir = join(projectRoot, 'dist', 'tree-sitter-mml');
