@@ -383,11 +383,12 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Initial node should be PolySynth (not FMSynth) because track has chords
-      expect(result[0]).toEqual({
-        eventType: "createNode",
-        nodeId: 0,
-        nodeType: "PolySynth"
-      });
+      // with voice set to FMSynth
+      expect(result[0].eventType).toBe("createNode");
+      expect(result[0].nodeId).toBe(0);
+      expect(result[0].nodeType).toBe("PolySynth");
+      expect(result[0].args).toBeDefined();
+      expect(result[0].args.voice).toBe("FMSynth");
       
       // Second instrument change should also create PolySynth (not MonoSynth)
       // Result structure: [0]=createNode(PolySynth), [1]=connect, [2]=chord, [3]=createNode(@MonoSynth->PolySynth), [4]=connect, [5]=chord
@@ -1039,9 +1040,11 @@ describe('ast2json', () => {
       expect(createNodes).toHaveLength(1);
       expect(createNodes[0].nodeType).toBe("PolySynth");
       
-      // Args should still be passed through to PolySynth
+      // Args should be wrapped with voice and options
       expect(createNodes[0].args).toBeDefined();
-      expect(createNodes[0].args.harmonicity).toBe(5);
+      expect(createNodes[0].args.voice).toBe("FMSynth");
+      expect(createNodes[0].args.options).toBeDefined();
+      expect(createNodes[0].args.options.harmonicity).toBe(5);
     });
   });
 

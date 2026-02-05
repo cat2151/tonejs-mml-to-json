@@ -1,7 +1,6 @@
 /// Command generation module
-/// 
+///
 /// This module defines the Command struct and helper functions for working with commands
-
 use serde::{Deserialize, Serialize};
 
 /// JSON command types for Tone.js
@@ -23,10 +22,10 @@ pub const EVENT_TYPE_CREATE_NODE: &str = "createNode";
 pub const EVENT_TYPE_CONNECT: &str = "connect";
 
 /// Extract start tick from a command's args
-/// 
+///
 /// # Arguments
 /// * `command` - Command to extract start tick from
-/// 
+///
 /// # Returns
 /// Start tick value (0 if not found or invalid format)
 pub fn get_start_tick(command: &Command) -> u32 {
@@ -35,8 +34,9 @@ pub fn get_start_tick(command: &Command) -> u32 {
             if arr.len() >= 3 {
                 if let Some(start_str) = arr[2].as_str() {
                     // Parse "+123i" format
-                    if start_str.len() > 2 && start_str.starts_with('+') && start_str.ends_with('i') {
-                        if let Ok(tick) = start_str[1..start_str.len()-1].parse::<u32>() {
+                    if start_str.len() > 2 && start_str.starts_with('+') && start_str.ends_with('i')
+                    {
+                        if let Ok(tick) = start_str[1..start_str.len() - 1].parse::<u32>() {
                             return tick;
                         }
                     }

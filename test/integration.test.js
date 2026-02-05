@@ -560,9 +560,11 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(createNodes).toHaveLength(1);
       expect(createNodes[0].nodeType).toBe('PolySynth');
       
-      // Args should still be passed through
+      // Args should be wrapped with voice and options
       expect(createNodes[0].args).toBeDefined();
-      expect(createNodes[0].args.harmonicity).toBe(5);
+      expect(createNodes[0].args.voice).toBe('FMSynth');
+      expect(createNodes[0].args.options).toBeDefined();
+      expect(createNodes[0].args.options.harmonicity).toBe(5);
       
       // Check chords are arrays
       const chords = json.filter(e => e.eventType === 'triggerAttackRelease');
@@ -584,6 +586,27 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(createNodes[0].args).toBeDefined();
       expect(createNodes[0].args.urls).toBeDefined();
       expect(createNodes[0].args.release).toBe(1);
+    });
+
+    it('should wrap FMSynth in PolySynth with voice when using chords (issue #128)', () => {
+      // Issue #128: When using chord command with FMSynth, it should become PolySynth
+      // with voice="FMSynth" so the FMSynth part is not forgotten
+      const mml = '@FMSynth \'ceg\'';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+      
+      // Should create PolySynth with voice="FMSynth"
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe('PolySynth');
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.voice).toBe('FMSynth');
+      
+      // Check chord is played correctly
+      const chords = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(chords).toHaveLength(1);
+      expect(Array.isArray(chords[0].args[0])).toBe(true);
+      expect(chords[0].args[0]).toEqual(['c4', 'e4', 'g4']);
     });
   });
 
