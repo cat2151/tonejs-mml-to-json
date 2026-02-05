@@ -30,6 +30,7 @@ pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
         // Multi-track processing
         let tracks = split_into_tracks(ast);
         let mut all_commands = Vec::new();
+        let mut max_end_tick = 0u32;
 
         // Use a base node_id offset for each track to prevent collisions with instrument changes
         // Allocate 100 node IDs per track (track 0: 0-99, track 1: 100-199, etc.)
@@ -38,7 +39,30 @@ pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
         for (track_index, track_ast) in tracks.iter().enumerate() {
             let base_node_id = (track_index as u32) * NODE_ID_SPACING;
             let track_commands = process_single_track(track_ast, base_node_id)?;
-            all_commands.extend(track_commands);
+            
+            // Find the maximum end time across all tracks
+            // Look for the loopEnd event and extract its tick value
+            if let Some(loop_end_cmd) = track_commands.iter().find(|c| c.event_type == "loopEnd") {
+                if let Some(args) = &loop_end_cmd.args {
+                    if let Some(arr) = args.as_array() {
+                        if let Some(tick_str) = arr.get(0).and_then(|v| v.as_str()) {
+                            if tick_str.ends_with('i') {
+                                if let Ok(tick) = tick_str[..tick_str.len() - 1].parse::<u32>() {
+                                    max_end_tick = max_end_tick.max(tick);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Remove the loopEnd event from individual tracks (we'll add one global loopEnd)
+            let track_commands_without_loop_end: Vec<_> = track_commands
+                .into_iter()
+                .filter(|c| c.event_type != "loopEnd")
+                .collect();
+            
+            all_commands.extend(track_commands_without_loop_end);
         }
 
         // Sort commands by start time using stable sort with key
@@ -57,6 +81,16 @@ pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
             // - Second: start time for ordering events
             // - Third: node_id as a deterministic tie-breaker
             (!is_setup, start_tick, cmd.node_id)
+        });
+
+        // Add a single loopEnd event for the entire multi-track sequence
+        // Use the maximum end tick across all tracks
+        all_commands.push(Command {
+            event_type: "loopEnd".to_string(),
+            node_id: 0,
+            node_type: None,
+            connect_to: None,
+            args: Some(serde_json::json!([format!("{}i", max_end_tick)])),
         });
 
         Ok(all_commands)
@@ -428,6 +462,17 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
             }
         }
     }
+
+    // Add loopEnd event to mark the end of the sequence for streaming loop
+    // This helps tonejs-json-sequencer know where the loop should end
+    // especially when gate time (q command) affects note durations
+    commands.push(Command {
+        event_type: "loopEnd".to_string(),
+        node_id: 0,
+        node_type: None,
+        connect_to: None,
+        args: Some(serde_json::json!([format!("{}i", start_tick)])),
+    });
 
     Ok(commands)
 }
