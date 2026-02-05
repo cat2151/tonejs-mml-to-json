@@ -70,7 +70,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
     let mut start_tick = 0;
     let mut default_length = 8; // default note length (eighth note)
     let mut octave = 4; // default octave 4
-    let mut gate_time = 95; // default gate time (95%, creating slight gaps between notes)
+    let mut gate_time = 100; // default gate time (100%, q8 in mmlabc dialect)
     let mut node_id = track_node_id; // Start with track's base node_id
     
     // Collect initial instrument and effects before any notes
@@ -344,18 +344,22 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
             
             AstToken::Volume(volume) => {
                 // Set the volume for the current instrument node
-                // Volume is in MIDI format (0-127), but Tone.js uses decibels
-                // Convert MIDI volume to decibels:
-                // - Volume 0: -100dB (silence)
-                // - Volume 1-127: Linear mapping to -30dB to 0dB
+                // mmlabc dialect: v0-15 scale
+                // - v0: -100dB (silence)
+                // - v8: -6dB
+                // - v15: 0dB (initial/default/max)
                 if let Some(vol) = volume.value {
-                    // Clamp volume to valid MIDI range (0-127) to prevent distortion
-                    let clamped_vol = vol.min(127);
+                    // Clamp volume to valid range (0-15)
+                    let clamped_vol = vol.min(15);
                     let db = if clamped_vol == 0 {
                         -100.0 // Silence
                     } else {
-                        // Linear mapping: 1-127 -> -30dB to 0dB
-                        ((clamped_vol as f64 / 127.0) * 30.0) - 30.0
+                        // Convert v0-15 to dB scale where:
+                        // v8 = -6dB, v15 = 0dB
+                        // Using linear interpolation in dB space:
+                        // For v1-15 (v0 is special-cased above): db = (v - 15) * (6.0 / 7.0)
+                        // This gives: v8 → (8-15)*(6/7) = -7*(6/7) = -6dB, v15 → 0dB
+                        (clamped_vol as f64 - 15.0) * (6.0 / 7.0)
                     };
                     commands.push(Command {
                         event_type: "set".to_string(),
@@ -368,13 +372,19 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
             }
             
             AstToken::GateTime(gt) => {
-                // Set the gate time percentage (0-100)
-                // This controls how much of the note's duration is actually played
-                // - 100: Full duration (legato)
-                // - 95: Default (slight gap between notes)
-                // - 80: Staccato (short notes)
-                // If no value is provided (bare `q`), reset to default 95%
-                gate_time = gt.value.unwrap_or(95);
+                // mmlabc dialect: q0-8 scale
+                // - q4: 50% duration
+                // - q8: 100% duration (initial/default/max)
+                // Convert q value (0-8) to percentage (0-100)
+                if let Some(q_val) = gt.value {
+                    // Clamp to valid range (0-8)
+                    let clamped_q = q_val.min(8);
+                    // Convert to percentage: (q / 8) * 100
+                    gate_time = (clamped_q * 100) / 8;
+                } else {
+                    // If no value is provided (bare `q`), reset to default q8 (100%)
+                    gate_time = 100;
+                }
             }
             
             AstToken::KeyTranspose(kt) => {
