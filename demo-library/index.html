@@ -114,6 +114,14 @@
             color: #2c3e50;
         }
     </style>
+    <script type="importmap">
+    {
+      "imports": {
+        "web-tree-sitter": "../dist/web-tree-sitter.js",
+        "tonejs-mml-to-json": "../dist/index.js"
+      }
+    }
+    </script>
 </head>
 <body>
     <h1>📦 tonejs-mml-to-json - ライブラリ利用デモ</h1>
@@ -170,28 +178,20 @@
             const statusDiv = document.getElementById('status');
 
             // ライブラリをインポート
-            // ローカル開発時（npm install後）: node_modules からインポート
-            // GitHub Pages デプロイ時: 親ディレクトリの dist からインポート
+            // import map により tonejs-mml-to-json は ../dist/index.js に解決されます
             let initWasm, mml2json, mml2ast, ast2json;
 
             try {
-                // まず node_modules から試す（npm install 後のローカル環境用）
                 const module = await import('tonejs-mml-to-json');
                 ({ initWasm, mml2json, mml2ast, ast2json } = module);
             } catch (e) {
-                // 失敗したら親ディレクトリの dist から試す（GitHub Pages デプロイ用）
-                try {
-                    const module = await import('../dist/index.js');
-                    ({ initWasm, mml2json, mml2ast, ast2json } = module);
-                } catch (e2) {
-                    console.error('Failed to load library from both node_modules and ../dist/', e, e2);
-                    if (statusDiv) {
-                        statusDiv.className = 'status error';
-                        statusDiv.textContent = '✗ ライブラリのロードに失敗しました: ' + (e2 && e2.message ? e2.message : '不明なエラー');
-                    }
-                    // ライブラリがロードできない場合は以降の初期化処理を中断
-                    return;
+                console.error('Failed to load library:', e);
+                if (statusDiv) {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '✗ ライブラリのロードに失敗しました: ' + (e && e.message ? e.message : '不明なエラー');
                 }
+                // ライブラリがロードできない場合は以降の初期化処理を中断
+                return;
             }
 
             // 2段階変換用のAST保存
