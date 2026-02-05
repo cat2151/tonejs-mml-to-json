@@ -1,0 +1,15 @@
+{
+  "name": "demo-library-usage",
+  "version": "1.0.0",
+  "description": "Minimal demo showing how to use tonejs-mml-to-json as an npm package from GitHub",
+  "type": "module",
+  "scripts": {
+    "serve": "npx http-server . -p 8080 -o"
+  },
+  "dependencies": {
+    "tonejs-mml-to-json": "github:cat2151/tonejs-mml-to-json"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
