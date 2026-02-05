@@ -12,7 +12,7 @@ use crate::ast::*;
 use crate::command::{Command, EVENT_TYPE_CREATE_NODE, EVENT_TYPE_CONNECT, get_start_tick};
 use crate::timing::{calc_ticks, calc_duration, calc_start_tick, convert_accidental, apply_transpose};
 use crate::effects::{is_effect, convert_effect_args_to_array, add_delay_vibrato_commands};
-use crate::instrument::get_synth_type_for_track;
+use crate::instrument::{get_synth_type_for_track, prepare_polysynth_args};
 use crate::track::{split_into_tracks, has_chords};
 
 // Re-export Command for backward compatibility
@@ -108,6 +108,13 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
             serde_json::from_str(json_str).ok()
         });
 
+    // Prepare args for PolySynth if converting from another instrument
+    let instrument_args = if needs_polysynth {
+        prepare_polysynth_args(current_instrument, initial_args)
+    } else {
+        initial_args
+    };
+
     // Create the instrument node
     let instrument_node_id = node_id;
     commands.push(Command {
@@ -115,7 +122,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
         node_id: instrument_node_id,
         node_type: Some(synth_type.to_string()),
         connect_to: None,
-        args: initial_args,
+        args: instrument_args,
     });
     
     // Track DelayVibrato node_id if present
@@ -303,10 +310,17 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
                     current_instrument = name;
                     
                     // Parse args if present
-                    let instrument_args = instr.args.as_ref()
+                    let parsed_args = instr.args.as_ref()
                         .and_then(|json_str| {
                             serde_json::from_str(json_str).ok()
                         });
+                    
+                    // Prepare args for PolySynth if converting from another instrument
+                    let instrument_args = if needs_polysynth {
+                        prepare_polysynth_args(current_instrument, parsed_args)
+                    } else {
+                        parsed_args
+                    };
                     
                     node_id += 1;
                     // Get the synth type based on the instrument name

@@ -560,9 +560,11 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(createNodes).toHaveLength(1);
       expect(createNodes[0].nodeType).toBe('PolySynth');
       
-      // Args should still be passed through
+      // Args should be wrapped with voice and options
       expect(createNodes[0].args).toBeDefined();
-      expect(createNodes[0].args.harmonicity).toBe(5);
+      expect(createNodes[0].args.voice).toBe('FMSynth');
+      expect(createNodes[0].args.options).toBeDefined();
+      expect(createNodes[0].args.options.harmonicity).toBe(5);
       
       // Check chords are arrays
       const chords = json.filter(e => e.eventType === 'triggerAttackRelease');
