@@ -30,7 +30,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(4); // setup + note + loopEnd
+      expect(result).toHaveLength(3); // setup + note
       expect(result[2]).toEqual({
         eventType: "triggerAttackRelease",
         nodeId: 0,
@@ -46,7 +46,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(6); // setup + 3 notes + loopEnd
+      expect(result).toHaveLength(5); // setup + 3 notes
       expect(result[2].args[0]).toBe("c4");
       expect(result[3].args[0]).toBe("d4");
       expect(result[4].args[0]).toBe("e4");
@@ -142,7 +142,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(5); // setup + 2 notes (rest doesn't create command)
+      expect(result).toHaveLength(4); // setup + 2 notes (rest doesn't create command)
       expect(result[2].args[2]).toBe("+0i"); // First note starts at 0
       expect(result[3].args[2]).toBe("+384i"); // Second note starts after c4 + r4 (192+192)
     });
@@ -169,7 +169,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(5); // setup + 2 notes + loopEnd
+      expect(result).toHaveLength(4); // setup + 2 notes
       // Both notes should be 16th notes (48 ticks) with 100% gate time (q8)
       expect(result[2].args[1]).toBe("48i");
       expect(result[3].args[1]).toBe("48i");
@@ -247,7 +247,7 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Should only have initial setup (createNode + connect) + note, no duplicate instrument node
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[0]).toEqual({
         eventType: "createNode",
         nodeId: 0,
@@ -269,7 +269,7 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Should use FMSynth for initial setup, no duplicate
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[0]).toEqual({
         eventType: "createNode",
         nodeId: 0,
@@ -346,7 +346,7 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Initial Synth setup + note + new FMSynth node + connect + note
-      expect(result).toHaveLength(7);
+      expect(result).toHaveLength(6);
       expect(result[0].nodeType).toBe("Synth"); // initial
       expect(result[2].eventType).toBe("triggerAttackRelease"); // first note
       expect(result[2].nodeId).toBe(0); // on Synth
@@ -408,7 +408,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(4); // setup + 1 note
+      expect(result).toHaveLength(3); // setup + 1 note
       expect(result[2].args[0]).toBe("e4");
       expect(result[2].args[1]).toBe("48i"); // 16th note, 48 ticks with 100% gate time (q8)
       expect(result[2].args[2]).toBe("+0i");
@@ -437,7 +437,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(5); // setup + 2 notes + loopEnd
+      expect(result).toHaveLength(4); // setup + 2 notes
       expect(result[2].args[0]).toBe("c#5");
       expect(result[2].args[1]).toBe("288i"); // dotted quarter, 288 * 1.0 = 288 (q8)
       expect(result[2].args[2]).toBe("+0i");
@@ -569,7 +569,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(4); // setup + chord
+      expect(result).toHaveLength(3); // setup + chord
       
       // Should create PolySynth
       expect(result[0].nodeType).toBe('PolySynth');
@@ -766,7 +766,7 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Should have setup (2) + 1 chord event
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       
       // Check the chord uses array format
       expect(result[2].eventType).toBe('triggerAttackRelease');
@@ -1058,7 +1058,7 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Should have setup commands + tempo command
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[0].eventType).toBe("createNode");
       expect(result[1].eventType).toBe("connect");
       expect(result[2]).toEqual({
@@ -1076,7 +1076,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(5); // setup + tempo + note
+      expect(result).toHaveLength(4); // setup + tempo + note
       expect(result[2]).toEqual({
         eventType: "set",
         nodeId: 0,
@@ -1096,7 +1096,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(7); // setup + tempo + note + tempo + note
+      expect(result).toHaveLength(6); // setup + tempo + note + tempo + note
       
       // First tempo
       expect(result[2]).toEqual({
@@ -1123,7 +1123,7 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Should have setup + note, but no tempo command
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[0].eventType).toBe("createNode");
       expect(result[1].eventType).toBe("connect");
       expect(result[2].eventType).toBe("triggerAttackRelease");
@@ -1138,7 +1138,7 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Should have setup commands + volume command
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[0].eventType).toBe("createNode");
       expect(result[1].eventType).toBe("connect");
       expect(result[2].eventType).toBe("set");
@@ -1153,7 +1153,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[2].eventType).toBe("set");
       expect(result[2].nodeType).toBe("volume.value");
       // Volume 15 should map to 0dB
@@ -1166,7 +1166,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[2].eventType).toBe("set");
       expect(result[2].nodeType).toBe("volume.value");
       // Volume 0 should map to -100dB (silence)
@@ -1180,7 +1180,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(5); // setup + volume + note
+      expect(result).toHaveLength(4); // setup + volume + note
       expect(result[2].eventType).toBe("set");
       expect(result[2].nodeType).toBe("volume.value");
       expect(result[3].eventType).toBe("triggerAttackRelease");
@@ -1196,7 +1196,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(7); // setup + volume + note + volume + note
+      expect(result).toHaveLength(6); // setup + volume + note + volume + note
       
       // First volume (v8 = -6dB)
       expect(result[2].eventType).toBe("set");
@@ -1217,7 +1217,7 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Should have setup + note, but no volume command
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[0].eventType).toBe("createNode");
       expect(result[1].eventType).toBe("connect");
       expect(result[2].eventType).toBe("triggerAttackRelease");
@@ -1229,7 +1229,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[2].eventType).toBe("set");
       expect(result[2].nodeType).toBe("volume.value");
       // Volume 255 should be clamped to 15, which maps to 0dB
@@ -1249,7 +1249,7 @@ describe('ast2json', () => {
         const ast = [{ type: 'volume', value, length: 4 }];
         const result = ast2json(ast);
         
-        expect(result).toHaveLength(4);
+        expect(result).toHaveLength(3);
         expect(result[2].eventType).toBe("set");
         expect(result[2].nodeType).toBe("volume.value");
         // All values above 15 should be clamped to 15, which maps to 0dB
@@ -1267,7 +1267,7 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Note: 192 ticks * 0.5 = 96 ticks (q4 = 50%)
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[2].eventType).toBe("triggerAttackRelease");
       expect(result[2].args).toEqual(["c4", "96i", "+0i"]);
     });
@@ -1280,7 +1280,7 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Note: 192 ticks * 1.0 = 192 ticks (no reduction, q8 = 100%)
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[2].eventType).toBe("triggerAttackRelease");
       expect(result[2].args).toEqual(["c4", "192i", "+0i"]);
     });
@@ -1293,7 +1293,7 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Note: 192 ticks * 0 = 0 ticks, but clamped to minimum 1 tick
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[2].eventType).toBe("triggerAttackRelease");
       expect(result[2].args).toEqual(["c4", "1i", "+0i"]);
     });
@@ -1307,7 +1307,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(5);
+      expect(result).toHaveLength(4);
       expect(result[2].args).toEqual(["c4", "96i", "+0i"]); // 50% (q4)
       expect(result[3].args).toEqual(["d4", "192i", "+192i"]); // 100% (q8 default)
     });
@@ -1321,7 +1321,7 @@ describe('ast2json', () => {
       ];
       const result = ast2json(ast);
       
-      expect(result).toHaveLength(6);
+      expect(result).toHaveLength(5);
       // q6 = 75% (6/8 * 100)
       expect(result[2].args).toEqual(["c4", "144i", "+0i"]); // 192 * 0.75 = 144
       expect(result[3].args).toEqual(["d4", "72i", "+192i"]); // 96 * 0.75 = 72
@@ -1336,7 +1336,7 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Gate time > 8 is clamped to 8 (100%), so produces full duration with no reduction
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[2].eventType).toBe("triggerAttackRelease");
       expect(result[2].args).toEqual(["c4", "192i", "+0i"]);
     });
@@ -1359,7 +1359,7 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Chord with gate time q6 (75%): 192 ticks * 0.75 = 144 ticks
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
       expect(result[2].eventType).toBe("triggerAttackRelease");
       expect(result[2].args[0]).toEqual(['c4', 'e4', 'g4']); // chord notes
       expect(result[2].args[1]).toBe('144i'); // duration with 75% gate time
@@ -1377,7 +1377,7 @@ describe('ast2json', () => {
         const result = ast2json(ast);
         
         // q4 = 50% → 192 ticks * 0.5 = 96 ticks
-        expect(result).toHaveLength(4);
+        expect(result).toHaveLength(3);
         expect(result[2].args[1]).toBe('96i');
       });
 
@@ -1389,7 +1389,7 @@ describe('ast2json', () => {
         const result = ast2json(ast);
         
         // q8 = 100% → 192 ticks * 1.0 = 192 ticks (full duration)
-        expect(result).toHaveLength(4);
+        expect(result).toHaveLength(3);
         expect(result[2].args[1]).toBe('192i');
       });
 
@@ -1400,7 +1400,7 @@ describe('ast2json', () => {
         const result = ast2json(ast);
         
         // Default should be q8 = 100% → 192 ticks
-        expect(result).toHaveLength(4);
+        expect(result).toHaveLength(3);
         expect(result[2].args[1]).toBe('192i');
       });
 
@@ -1413,7 +1413,7 @@ describe('ast2json', () => {
         ];
         const result = ast2json(ast);
         
-        expect(result).toHaveLength(5);
+        expect(result).toHaveLength(4);
         expect(result[2].args[1]).toBe('96i'); // q4 = 50%
         expect(result[3].args[1]).toBe('192i'); // bare q resets to q8 = 100%
       });
@@ -1426,7 +1426,7 @@ describe('ast2json', () => {
         ];
         const result = ast2json(ast);
         
-        expect(result).toHaveLength(4);
+        expect(result).toHaveLength(3);
         expect(result[2].eventType).toBe("set");
         expect(result[2].nodeType).toBe("volume.value");
         expect(result[2].args[0]).toBe(-100);
@@ -1438,7 +1438,7 @@ describe('ast2json', () => {
         ];
         const result = ast2json(ast);
         
-        expect(result).toHaveLength(4);
+        expect(result).toHaveLength(3);
         expect(result[2].eventType).toBe("set");
         expect(result[2].nodeType).toBe("volume.value");
         expect(result[2].args[0]).toBeCloseTo(-6, 2);
@@ -1450,7 +1450,7 @@ describe('ast2json', () => {
         ];
         const result = ast2json(ast);
         
-        expect(result).toHaveLength(4);
+        expect(result).toHaveLength(3);
         expect(result[2].eventType).toBe("set");
         expect(result[2].nodeType).toBe("volume.value");
         expect(result[2].args[0]).toBe(0);
@@ -1468,7 +1468,7 @@ describe('ast2json', () => {
           const ast = [{ type: 'volume', value: v, length: 2 }];
           const result = ast2json(ast);
           
-          expect(result).toHaveLength(4);
+          expect(result).toHaveLength(3);
           expect(result[2].args[0]).toBeCloseTo(expectedDb, 2);
         });
       });
