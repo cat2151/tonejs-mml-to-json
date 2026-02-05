@@ -166,8 +166,24 @@
     
     <script type="module">
         // ライブラリをインポート
-        // node_modules からインポートする（npm install で取得）
-        import { initWasm, mml2json, mml2ast, ast2json } from 'tonejs-mml-to-json';
+        // ローカル開発時（npm install後）: node_modules からインポート
+        // GitHub Pages デプロイ時: 親ディレクトリの dist からインポート
+        let initWasm, mml2json, mml2ast, ast2json;
+        
+        try {
+            // まず node_modules から試す（npm install 後のローカル環境用）
+            const module = await import('tonejs-mml-to-json');
+            ({ initWasm, mml2json, mml2ast, ast2json } = module);
+        } catch (e) {
+            // 失敗したら親ディレクトリの dist から試す（GitHub Pages デプロイ用）
+            try {
+                const module = await import('../dist/index.js');
+                ({ initWasm, mml2json, mml2ast, ast2json } = module);
+            } catch (e2) {
+                console.error('Failed to load library from both node_modules and ../dist/', e, e2);
+                throw new Error('ライブラリのロードに失敗しました');
+            }
+        }
         
         // 2段階変換用のAST保存
         let currentAST = null;
