@@ -53,11 +53,18 @@ jobs:
       - name: Prepare deployment artifact
         run: |
           mkdir -p site
-          for item in dist pkg src index.html _config.yml .nojekyll googled947dc864c270e07.html generated-docs demo-library; do
+          for item in dist pkg src index.html _config.yml .nojekyll googled947dc864c270e07.html generated-docs; do
             if [ -e "$item" ]; then
               cp -r "$item" site/
             fi
           done
+          # Copy demo-library excluding node_modules
+          if [ -d "demo-library" ]; then
+            mkdir -p site/demo-library
+            cp demo-library/index.html site/demo-library/
+            cp demo-library/README.md site/demo-library/
+            cp demo-library/package.json site/demo-library/
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

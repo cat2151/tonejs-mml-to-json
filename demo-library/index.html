@@ -133,7 +133,7 @@
         <p>以下にMMLコードを入力して、「変換」ボタンをクリックするとJSON出力が表示されます。</p>
         
         <label for="mmlInput">MML入力:</label>
-        <textarea id="mmlInput">o4 l16 e f g+ a b a g+ f e8. <e8. >e8</textarea>
+        <textarea id="mmlInput">o4 l16 e f g+ a b a g+ f e8. &lt;e8. &gt;e8</textarea>
         
         <button onclick="convertMML()">変換</button>
         
@@ -165,91 +165,110 @@
     </div>
     
     <script type="module">
-        // ライブラリをインポート
-        // ローカル開発時（npm install後）: node_modules からインポート
-        // GitHub Pages デプロイ時: 親ディレクトリの dist からインポート
-        let initWasm, mml2json, mml2ast, ast2json;
-        
-        try {
-            // まず node_modules から試す（npm install 後のローカル環境用）
-            const module = await import('tonejs-mml-to-json');
-            ({ initWasm, mml2json, mml2ast, ast2json } = module);
-        } catch (e) {
-            // 失敗したら親ディレクトリの dist から試す（GitHub Pages デプロイ用）
+        (async () => {
+            // ステータス表示用の要素
+            const statusDiv = document.getElementById('status');
+
+            // ライブラリをインポート
+            // ローカル開発時（npm install後）: node_modules からインポート
+            // GitHub Pages デプロイ時: 親ディレクトリの dist からインポート
+            let initWasm, mml2json, mml2ast, ast2json;
+
             try {
-                const module = await import('../dist/index.js');
+                // まず node_modules から試す（npm install 後のローカル環境用）
+                const module = await import('tonejs-mml-to-json');
                 ({ initWasm, mml2json, mml2ast, ast2json } = module);
-            } catch (e2) {
-                console.error('Failed to load library from both node_modules and ../dist/', e, e2);
-                throw new Error('ライブラリのロードに失敗しました');
+            } catch (e) {
+                // 失敗したら親ディレクトリの dist から試す（GitHub Pages デプロイ用）
+                try {
+                    const module = await import('../dist/index.js');
+                    ({ initWasm, mml2json, mml2ast, ast2json } = module);
+                } catch (e2) {
+                    console.error('Failed to load library from both node_modules and ../dist/', e, e2);
+                    if (statusDiv) {
+                        statusDiv.className = 'status error';
+                        statusDiv.textContent = '✗ ライブラリのロードに失敗しました: ' + (e2 && e2.message ? e2.message : '不明なエラー');
+                    }
+                    // ライブラリがロードできない場合は以降の初期化処理を中断
+                    return;
+                }
             }
-        }
-        
-        // 2段階変換用のAST保存
-        let currentAST = null;
-        
-        // ページ読み込み時にWASM初期化
-        const statusDiv = document.getElementById('status');
-        
-        try {
-            await initWasm();
-            statusDiv.className = 'status success';
-            statusDiv.textContent = '✓ ライブラリの初期化に成功しました！MMLを変換する準備ができています。';
-            
-            // onclick ハンドラ用にグローバル関数として公開
-            window.convertMML = convertMML;
-            window.convertToAST = convertToAST;
-            window.convertASTToJSON = convertASTToJSON;
-        } catch (error) {
-            statusDiv.className = 'status error';
-            statusDiv.textContent = '✗ ライブラリの初期化に失敗しました: ' + error.message;
+
+            // 2段階変換用のAST保存
+            let currentAST = null;
+
+            // ページ読み込み時にWASM初期化
+            try {
+                await initWasm();
+                if (statusDiv) {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✓ ライブラリの初期化に成功しました！MMLを変換する準備ができています。';
+                }
+
+                // onclick ハンドラ用にグローバル関数として公開
+                window.convertMML = convertMML;
+                window.convertToAST = convertToAST;
+                window.convertASTToJSON = convertASTToJSON;
+            } catch (error) {
+                if (statusDiv) {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '✗ ライブラリの初期化に失敗しました: ' + error.message;
+                }
+                console.error(error);
+            }
+
+            // 変換関数
+            function convertMML() {
+                const mmlInput = document.getElementById('mmlInput').value;
+                const jsonOutput = document.getElementById('jsonOutput');
+
+                try {
+                    const result = mml2json(mmlInput);
+                    jsonOutput.textContent = JSON.stringify(result, null, 2);
+                } catch (error) {
+                    jsonOutput.textContent = 'エラー: ' + error.message;
+                    console.error(error);
+                }
+            }
+
+            function convertToAST() {
+                const mmlInput = document.getElementById('mmlInput2').value;
+                const astOutput = document.getElementById('astOutput');
+
+                try {
+                    currentAST = mml2ast(mmlInput);
+                    astOutput.textContent = JSON.stringify(currentAST, null, 2);
+                } catch (error) {
+                    astOutput.textContent = 'エラー: ' + error.message;
+                    currentAST = null;
+                    console.error(error);
+                }
+            }
+
+            function convertASTToJSON() {
+                const jsonOutput = document.getElementById('jsonOutput2');
+
+                if (!currentAST) {
+                    jsonOutput.textContent = 'エラー: 先にMMLをASTに変換してください！';
+                    return;
+                }
+
+                try {
+                    const result = ast2json(currentAST);
+                    jsonOutput.textContent = JSON.stringify(result, null, 2);
+                } catch (error) {
+                    jsonOutput.textContent = 'エラー: ' + error.message;
+                    console.error(error);
+                }
+            }
+        })().catch((error) => {
+            const statusDiv = document.getElementById('status');
+            if (statusDiv) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '✗ 予期しないエラーが発生しました: ' + error.message;
+            }
             console.error(error);
-        }
-        
-        // 変換関数
-        function convertMML() {
-            const mmlInput = document.getElementById('mmlInput').value;
-            const jsonOutput = document.getElementById('jsonOutput');
-            
-            try {
-                const result = mml2json(mmlInput);
-                jsonOutput.textContent = JSON.stringify(result, null, 2);
-            } catch (error) {
-                jsonOutput.textContent = 'エラー: ' + error.message;
-                console.error(error);
-            }
-        }
-        
-        function convertToAST() {
-            const mmlInput = document.getElementById('mmlInput2').value;
-            const astOutput = document.getElementById('astOutput');
-            
-            try {
-                currentAST = mml2ast(mmlInput);
-                astOutput.textContent = JSON.stringify(currentAST, null, 2);
-            } catch (error) {
-                astOutput.textContent = 'エラー: ' + error.message;
-                currentAST = null;
-                console.error(error);
-            }
-        }
-        
-        function convertASTToJSON() {
-            const jsonOutput = document.getElementById('jsonOutput2');
-            
-            if (!currentAST) {
-                jsonOutput.textContent = 'エラー: 先にMMLをASTに変換してください！';
-                return;
-            }
-            
-            try {
-                const result = ast2json(currentAST);
-                jsonOutput.textContent = JSON.stringify(result, null, 2);
-            } catch (error) {
-                jsonOutput.textContent = 'エラー: ' + error.message;
-                console.error(error);
-            }
-        }
+        });
     </script>
 </body>
 </html>
