@@ -146,7 +146,7 @@ describe('loopEnd event', () => {
 
   describe('Purpose and Usage', () => {
     it('should help streaming sequencer know where the loop ends', () => {
-      const mml = 'c4 d8';
+      const mml = 'q4 c4 d8';  // Use q4 (50% gate time) to show impact
       const ast = mml2ast(mml);
       const result = ast2json(ast);
       
@@ -155,11 +155,20 @@ describe('loopEnd event', () => {
       expect(lastCmd.eventType).toBe('loopEnd');
       
       // It should have the total duration of the sequence
-      // c4 (192 ticks) + d8 (96 ticks) = 288 ticks
+      // q4 means 50% gate time, but notes still take full duration in time:
+      // c4 (192 ticks) + d8 (96 ticks) = 288 ticks total
       expect(lastCmd.args).toEqual(['288i']);
       
       // This is especially important when q (gate time) command affects note durations
       // The streaming player needs to know the actual loop point regardless of gate time
+      
+      // Verify that the NOTE durations are affected by q4 (50% gate time)
+      const notes = result.filter(cmd => cmd.eventType === 'triggerAttackRelease');
+      expect(notes[0].args[1]).toBe('96i');  // c4: 192 * 0.5 = 96 ticks duration
+      expect(notes[1].args[1]).toBe('48i');  // d8: 96 * 0.5 = 48 ticks duration
+      
+      // But the loopEnd is still at the full time (288), not affected by gate time
+      // This ensures the loop restarts at the right time
     });
   });
 });
