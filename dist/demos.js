@@ -322,6 +322,20 @@ export const demos = [
 } o4 l8 cdefgab<c`
     },
     {
+        id: 'effect-flanger',
+        name: 'Flanger Effect (Chorus)',
+        description: 'Flanger-like effect using Chorus with specific parameters - very long sweep on synth pad',
+        mml: `@Synth{
+  "oscillator": {
+    "type": "sawtooth"
+  }
+} @Chorus{
+  "frequency": 0.2,
+  "delayTime": 3,
+  "depth": 0.9
+} o4 l1 'cegb' 'cegb' 'cegb' 'cegb'`
+    },
+    {
         id: 'effect-distortion',
         name: '@Distortion',
         description: 'Distortion effect - adds grit and overdrive to the sound',
