@@ -23,21 +23,23 @@ npm install
 
 ### 2. デモの実行
 
-ローカルでHTTPサーバーを起動してデモを表示します：
+ローカルでHTTPサーバーを起動してデモを表示します。以下のいずれかの方法を使用できます：
 
-```bash
-# 親ディレクトリから実行（推奨）
-cd ..
-npx http-server . -p 8080
-# ブラウザで http://localhost:8080/demo-library/ にアクセス
-```
-
-または、demo-library 内の `npm run serve` も使用できますが、その場合は node_modules のインストールが必要です：
+**方法1: npm scriptを使用（推奨）**
 
 ```bash
 npm run serve
-# ブラウザが自動的に開きます（http://localhost:8080）
+# ブラウザが自動的に開き、デモページが表示されます
 ```
+
+**方法2: 親ディレクトリから直接実行**
+
+```bash
+cd ..
+npx http-server . -p 8080 -o /demo-library/
+```
+
+どちらの方法も親ディレクトリからサーバーを起動するため、import map の `../dist/` パスが正しく解決されます。
 
 ### 3. デモの動作確認
 
