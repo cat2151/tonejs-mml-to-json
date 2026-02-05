@@ -15,12 +15,15 @@ fn main() {
     for (description, mml) in examples {
         println!("Example: {}", description);
         println!("Input MML: {}", mml);
-        
+
         match mml_to_json(mml) {
             Ok(json) => {
                 // Pretty print JSON
                 if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&json) {
-                    println!("Output JSON:\n{}\n", serde_json::to_string_pretty(&parsed).unwrap());
+                    println!(
+                        "Output JSON:\n{}\n",
+                        serde_json::to_string_pretty(&parsed).unwrap()
+                    );
                 } else {
                     println!("Output: {}\n", json);
                 }

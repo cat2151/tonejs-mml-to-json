@@ -2,7 +2,7 @@ fn main() {
     #[cfg(feature = "tree-sitter")]
     {
         use std::path::PathBuf;
-        
+
         let dir: PathBuf = ["../tree-sitter-mml", "src"].iter().collect();
 
         cc::Build::new()

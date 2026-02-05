@@ -1,5 +1,5 @@
-use wasm_bindgen::prelude::*;
 use serde::Serialize;
+use wasm_bindgen::prelude::*;
 
 pub mod ast;
 
@@ -11,17 +11,19 @@ pub mod mml2ast;
 pub mod cst_to_ast;
 
 // Core conversion modules (refactored for Single Responsibility Principle)
+pub mod ast2json;
 pub mod command;
-pub mod timing;
 pub mod effects;
 pub mod instrument;
+pub mod timing;
 pub mod track;
-pub mod ast2json;
 
-pub use ast::{AstToken, NoteToken, RestToken, LengthToken, OctaveToken, InstrumentToken, TrackSeparatorToken};
+pub use ast::{
+    AstToken, InstrumentToken, LengthToken, NoteToken, OctaveToken, RestToken, TrackSeparatorToken,
+};
+pub use ast2json::ast2json;
 #[cfg(feature = "tree-sitter")]
 pub use mml2ast::mml2ast;
-pub use ast2json::ast2json;
 // Re-export Command for backward compatibility
 pub use command::Command;
 
@@ -81,14 +83,13 @@ pub fn cst_to_json_wasm(cst_json: &str) -> String {
 #[wasm_bindgen]
 pub fn mml2ast_wasm(mml: &str) -> String {
     match mml2ast(mml) {
-        Ok(ast) => {
-            serde_json::to_string(&ast)
-                .unwrap_or_else(|e| {
-                    let error_response = ErrorResponse { error: format!("JSON serialization error: {}", e) };
-                    serde_json::to_string(&error_response)
-                        .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
-                })
-        }
+        Ok(ast) => serde_json::to_string(&ast).unwrap_or_else(|e| {
+            let error_response = ErrorResponse {
+                error: format!("JSON serialization error: {}", e),
+            };
+            serde_json::to_string(&error_response)
+                .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
+        }),
         Err(e) => {
             let error_response = ErrorResponse { error: e };
             serde_json::to_string(&error_response)
@@ -103,7 +104,9 @@ pub fn mml2ast_wasm(mml: &str) -> String {
 #[wasm_bindgen]
 pub fn mml2ast_wasm(_mml: &str) -> String {
     let error_response = ErrorResponse {
-        error: "This WASM build uses web-tree-sitter. Use cst_to_json_wasm or cst_to_ast_wasm instead.".to_string()
+        error:
+            "This WASM build uses web-tree-sitter. Use cst_to_json_wasm or cst_to_ast_wasm instead."
+                .to_string(),
     };
     serde_json::to_string(&error_response)
         .unwrap_or_else(|_| r#"{"error":"Use web-tree-sitter with cst_to_json_wasm"}"#.to_string())
@@ -114,14 +117,13 @@ pub fn mml2ast_wasm(_mml: &str) -> String {
 #[wasm_bindgen]
 pub fn cst_to_ast_wasm(cst_json: &str) -> String {
     match cst_to_ast::cst_to_ast(cst_json) {
-        Ok(ast) => {
-            serde_json::to_string(&ast)
-                .unwrap_or_else(|e| {
-                    let error_response = ErrorResponse { error: format!("JSON serialization error: {}", e) };
-                    serde_json::to_string(&error_response)
-                        .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
-                })
-        }
+        Ok(ast) => serde_json::to_string(&ast).unwrap_or_else(|e| {
+            let error_response = ErrorResponse {
+                error: format!("JSON serialization error: {}", e),
+            };
+            serde_json::to_string(&error_response)
+                .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
+        }),
         Err(e) => {
             let error_response = ErrorResponse { error: e };
             serde_json::to_string(&error_response)
@@ -134,25 +136,24 @@ pub fn cst_to_ast_wasm(cst_json: &str) -> String {
 #[wasm_bindgen]
 pub fn ast2json_wasm(ast_json: &str) -> String {
     match serde_json::from_str::<Vec<AstToken>>(ast_json) {
-        Ok(ast) => {
-            match ast2json(&ast) {
-                Ok(json) => {
-                    serde_json::to_string(&json)
-                        .unwrap_or_else(|e| {
-                            let error_response = ErrorResponse { error: format!("JSON serialization error: {}", e) };
-                            serde_json::to_string(&error_response)
-                                .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
-                        })
-                }
-                Err(e) => {
-                    let error_response = ErrorResponse { error: e };
-                    serde_json::to_string(&error_response)
-                        .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
-                }
+        Ok(ast) => match ast2json(&ast) {
+            Ok(json) => serde_json::to_string(&json).unwrap_or_else(|e| {
+                let error_response = ErrorResponse {
+                    error: format!("JSON serialization error: {}", e),
+                };
+                serde_json::to_string(&error_response)
+                    .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
+            }),
+            Err(e) => {
+                let error_response = ErrorResponse { error: e };
+                serde_json::to_string(&error_response)
+                    .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
             }
-        }
+        },
         Err(e) => {
-            let error_response = ErrorResponse { error: format!("Failed to parse AST JSON: {}", e) };
+            let error_response = ErrorResponse {
+                error: format!("Failed to parse AST JSON: {}", e),
+            };
             serde_json::to_string(&error_response)
                 .unwrap_or_else(|_| r#"{"error":"Failed to serialize error"}"#.to_string())
         }
@@ -198,7 +199,7 @@ mod tests {
             ],
             "fields": {}
         }"#;
-        
+
         let result = cst_to_json(cst_json);
         assert!(result.is_ok());
     }

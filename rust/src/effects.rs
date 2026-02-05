@@ -1,17 +1,16 @@
 /// Effects handling module
-/// 
+///
 /// This module is responsible for:
 /// - Identifying effect types
 /// - Converting effect arguments from object to array format
 /// - Generating DelayVibrato commands
-
 use crate::command::Command;
 
 // DelayVibrato effect constants (hardcoded parameters)
-const VIBRATO_DELAY_TICKS: u32 = 192;    // Delay before vibrato starts
-const VIBRATO_RAMP_TICKS: u32 = 192;     // Ramp duration for vibrato increase
-const VIBRATO_DEPTH: &str = "0.2";       // Target vibrato depth
-const VIBRATO_END_RAMP_TICKS: u32 = 10;  // Ramp duration for vibrato decrease
+const VIBRATO_DELAY_TICKS: u32 = 192; // Delay before vibrato starts
+const VIBRATO_RAMP_TICKS: u32 = 192; // Ramp duration for vibrato increase
+const VIBRATO_DEPTH: &str = "0.2"; // Target vibrato depth
+const VIBRATO_END_RAMP_TICKS: u32 = 10; // Ramp duration for vibrato decrease
 
 // Constant array of known effect types
 const KNOWN_EFFECTS: &[&str] = &[
@@ -27,10 +26,10 @@ const KNOWN_EFFECTS: &[&str] = &[
 ];
 
 /// Check if a name is an effect (not an instrument)
-/// 
+///
 /// # Arguments
 /// * `name` - Name to check
-/// 
+///
 /// # Returns
 /// true if the name is a known effect type
 pub fn is_effect(name: &str) -> bool {
@@ -38,25 +37,28 @@ pub fn is_effect(name: &str) -> bool {
 }
 
 /// Convert effect args from object format (user-friendly MML) to array format (Tone.js constructors)
-/// 
+///
 /// tonejs-json-sequencer expects effects to use array args that are spread into constructor parameters.
 /// Example: PingPongDelay constructor is `new Tone.PingPongDelay(delayTime, feedback)`
 /// So {"delayTime": "8n"} should become ["8n"]
-/// 
+///
 /// # Arguments
 /// * `effect_name` - Name of the effect
 /// * `args_obj` - Arguments in object format
-/// 
+///
 /// # Returns
 /// Arguments converted to array format, or None if conversion fails
-pub fn convert_effect_args_to_array(effect_name: &str, args_obj: &serde_json::Value) -> Option<serde_json::Value> {
+pub fn convert_effect_args_to_array(
+    effect_name: &str,
+    args_obj: &serde_json::Value,
+) -> Option<serde_json::Value> {
     if !args_obj.is_object() {
         // If it's already an array or other type, return as-is
         return Some(args_obj.clone());
     }
-    
+
     let obj = args_obj.as_object()?;
-    
+
     // Define parameter mappings for each effect
     // Based on Tone.js constructor signatures
     let param_order: &[&str] = match effect_name {
@@ -71,7 +73,7 @@ pub fn convert_effect_args_to_array(effect_name: &str, args_obj: &serde_json::Va
         // Add more mappings as needed
         _ => return Some(args_obj.clone()), // Unknown effect, pass through as-is
     };
-    
+
     // Extract values in the defined order, skipping undefined parameters
     let mut array = Vec::new();
     for &param_name in param_order {
@@ -79,7 +81,7 @@ pub fn convert_effect_args_to_array(effect_name: &str, args_obj: &serde_json::Va
             array.push(value.clone());
         }
     }
-    
+
     if array.is_empty() {
         None
     } else {
@@ -88,7 +90,7 @@ pub fn convert_effect_args_to_array(effect_name: &str, args_obj: &serde_json::Va
 }
 
 /// Generate DelayVibrato depth.rampTo commands for a note or chord
-/// 
+///
 /// # Arguments
 /// * `commands` - Command vector to append to
 /// * `vibrato_node_id` - Node ID of the vibrato effect
@@ -113,7 +115,7 @@ pub fn add_delay_vibrato_commands(
             format!("+{}i", ramp_start_tick)
         ])),
     });
-    
+
     // Ramp down vibrato when note ends
     let ramp_end_tick = start_tick + ticks;
     commands.push(Command {
@@ -167,7 +169,7 @@ mod tests {
     fn test_add_delay_vibrato_commands() {
         let mut commands = Vec::new();
         add_delay_vibrato_commands(&mut commands, 10, 0, 384);
-        
+
         assert_eq!(commands.len(), 2);
         assert_eq!(commands[0].event_type, "depth.rampTo");
         assert_eq!(commands[0].node_id, 10);
