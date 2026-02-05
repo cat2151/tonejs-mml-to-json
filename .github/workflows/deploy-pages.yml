@@ -58,6 +58,13 @@ jobs:
               cp -r "$item" site/
             fi
           done
+          # Copy demo-library excluding node_modules
+          if [ -d "demo-library" ]; then
+            mkdir -p site/demo-library
+            cp demo-library/index.html site/demo-library/
+            cp demo-library/README.md site/demo-library/
+            cp demo-library/package.json site/demo-library/
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

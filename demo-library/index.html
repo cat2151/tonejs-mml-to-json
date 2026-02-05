@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tonejs-mml-to-json - ライブラリ利用デモ</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        .info-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+        .example-section {
+            margin: 30px 0;
+            padding: 25px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        button {
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px 10px 0;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        pre {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .status {
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        code {
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <h1>📦 tonejs-mml-to-json - ライブラリ利用デモ</h1>
+    
+    <div class="info-box">
+        <h3>💡 このデモについて</h3>
+        <p>このデモは、<strong>tonejs-mml-to-json</strong> を npm パッケージとして GitHub から直接インストールして利用する方法を示しています。</p>
+        <p>リポジトリをクローンするのではなく、<code>npm install</code> でパッケージとして利用する標準的な方法です。</p>
+    </div>
+    
+    <div id="status" class="status info">
+        WASMモジュールを初期化中...
+    </div>
+    
+    <div class="example-section">
+        <h2>🎵 例1: MMLをJSONに変換</h2>
+        <p>以下にMMLコードを入力して、「変換」ボタンをクリックするとJSON出力が表示されます。</p>
+        
+        <label for="mmlInput">MML入力:</label>
+        <textarea id="mmlInput">o4 l16 e f g+ a b a g+ f e8. &lt;e8. &gt;e8</textarea>
+        
+        <button onclick="convertMML()">変換</button>
+        
+        <div style="margin-top: 20px;">
+            <label>JSON出力:</label>
+            <pre id="jsonOutput">// JSON出力がここに表示されます</pre>
+        </div>
+    </div>
+    
+    <div class="example-section">
+        <h2>🔄 例2: 2段階変換（MML → AST → JSON）</h2>
+        <p>MMLをASTに変換し、さらにASTをJSONに変換します。</p>
+        
+        <label for="mmlInput2">MML入力:</label>
+        <textarea id="mmlInput2">o4 l16 c d e f g</textarea>
+        
+        <button onclick="convertToAST()">ASTに変換</button>
+        <button onclick="convertASTToJSON()">ASTをJSONに変換</button>
+        
+        <div style="margin-top: 20px;">
+            <label>AST出力:</label>
+            <pre id="astOutput">// AST出力がここに表示されます</pre>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <label>JSON出力（ASTから）:</label>
+            <pre id="jsonOutput2">// JSON出力がここに表示されます</pre>
+        </div>
+    </div>
+    
+    <script type="module">
+        (async () => {
+            // ステータス表示用の要素
+            const statusDiv = document.getElementById('status');
+
+            // ライブラリをインポート
+            // ローカル開発時（npm install後）: node_modules からインポート
+            // GitHub Pages デプロイ時: 親ディレクトリの dist からインポート
+            let initWasm, mml2json, mml2ast, ast2json;
+
+            try {
+                // まず node_modules から試す（npm install 後のローカル環境用）
+                const module = await import('tonejs-mml-to-json');
+                ({ initWasm, mml2json, mml2ast, ast2json } = module);
+            } catch (e) {
+                // 失敗したら親ディレクトリの dist から試す（GitHub Pages デプロイ用）
+                try {
+                    const module = await import('../dist/index.js');
+                    ({ initWasm, mml2json, mml2ast, ast2json } = module);
+                } catch (e2) {
+                    console.error('Failed to load library from both node_modules and ../dist/', e, e2);
+                    if (statusDiv) {
+                        statusDiv.className = 'status error';
+                        statusDiv.textContent = '✗ ライブラリのロードに失敗しました: ' + (e2 && e2.message ? e2.message : '不明なエラー');
+                    }
+                    // ライブラリがロードできない場合は以降の初期化処理を中断
+                    return;
+                }
+            }
+
+            // 2段階変換用のAST保存
+            let currentAST = null;
+
+            // ページ読み込み時にWASM初期化
+            try {
+                await initWasm();
+                if (statusDiv) {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✓ ライブラリの初期化に成功しました！MMLを変換する準備ができています。';
+                }
+
+                // onclick ハンドラ用にグローバル関数として公開
+                window.convertMML = convertMML;
+                window.convertToAST = convertToAST;
+                window.convertASTToJSON = convertASTToJSON;
+            } catch (error) {
+                if (statusDiv) {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '✗ ライブラリの初期化に失敗しました: ' + error.message;
+                }
+                console.error(error);
+            }
+
+            // 変換関数
+            function convertMML() {
+                const mmlInput = document.getElementById('mmlInput').value;
+                const jsonOutput = document.getElementById('jsonOutput');
+
+                try {
+                    const result = mml2json(mmlInput);
+                    jsonOutput.textContent = JSON.stringify(result, null, 2);
+                } catch (error) {
+                    jsonOutput.textContent = 'エラー: ' + error.message;
+                    console.error(error);
+                }
+            }
+
+            function convertToAST() {
+                const mmlInput = document.getElementById('mmlInput2').value;
+                const astOutput = document.getElementById('astOutput');
+
+                try {
+                    currentAST = mml2ast(mmlInput);
+                    astOutput.textContent = JSON.stringify(currentAST, null, 2);
+                } catch (error) {
+                    astOutput.textContent = 'エラー: ' + error.message;
+                    currentAST = null;
+                    console.error(error);
+                }
+            }
+
+            function convertASTToJSON() {
+                const jsonOutput = document.getElementById('jsonOutput2');
+
+                if (!currentAST) {
+                    jsonOutput.textContent = 'エラー: 先にMMLをASTに変換してください！';
+                    return;
+                }
+
+                try {
+                    const result = ast2json(currentAST);
+                    jsonOutput.textContent = JSON.stringify(result, null, 2);
+                } catch (error) {
+                    jsonOutput.textContent = 'エラー: ' + error.message;
+                    console.error(error);
+                }
+            }
+        })().catch((error) => {
+            const statusDiv = document.getElementById('status');
+            if (statusDiv) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '✗ 予期しないエラーが発生しました: ' + error.message;
+            }
+            console.error(error);
+        });
+    </script>
+</body>
+</html>
