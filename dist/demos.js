@@ -19,36 +19,6 @@ export const demos = [
         mml: 'o4 l8 cdefgab; o5 l16 ccccddddeeee; o3 l4 c e g'
     },
     {
-        id: 'instrument-synth',
-        name: '@Synth (Default)',
-        description: 'Basic subtractive synthesis - default sound',
-        mml: '@Synth o4 l8 cdefgab<c'
-    },
-    {
-        id: 'instrument-fm',
-        name: '@FMSynth',
-        description: 'FM synthesis - electric piano, bell-like sounds',
-        mml: '@FMSynth o4 l8 cdefgab<c'
-    },
-    {
-        id: 'instrument-am',
-        name: '@AMSynth',
-        description: 'AM synthesis - bells, metallic sounds, tremolo effects',
-        mml: '@AMSynth o4 l8 cdefgab<c'
-    },
-    {
-        id: 'instrument-mono',
-        name: '@MonoSynth',
-        description: 'Monophonic synthesis - bass, leads, analog synth style',
-        mml: '@MonoSynth o3 l8 c c c c d d d d e e e e'
-    },
-    {
-        id: 'instrument-pluck',
-        name: '@PluckSynth',
-        description: 'Plucked string simulation - guitar, harp, koto',
-        mml: '@PluckSynth o4 l8 cdefgab<c'
-    },
-    {
         id: 'instrument-membrane',
         name: '@MembraneSynth',
         description: 'Membrane vibration - drums, percussion',
@@ -65,12 +35,6 @@ export const demos = [
         name: '@DuoSynth',
         description: 'Dual-voice synthesis - rich textures, chorus effects',
         mml: '@DuoSynth o4 l8 cdefgab<c'
-    },
-    {
-        id: 'instrument-switch',
-        name: 'Instrument Switching',
-        description: 'Switch between different instruments in one track',
-        mml: '@Synth o4 cde @FMSynth fga @AMSynth gab @MonoSynth agf'
     },
     {
         id: 'instrument-fmsynth-args',
@@ -193,12 +157,6 @@ export const demos = [
         mml: 'o4 l8 c \'eg\' d \'fac\' e \'gb\' c4'
     },
     {
-        id: 'effect-pingpongdelay',
-        name: '@PingPongDelay (Single)',
-        description: 'PingPongDelay effect - creates a bouncing echo between left and right channels',
-        mml: '@PingPongDelay o4 l8 cdefgab<c'
-    },
-    {
         id: 'effect-pingpongdelay-args',
         name: '@PingPongDelay with Args',
         description: 'PingPongDelay with custom delay time - faster or slower echoes',
@@ -231,24 +189,12 @@ export const demos = [
         mml: '@FMSynth @DelayVibrato o4 l1 cdefgab<c'
     },
     {
-        id: 'effect-reverb',
-        name: '@Reverb',
-        description: 'Reverb effect - adds spacious room ambience and echo',
-        mml: '@Reverb o4 l8 cdefgab<c'
-    },
-    {
         id: 'effect-reverb-args',
         name: '@Reverb with Args',
         description: 'Reverb with custom decay time - longer decay creates larger space',
         mml: `@Reverb{
   "decay": 2.5
 } o4 l8 cdefgab<c`
-    },
-    {
-        id: 'effect-feedbackdelay',
-        name: '@FeedbackDelay',
-        description: 'FeedbackDelay effect - creates repeating echoes with feedback',
-        mml: '@FeedbackDelay o4 l8 cdefgab<c'
     },
     {
         id: 'effect-feedbackdelay-args',
@@ -258,12 +204,6 @@ export const demos = [
   "delayTime": "8n",
   "feedback": 0.6
 } o4 l8 cdefgab<c`
-    },
-    {
-        id: 'effect-chorus',
-        name: '@Chorus',
-        description: 'Chorus effect - creates rich, shimmering sound by duplicating and detuning',
-        mml: '@Chorus o4 l8 cdefgab<c'
     },
     {
         id: 'effect-chorus-args',
@@ -276,12 +216,6 @@ export const demos = [
 } o4 l8 cdefgab<c`
     },
     {
-        id: 'effect-phaser',
-        name: '@Phaser',
-        description: 'Phaser effect - creates sweeping, whooshing sound by phase-shifting',
-        mml: '@Phaser o4 l8 cdefgab<c'
-    },
-    {
         id: 'effect-phaser-args',
         name: '@Phaser with Args',
         description: 'Phaser with custom parameters - adjust frequency, octaves, and base frequency',
@@ -292,12 +226,6 @@ export const demos = [
 } o4 l8 cdefgab<c`
     },
     {
-        id: 'effect-tremolo',
-        name: '@Tremolo',
-        description: 'Tremolo effect - creates rhythmic volume variations',
-        mml: '@Tremolo o4 l8 cdefgab<c'
-    },
-    {
         id: 'effect-tremolo-args',
         name: '@Tremolo with Args',
         description: 'Tremolo with custom parameters - adjust frequency and depth',
@@ -305,12 +233,6 @@ export const demos = [
   "frequency": 10,
   "depth": 0.5
 } o4 l8 cdefgab<c`
-    },
-    {
-        id: 'effect-vibrato',
-        name: '@Vibrato',
-        description: 'Vibrato effect - creates pitch variations for expressive sound',
-        mml: '@Vibrato o4 l8 cdefgab<c'
     },
     {
         id: 'effect-vibrato-args',
@@ -336,24 +258,12 @@ export const demos = [
 } o4 l1 'cegb' 'cegb' 'cegb' 'cegb'`
     },
     {
-        id: 'effect-distortion',
-        name: '@Distortion',
-        description: 'Distortion effect - adds grit and overdrive to the sound',
-        mml: '@Distortion o4 l8 cdefgab<c'
-    },
-    {
         id: 'effect-distortion-args',
         name: '@Distortion with Args',
         description: 'Distortion with custom amount - higher values create more intense distortion',
         mml: `@Distortion{
   "distortion": 0.8
 } o4 l8 cdefgab<c`
-    },
-    {
-        id: 'effect-mixed-chain',
-        name: 'Mixed Effects Chain',
-        description: 'Chain different effect types in series - Reverb -> Chorus -> Delay',
-        mml: '@Reverb @Chorus @PingPongDelay o4 l8 cdefgab<c'
     },
     {
         id: 'effect-mixed-chain-args',
