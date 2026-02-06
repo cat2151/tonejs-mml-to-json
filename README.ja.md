@@ -7,10 +7,15 @@
   <a href="README.ja.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
   <a href="https://cat2151.github.io/tonejs-mml-to-json/index.html"><img src="https://img.shields.io/badge/🚀-Live%20Demo-brightgreen.svg" alt="Demo"></a>
+  <a href="https://cat2151.github.io/tonejs-mml-to-json/demo-library/"><img src="https://img.shields.io/badge/📚-demo--library-orange.svg" alt="demo-library"></a>
 </p>
 
 ## 状況
 - このドキュメントには、応急のAI生成文章が含まれており、読みづらいです。今後、人間の手で読みやすく修正していく予定です。
+
+## デモ
+- [Live Demo](https://cat2151.github.io/tonejs-mml-to-json/index.html) - ブラウザで直接MMLを試して音楽を再生できます
+- [demo-library](https://cat2151.github.io/tonejs-mml-to-json/demo-library/) - ライブラリとしての利用例を確認できます
 
 ## 実装方針
 このプロジェクトは **Tree-sitter** を使用してMMLをパースします。
