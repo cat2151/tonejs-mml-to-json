@@ -23,6 +23,7 @@
     "build:ts": "tsc",
     "build:libs": "node scripts/copy-libs.js",
     "build": "npm run build:wasm && npm run build:ts && npm run build:libs",
+    "check-deps": "node scripts/check-deps.js",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:wasm": "node test/wasm-test.mjs && node test/wasm-integration-test.mjs && node test/demo-test.mjs && node test/wasm-init-test.mjs",
