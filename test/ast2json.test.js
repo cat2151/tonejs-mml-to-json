@@ -385,13 +385,12 @@ describe('ast2json', () => {
       const result = ast2json(ast);
       
       // Initial node should be PolySynth (not FMSynth) because track has chords
-      // Note: tonejs-json-sequencer doesn't support voice specification,
-      // so FMSynth with chords will use default PolySynth (Synth voice)
+      // with voice set to FMSynth
       expect(result[0].eventType).toBe("createNode");
       expect(result[0].nodeId).toBe(0);
       expect(result[0].nodeType).toBe("PolySynth");
-      // With current tonejs-json-sequencer, args should be undefined for default voice
-      expect(result[0].args).toBeUndefined();
+      expect(result[0].args).toBeDefined();
+      expect(result[0].args.voice).toBe("FMSynth");
       
       // Second instrument change should also create PolySynth (not MonoSynth)
       // Result structure: [0]=createNode(PolySynth), [1]=connect, [2]=chord, [3]=createNode(@MonoSynth->PolySynth), [4]=connect, [5]=chord
@@ -1043,10 +1042,11 @@ describe('ast2json', () => {
       expect(createNodes).toHaveLength(1);
       expect(createNodes[0].nodeType).toBe("PolySynth");
       
-      // Note: tonejs-json-sequencer doesn't support voice/options format
-      // FMSynth args are passed through but will use default PolySynth voice
+      // Args should be wrapped with voice and options
       expect(createNodes[0].args).toBeDefined();
-      expect(createNodes[0].args.harmonicity).toBe(5);
+      expect(createNodes[0].args.voice).toBe("FMSynth");
+      expect(createNodes[0].args.options).toBeDefined();
+      expect(createNodes[0].args.options.harmonicity).toBe(5);
     });
   });
 
