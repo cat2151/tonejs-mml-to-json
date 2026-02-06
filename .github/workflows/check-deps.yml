@@ -1,0 +1,54 @@
+name: Check Dependencies
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  check-deps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Check dependency versions
+        id: check
+        run: |
+          npm run check-deps || echo "OUTDATED=true" >> $GITHUB_OUTPUT
+          
+      - name: Comment on PR if outdated
+        if: steps.check.outputs.OUTDATED == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = context.issue.number;
+            if (!issue_number) return;
+            
+            const body = `## ⚠️ Outdated Dependencies Detected
+            
+            The \`tonejs-json-sequencer\` dependency appears to be outdated.
+            
+            **Action Required:**
+            \`\`\`bash
+            npm update tonejs-json-sequencer
+            npm run build:libs
+            \`\`\`
+            
+            **Why this matters:** GitHub dependencies are pinned to specific commit SHAs in \`package-lock.json\`. Running \`npm install\` does NOT update them - you must use \`npm update\`.
+            
+            Please update the dependency before investigating library behavior to avoid working with outdated code.`;
+            
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              body: body
+            });

@@ -25,42 +25,13 @@
 
 **重要**: 外部ライブラリの機能を調査する際は、必ず以下の手順に従ってください。
 
-1. **最新バージョンの確認**（最優先）
-   - `package-lock.json`のcommit SHAを確認
-   - GitHub リポジトリで最新コミットを確認
-   - 差分がある場合は`npm update <package>`を実行してから調査開始
-
+1. **最初に`npm run check-deps`を実行**してバージョンを確認
 2. **調査の優先順位**
    - **1st: GitHubリポジトリの最新ソースコード**
    - **2nd: `node_modules`のインストール済みコード**
-   - **理由**: `node_modules`は古いバージョンが残っている可能性が高い
+3. **outdatedの場合**: `npm update <package>`を実行してから調査開始
 
-3. **GitHub依存パッケージの更新方法**
-   ```bash
-   # パッケージを最新に更新（npm installではなくupdateを使用）
-   npm update tonejs-json-sequencer
-   
-   # 更新確認
-   cat package-lock.json | grep -A 3 "tonejs-json-sequencer"
-   
-   # ビルド
-   npm run build:libs
-   ```
-
-4. **調査前のチェックリスト**
-   - [ ] GitHubリポジトリで最新コミット日を確認
-   - [ ] package-lock.jsonのSHAと比較
-   - [ ] 差分がある場合は`npm update`実行
-   - [ ] 最新版のソースコードで機能確認
-   - [ ] 調査時は必ずバージョン情報を記録
-
-5. **なぜこのプロセスが必要か**
-   - `package.json`で`github:owner/repo`形式を使用すると、npm installは既存のSHAを維持する
-   - `npm update`を実行しないと、最新の機能が反映されない
-   - 古いバージョンで調査すると、既に解決済みの問題を再現することになる
-   - **実例**: 2026-02-06にtonejs-json-sequencerが古かったため、既に実装済みの機能を「未実装」と誤判断した事例が発生
-
-詳細は`ROOT_CAUSE_ANALYSIS.md`と`PREVENTION_STRATEGY.md`を参照
+**理由**: `npm install`は既存のcommit SHAを維持するため、古いバージョンで調査すると誤判断の原因となる
 
 ## アーキテクチャ
 

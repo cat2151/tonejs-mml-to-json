@@ -36,17 +36,22 @@ try {
           console.log('\n⚠️  tonejs-json-sequencer is OUTDATED!');
           console.log('   Run: npm update tonejs-json-sequencer');
           console.log('   Then: npm run build:libs');
+          console.log('\n   GitHub dependencies use commit SHA pinning.');
+          console.log('   npm install does NOT update them - use npm update instead.');
           process.exit(1);
         } else {
           console.log('\n✅ tonejs-json-sequencer is up to date');
+          process.exit(0);
         }
       } catch (err) {
         console.log('\n⚠️  Could not check latest version (network issue)');
         console.error(err.message);
+        process.exit(0); // Don't fail on network errors
       }
     }
   } else {
     console.log('ℹ️  tonejs-json-sequencer not found or not from GitHub');
+    process.exit(0);
   }
 } catch (err) {
   console.error('❌ Error checking dependencies:', err.message);
