@@ -39,7 +39,8 @@ pub fn prepare_polysynth_args(
     // For other instruments (FMSynth, AMSynth, etc.), we cannot properly convert
     // them to PolySynth with tonejs-json-sequencer's current implementation,
     // as it doesn't support specifying the voice class.
-    // Pass through the args and let it create a default PolySynth with Synth voice.
+    // Return the original args unchanged (or None if no args), which will be used
+    // for a default PolySynth with Synth voice.
     original_args
 }
 

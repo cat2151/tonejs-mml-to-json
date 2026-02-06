@@ -560,8 +560,7 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(createNodes).toHaveLength(1);
       expect(createNodes[0].nodeType).toBe('PolySynth');
       
-      // Note: tonejs-json-sequencer doesn't support voice/options format
-      // FMSynth args are passed through but will use default PolySynth voice
+      // Note: tonejs-json-sequencer doesn't support voice/options format, so FMSynth args are passed through but will use default PolySynth voice
       expect(createNodes[0].args).toBeDefined();
       expect(createNodes[0].args.harmonicity).toBe(5);
       
