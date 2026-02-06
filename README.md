@@ -7,10 +7,15 @@
   <a href="README.ja.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
   <a href="https://cat2151.github.io/tonejs-mml-to-json/index.html"><img src="https://img.shields.io/badge/🚀-Live%20Demo-brightgreen.svg" alt="Demo"></a>
+  <a href="https://cat2151.github.io/tonejs-mml-to-json/demo-library/"><img src="https://img.shields.io/badge/📚-demo--library-orange.svg" alt="demo-library"></a>
 </p>
 
 ## Current Status
 - This document contains hastily AI-generated text and may be difficult to read. We plan to revise it for better readability by human hands in the future.
+
+## Demo
+- [Live Demo](https://cat2151.github.io/tonejs-mml-to-json/index.html) - Try MML directly in your browser and play music
+- [demo-library](https://cat2151.github.io/tonejs-mml-to-json/demo-library/) - View library usage examples
 
 ## Implementation Policy
 This project uses **Tree-sitter** to parse MML.
