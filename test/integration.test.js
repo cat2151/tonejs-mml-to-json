@@ -560,11 +560,10 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(createNodes).toHaveLength(1);
       expect(createNodes[0].nodeType).toBe('PolySynth');
       
-      // Args should be wrapped with voice and options
+      // Note: tonejs-json-sequencer doesn't support voice/options format
+      // FMSynth args are passed through but will use default PolySynth voice
       expect(createNodes[0].args).toBeDefined();
-      expect(createNodes[0].args.voice).toBe('FMSynth');
-      expect(createNodes[0].args.options).toBeDefined();
-      expect(createNodes[0].args.options.harmonicity).toBe(5);
+      expect(createNodes[0].args.harmonicity).toBe(5);
       
       // Check chords are arrays
       const chords = json.filter(e => e.eventType === 'triggerAttackRelease');
@@ -588,19 +587,20 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(createNodes[0].args.release).toBe(1);
     });
 
-    it('should wrap FMSynth in PolySynth with voice when using chords (issue #128)', () => {
+    it('should convert FMSynth to PolySynth when using chords (issue #128)', () => {
       // Issue #128: When using chord command with FMSynth, it should become PolySynth
-      // with voice="FMSynth" so the FMSynth part is not forgotten
+      // Note: tonejs-json-sequencer doesn't support voice/options format,
+      // so the FMSynth part is not preserved (will use default Synth voice)
       const mml = '@FMSynth \'ceg\'';
       const ast = mml2ast(mml);
       const json = ast2json(ast);
       
-      // Should create PolySynth with voice="FMSynth"
+      // Should create PolySynth (FMSynth voice cannot be preserved)
       const createNodes = json.filter(e => e.eventType === 'createNode');
       expect(createNodes).toHaveLength(1);
       expect(createNodes[0].nodeType).toBe('PolySynth');
-      expect(createNodes[0].args).toBeDefined();
-      expect(createNodes[0].args.voice).toBe('FMSynth');
+      // Args will be undefined since FMSynth has no args
+      expect(createNodes[0].args).toBeUndefined();
       
       // Check chord is played correctly
       const chords = json.filter(e => e.eventType === 'triggerAttackRelease');
