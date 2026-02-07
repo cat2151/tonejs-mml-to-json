@@ -38,25 +38,10 @@ pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
 
         for (track_index, track_ast) in tracks.iter().enumerate() {
             let base_node_id = (track_index as u32) * NODE_ID_SPACING;
-            let track_commands = process_single_track(track_ast, base_node_id)?;
+            let (track_commands, end_tick) = process_single_track(track_ast, base_node_id)?;
             
-            // Find the maximum end time across all tracks
-            // Look for the loopEnd event and extract its tick value
-            if let Some(loop_end_cmd) = track_commands.iter().find(|c| c.event_type == "loopEnd") {
-                if let Some(args) = &loop_end_cmd.args {
-                    if let Some(arr) = args.as_array() {
-                        if let Some(tick_str) = arr.get(0).and_then(|v| v.as_str()) {
-                            // Handle both "+NNNi" and "NNNi" formats for backward compatibility
-                            let tick_str = tick_str.trim_start_matches('+');
-                            if tick_str.ends_with('i') {
-                                if let Ok(tick) = tick_str[..tick_str.len() - 1].parse::<u32>() {
-                                    max_end_tick = max_end_tick.max(tick);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            // Track the maximum end time across all tracks
+            max_end_tick = max_end_tick.max(end_tick);
             
             // Remove the loopEnd event from individual tracks (we'll add one global loopEnd)
             let track_commands_without_loop_end: Vec<_> = track_commands
@@ -98,12 +83,14 @@ pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
         Ok(all_commands)
     } else {
         // Single track processing (original logic)
-        process_single_track(ast, 0)
+        let (commands, _end_tick) = process_single_track(ast, 0)?;
+        Ok(commands)
     }
 }
 
 /// Process a single track and generate commands with the specified node_id
-fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Command>, String> {
+/// Returns a tuple of (commands, end_tick) where end_tick is the total duration in ticks
+fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<(Vec<Command>, u32), String> {
     let mut commands = Vec::new();
     // Ticks per measure: 192 ticks per quarter note * 4 quarter notes = 768 ticks per 4/4 measure
     let meas_tick = 192 * 4;
@@ -476,7 +463,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
         args: Some(serde_json::json!([calc_start_tick(start_tick)])),
     });
 
-    Ok(commands)
+    Ok((commands, start_tick))
 }
 
 #[cfg(test)]

@@ -37,9 +37,11 @@ q4 c4 d8
   {"eventType": "connect", "nodeId": 0, "connectTo": "toDestination"},
   {"eventType": "triggerAttackRelease", "nodeId": 0, "args": ["c4", "96i", "+0i"]},
   {"eventType": "triggerAttackRelease", "nodeId": 0, "args": ["d4", "48i", "+192i"]},
-  {"eventType": "loopEnd", "nodeId": 0, "args": ["288i"]}
+  {"eventType": "loopEnd", "nodeId": 0, "args": ["+288i"]}
 ]
 ```
+
+**Note**: As of v0.2.0 (Issue #152), the loopEnd format changed from `"288i"` to `"+288i"` for consistency with triggerAttackRelease. See IMPLEMENTATION_NOTES_152.md for details.
 
 ### Explanation:
 - `q4` means 50% gate time
