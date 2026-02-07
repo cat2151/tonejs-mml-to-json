@@ -43,8 +43,8 @@ If you have code that parses the loopEnd timing value, update it to handle the `
 // Old code (breaks with new format)
 const ticks = parseInt(loopEnd.args[0].replace('i', ''));
 
-// New code (works with both formats)
-const ticks = parseInt(loopEnd.args[0].replace(/^[+]?/, '').replace('i', ''));
+// New code (handles new format with + prefix)
+const ticks = parseInt(loopEnd.args[0].replace(/^[+]/, '').replace('i', ''));
 ```
 
 **Rust example:**
@@ -52,12 +52,14 @@ const ticks = parseInt(loopEnd.args[0].replace(/^[+]?/, '').replace('i', ''));
 // Old code (breaks with new format)
 let ticks = tick_str.trim_end_matches('i').parse::<u32>()?;
 
-// New code (works with both formats)
+// New code (handles new format with + prefix)
 let ticks = tick_str
     .trim_start_matches('+')
     .trim_end_matches('i')
     .parse::<u32>()?;
 ```
+
+**Note**: The old "NNNi" format is no longer supported. Only the new "+NNNi" format is emitted. This is a clean breaking change with no backward compatibility.
 
 ## Implementation Details
 
