@@ -63,9 +63,9 @@ let ticks = tick_str
 
 ### Code Changes
 1. **rust/src/ast2json.rs**:
-   - Line 95: Multi-track loopEnd now uses `calc_start_tick(max_end_tick)`
-   - Line 476: Single-track loopEnd now uses `calc_start_tick(start_tick)`
-   - Lines 39-48: Refactored to avoid parsing string format back to numeric value
+   - Line 80: Multi-track loopEnd now uses `calc_start_tick(max_end_tick)`
+   - Line 463: Single-track loopEnd now uses `calc_start_tick(start_tick)`
+   - Lines 41-44: Refactored multi-track processing to use numeric end_tick directly
 
 2. **Process improvements**:
    - `process_single_track` now returns `(Vec<Command>, u32)` tuple
