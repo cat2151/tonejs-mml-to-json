@@ -1,16 +1,33 @@
 #!/usr/bin/env node
-import { mkdirSync, copyFileSync, existsSync } from 'fs';
+import { mkdirSync, copyFileSync, existsSync, readdirSync, statSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, '..');
 
+// Helper function to recursively copy directory
+function copyDirRecursive(src, dest) {
+  mkdirSync(dest, { recursive: true });
+  const entries = readdirSync(src, { withFileTypes: true });
+  
+  for (const entry of entries) {
+    const srcPath = join(src, entry.name);
+    const destPath = join(dest, entry.name);
+    
+    if (entry.isDirectory()) {
+      copyDirRecursive(srcPath, destPath);
+    } else {
+      copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
 // Create dist/libs directory
 const libsDir = join(projectRoot, 'dist', 'libs');
 mkdirSync(libsDir, { recursive: true });
 
-// Copy tonejs-json-sequencer
+// Copy tonejs-json-sequencer main module
 const source = join(projectRoot, 'node_modules', 'tonejs-json-sequencer', 'dist', 'index.mjs');
 const dest = join(libsDir, 'tonejs-json-sequencer.mjs');
 if (!existsSync(source)) {
@@ -21,13 +38,20 @@ if (!existsSync(source)) {
 }
 copyFileSync(source, dest);
 
+// Copy tonejs-json-sequencer ESM directory
+const esmSource = join(projectRoot, 'node_modules', 'tonejs-json-sequencer', 'dist', 'esm');
+const esmDest = join(libsDir, 'esm');
+if (existsSync(esmSource)) {
+  copyDirRecursive(esmSource, esmDest);
+}
+
 const sourceTypes = join(projectRoot, 'node_modules', 'tonejs-json-sequencer', 'dist', 'index.d.ts');
 const destTypes = join(libsDir, 'tonejs-json-sequencer.d.ts');
 if (existsSync(sourceTypes)) {
   copyFileSync(sourceTypes, destTypes);
-  console.log('✓ Copied tonejs-json-sequencer (.mjs and .d.ts) to dist/libs');
+  console.log('✓ Copied tonejs-json-sequencer (.mjs, .d.ts, and esm/) to dist/libs');
 } else {
-  console.log('✓ Copied tonejs-json-sequencer (.mjs) to dist/libs');
+  console.log('✓ Copied tonejs-json-sequencer (.mjs and esm/) to dist/libs');
   console.log('⚠ TypeScript definitions (.d.ts) not found, skipping');
 }
 
