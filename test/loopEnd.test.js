@@ -11,7 +11,7 @@ describe('loopEnd event', () => {
       // Last command should be loopEnd
       const lastCmd = result[result.length - 1];
       expect(lastCmd.eventType).toBe('loopEnd');
-      expect(lastCmd.args).toEqual(['0i']); // Empty sequence ends at 0
+      expect(lastCmd.args).toEqual(['+0i']); // Empty sequence ends at 0
     });
 
     it('should add loopEnd event after single note', () => {
@@ -22,7 +22,7 @@ describe('loopEnd event', () => {
       // Last command should be loopEnd
       const lastCmd = result[result.length - 1];
       expect(lastCmd.eventType).toBe('loopEnd');
-      expect(lastCmd.args).toEqual(['96i']); // One eighth note (default) = 96 ticks
+      expect(lastCmd.args).toEqual(['+96i']); // One eighth note (default) = 96 ticks
     });
 
     it('should add loopEnd event with correct timing after multiple notes', () => {
@@ -33,7 +33,7 @@ describe('loopEnd event', () => {
       // Calculate expected end time: 192 (c4) + 96 (d8) + 48 (e16) = 336 ticks
       const lastCmd = result[result.length - 1];
       expect(lastCmd.eventType).toBe('loopEnd');
-      expect(lastCmd.args).toEqual(['336i']);
+      expect(lastCmd.args).toEqual(['+336i']);
     });
 
     it('should add loopEnd event considering rests', () => {
@@ -44,7 +44,7 @@ describe('loopEnd event', () => {
       // Calculate expected end time: 192 (c4) + 192 (r4) + 192 (d4) = 576 ticks
       const lastCmd = result[result.length - 1];
       expect(lastCmd.eventType).toBe('loopEnd');
-      expect(lastCmd.args).toEqual(['576i']);
+      expect(lastCmd.args).toEqual(['+576i']);
     });
 
     it('should add loopEnd event with dotted notes', () => {
@@ -55,7 +55,7 @@ describe('loopEnd event', () => {
       // Dotted quarter note: 192 * 1.5 = 288 ticks
       const lastCmd = result[result.length - 1];
       expect(lastCmd.eventType).toBe('loopEnd');
-      expect(lastCmd.args).toEqual(['288i']);
+      expect(lastCmd.args).toEqual(['+288i']);
     });
 
     it('should add loopEnd event with gate time q command', () => {
@@ -67,7 +67,7 @@ describe('loopEnd event', () => {
       // The note still takes 192 ticks of time, even if it's only played for half of it
       const lastCmd = result[result.length - 1];
       expect(lastCmd.eventType).toBe('loopEnd');
-      expect(lastCmd.args).toEqual(['192i']);
+      expect(lastCmd.args).toEqual(['+192i']);
     });
 
     it('should track total time correctly with chords', () => {
@@ -78,7 +78,7 @@ describe('loopEnd event', () => {
       // Quarter note chord + eighth note chord: 192 + 96 = 288 ticks
       const lastCmd = result[result.length - 1];
       expect(lastCmd.eventType).toBe('loopEnd');
-      expect(lastCmd.args).toEqual(['288i']);
+      expect(lastCmd.args).toEqual(['+288i']);
     });
   });
 
@@ -93,7 +93,7 @@ describe('loopEnd event', () => {
       // loopEnd should be at 192 ticks (longest track)
       const lastCmd = result[result.length - 1];
       expect(lastCmd.eventType).toBe('loopEnd');
-      expect(lastCmd.args).toEqual(['192i']);
+      expect(lastCmd.args).toEqual(['+192i']);
     });
 
     it('should add loopEnd event with equal length tracks', () => {
@@ -104,7 +104,7 @@ describe('loopEnd event', () => {
       // All tracks: 192 ticks
       const lastCmd = result[result.length - 1];
       expect(lastCmd.eventType).toBe('loopEnd');
-      expect(lastCmd.args).toEqual(['192i']);
+      expect(lastCmd.args).toEqual(['+192i']);
     });
 
     it('should add loopEnd event when second track is longer', () => {
@@ -117,7 +117,7 @@ describe('loopEnd event', () => {
       // loopEnd should be at 192 ticks (longest track)
       const lastCmd = result[result.length - 1];
       expect(lastCmd.eventType).toBe('loopEnd');
-      expect(lastCmd.args).toEqual(['192i']);
+      expect(lastCmd.args).toEqual(['+192i']);
     });
 
     it('should add loopEnd event with multiple notes in each track', () => {
@@ -130,7 +130,7 @@ describe('loopEnd event', () => {
       // loopEnd should be at 288 ticks (longest track)
       const lastCmd = result[result.length - 1];
       expect(lastCmd.eventType).toBe('loopEnd');
-      expect(lastCmd.args).toEqual(['288i']);
+      expect(lastCmd.args).toEqual(['+288i']);
     });
 
     it('should add only one loopEnd event for multi-track sequences', () => {
@@ -157,7 +157,7 @@ describe('loopEnd event', () => {
       // It should have the total duration of the sequence
       // q4 means 50% gate time, but notes still take full duration in time:
       // c4 (192 ticks) + d8 (96 ticks) = 288 ticks total
-      expect(lastCmd.args).toEqual(['288i']);
+      expect(lastCmd.args).toEqual(['+288i']);
       
       // This is especially important when q (gate time) command affects note durations
       // The streaming player needs to know the actual loop point regardless of gate time
