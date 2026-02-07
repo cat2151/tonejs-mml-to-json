@@ -46,6 +46,8 @@ pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
                 if let Some(args) = &loop_end_cmd.args {
                     if let Some(arr) = args.as_array() {
                         if let Some(tick_str) = arr.get(0).and_then(|v| v.as_str()) {
+                            // Handle both "+NNNi" and "NNNi" formats for backward compatibility
+                            let tick_str = tick_str.trim_start_matches('+');
                             if tick_str.ends_with('i') {
                                 if let Ok(tick) = tick_str[..tick_str.len() - 1].parse::<u32>() {
                                     max_end_tick = max_end_tick.max(tick);
@@ -90,7 +92,7 @@ pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
             node_id: 0,
             node_type: None,
             connect_to: None,
-            args: Some(serde_json::json!([format!("{}i", max_end_tick)])),
+            args: Some(serde_json::json!([calc_start_tick(max_end_tick)])),
         });
 
         Ok(all_commands)
@@ -471,7 +473,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<Vec<Comm
         node_id: 0,
         node_type: None,
         connect_to: None,
-        args: Some(serde_json::json!([format!("{}i", start_tick)])),
+        args: Some(serde_json::json!([calc_start_tick(start_tick)])),
     });
 
     Ok(commands)
