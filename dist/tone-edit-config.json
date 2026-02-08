@@ -1,0 +1,247 @@
+{
+    "instruments": [
+        {
+            "id": "Synth",
+            "name": "Synth",
+            "parameters": [
+                {
+                    "path": "envelope.attack",
+                    "label": "Envelope Attack",
+                    "min": 0,
+                    "max": 1,
+                    "sweetMin": 0.03,
+                    "sweetMax": 0.2,
+                    "defaultValue": 0.1,
+                    "step": 0.01
+                },
+                {
+                    "path": "envelope.decay",
+                    "label": "Envelope Decay",
+                    "min": 0,
+                    "max": 1.5,
+                    "sweetMin": 0.1,
+                    "sweetMax": 0.6,
+                    "defaultValue": 0.3,
+                    "step": 0.01
+                },
+                {
+                    "path": "envelope.sustain",
+                    "label": "Envelope Sustain",
+                    "min": 0,
+                    "max": 1,
+                    "sweetMin": 0.35,
+                    "sweetMax": 0.85,
+                    "defaultValue": 0.6,
+                    "step": 0.01
+                },
+                {
+                    "path": "envelope.release",
+                    "label": "Envelope Release",
+                    "min": 0,
+                    "max": 3,
+                    "sweetMin": 0.4,
+                    "sweetMax": 1.5,
+                    "defaultValue": 0.8,
+                    "step": 0.05
+                }
+            ]
+        },
+        {
+            "id": "FMSynth",
+            "name": "FMSynth",
+            "parameters": [
+                {
+                    "path": "harmonicity",
+                    "label": "Harmonicity",
+                    "min": 0.2,
+                    "max": 8,
+                    "sweetMin": 1,
+                    "sweetMax": 4,
+                    "defaultValue": 2,
+                    "step": 0.1
+                },
+                {
+                    "path": "modulationIndex",
+                    "label": "Modulation Index",
+                    "min": 0,
+                    "max": 20,
+                    "sweetMin": 2,
+                    "sweetMax": 12,
+                    "defaultValue": 8,
+                    "step": 0.1
+                },
+                {
+                    "path": "envelope.attack",
+                    "label": "Envelope Attack",
+                    "min": 0,
+                    "max": 1,
+                    "sweetMin": 0.02,
+                    "sweetMax": 0.25,
+                    "defaultValue": 0.05,
+                    "step": 0.01
+                },
+                {
+                    "path": "envelope.release",
+                    "label": "Envelope Release",
+                    "min": 0,
+                    "max": 3,
+                    "sweetMin": 0.3,
+                    "sweetMax": 1.2,
+                    "defaultValue": 0.6,
+                    "step": 0.05
+                }
+            ]
+        },
+        {
+            "id": "MonoSynth",
+            "name": "MonoSynth",
+            "parameters": [
+                {
+                    "path": "filter.Q",
+                    "label": "Filter Q",
+                    "min": 0.1,
+                    "max": 24,
+                    "sweetMin": 2,
+                    "sweetMax": 12,
+                    "defaultValue": 6,
+                    "step": 0.1
+                },
+                {
+                    "path": "filterEnvelope.attack",
+                    "label": "Filter Env Attack",
+                    "min": 0,
+                    "max": 1,
+                    "sweetMin": 0.005,
+                    "sweetMax": 0.2,
+                    "defaultValue": 0.02,
+                    "step": 0.005
+                },
+                {
+                    "path": "filterEnvelope.release",
+                    "label": "Filter Env Release",
+                    "min": 0,
+                    "max": 2,
+                    "sweetMin": 0.2,
+                    "sweetMax": 1,
+                    "defaultValue": 0.5,
+                    "step": 0.05
+                }
+            ]
+        }
+    ],
+    "effects": [
+        {
+            "id": "none",
+            "name": "No Effect",
+            "parameters": []
+        },
+        {
+            "id": "Chorus",
+            "name": "Chorus",
+            "parameters": [
+                {
+                    "path": "frequency",
+                    "label": "Frequency",
+                    "min": 0.1,
+                    "max": 8,
+                    "sweetMin": 0.3,
+                    "sweetMax": 3,
+                    "defaultValue": 1.5,
+                    "step": 0.1
+                },
+                {
+                    "path": "delayTime",
+                    "label": "Delay Time",
+                    "min": 1,
+                    "max": 10,
+                    "sweetMin": 1.5,
+                    "sweetMax": 5,
+                    "defaultValue": 3,
+                    "step": 0.1
+                },
+                {
+                    "path": "depth",
+                    "label": "Depth",
+                    "min": 0,
+                    "max": 1,
+                    "sweetMin": 0.3,
+                    "sweetMax": 0.9,
+                    "defaultValue": 0.5,
+                    "step": 0.01
+                }
+            ]
+        },
+        {
+            "id": "Reverb",
+            "name": "Reverb",
+            "parameters": [
+                {
+                    "path": "decay",
+                    "label": "Decay",
+                    "min": 0.5,
+                    "max": 12,
+                    "sweetMin": 1,
+                    "sweetMax": 6,
+                    "defaultValue": 2.5,
+                    "step": 0.1
+                },
+                {
+                    "path": "preDelay",
+                    "label": "Pre Delay",
+                    "min": 0,
+                    "max": 0.5,
+                    "sweetMin": 0,
+                    "sweetMax": 0.2,
+                    "defaultValue": 0.05,
+                    "step": 0.01
+                },
+                {
+                    "path": "wet",
+                    "label": "Wet",
+                    "min": 0,
+                    "max": 1,
+                    "sweetMin": 0.2,
+                    "sweetMax": 0.7,
+                    "defaultValue": 0.4,
+                    "step": 0.01
+                }
+            ]
+        },
+        {
+            "id": "PingPongDelay",
+            "name": "PingPongDelay",
+            "parameters": [
+                {
+                    "path": "delayTime",
+                    "label": "Delay Time",
+                    "min": 0.05,
+                    "max": 0.9,
+                    "sweetMin": 0.12,
+                    "sweetMax": 0.55,
+                    "defaultValue": 0.25,
+                    "step": 0.01
+                },
+                {
+                    "path": "feedback",
+                    "label": "Feedback",
+                    "min": 0,
+                    "max": 0.9,
+                    "sweetMin": 0.25,
+                    "sweetMax": 0.7,
+                    "defaultValue": 0.35,
+                    "step": 0.01
+                },
+                {
+                    "path": "wet",
+                    "label": "Wet",
+                    "min": 0,
+                    "max": 1,
+                    "sweetMin": 0.2,
+                    "sweetMax": 0.8,
+                    "defaultValue": 0.5,
+                    "step": 0.01
+                }
+            ]
+        }
+    ]
+}
