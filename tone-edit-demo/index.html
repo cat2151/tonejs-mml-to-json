@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>tone edit & effect edit demo</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif; margin: 0 auto; max-width: 1080px; padding: 24px; line-height: 1.5; }
+    h1 { margin-bottom: 8px; }
+    h2 { margin-top: 32px; }
+    p { margin: 4px 0 12px; }
+    .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+    .card { border: 1px solid #ccc; border-radius: 12px; padding: 16px; background: rgba(255,255,255,0.04); }
+    label { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 6px 0; }
+    label span { font-size: 14px; }
+    input[type="number"] { width: 120px; }
+    textarea { width: 100%; min-height: 80px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
+    select, button { padding: 8px 10px; border-radius: 8px; border: 1px solid #ccc; }
+    button { cursor: pointer; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .status { margin-top: 12px; padding: 10px; border-radius: 8px; border: 1px solid transparent; }
+    .status[data-state="info"] { border-color: #999; }
+    .status[data-state="error"] { border-color: #d9534f; color: #d9534f; }
+    .status[data-state="success"] { border-color: #28a745; color: #28a745; }
+    pre { background: rgba(0,0,0,0.08); padding: 12px; border-radius: 10px; overflow: auto; }
+    .note { font-size: 13px; color: #666; margin-top: 4px; }
+    .param-row { border-bottom: 1px dashed #ccc; padding-bottom: 6px; margin-bottom: 6px; }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "tonejs-json-sequencer": "../dist/libs/tonejs-json-sequencer.mjs",
+      "tonejs-mml-to-json": "../dist/index.js",
+      "web-tree-sitter": "../dist/web-tree-sitter.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <h1>tone edit & effect edit demo</h1>
+  <p>音色とエフェクトを数値で編集しながらMMLを自動生成する実験デモです。ランダム生成やJSONインポート/エクスポートで設定を共有できます。</p>
+
+  <section class="grid">
+    <div class="card">
+      <h2>Instrument</h2>
+      <div class="row">
+        <label for="instrumentSelect"><span>種類</span></label>
+        <select id="instrumentSelect"></select>
+        <button id="randomInstrument">ランダム (sweet spot)</button>
+      </div>
+      <div id="instrumentParams"></div>
+      <textarea id="instrumentMml" spellcheck="false"></textarea>
+    </div>
+
+    <div class="card">
+      <h2>Effect</h2>
+      <div class="row">
+        <label for="effectSelect"><span>種類</span></label>
+        <select id="effectSelect"></select>
+        <button id="randomEffect">ランダム (sweet spot)</button>
+      </div>
+      <div id="effectParams"></div>
+      <textarea id="effectMml" spellcheck="false" placeholder="@Effect{ ... }"></textarea>
+      <div class="note">No Effectを選ぶとエフェクトMMLは空になります。</div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <h2>Notes</h2>
+      <div class="row">
+        <label for="notePattern"><span>プリセット</span></label>
+        <select id="notePattern"></select>
+      </div>
+      <textarea id="noteMml" spellcheck="false"></textarea>
+      <div class="note">プルダウンで差し替え、直接編集も可能です。</div>
+    </div>
+
+    <div class="card">
+      <h2>Play & Export</h2>
+      <div class="row">
+        <button id="playNow">再生</button>
+        <button id="exportState">JSONエクスポート</button>
+        <button id="importState">JSONインポート</button>
+      </div>
+      <textarea id="stateJson" spellcheck="false" placeholder='設定の保存/貼り付け用JSON'></textarea>
+      <div class="note">パラメータ編集・ランダム生成・MML編集はデバウンスで自動再生されます。</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Generated MML</h2>
+    <textarea id="combinedMml" spellcheck="false"></textarea>
+    <h3>JSON (tonejs-json-sequencer)</h3>
+    <pre id="jsonPreview"></pre>
+    <div id="status" class="status" data-state="info">初期化中...</div>
+  </section>
+
+  <script src="https://unpkg.com/tone@15.0.4/build/Tone.js"></script>
+  <script type="module">
+    import '../dist/tone-edit-demo.js';
+  </script>
+</body>
+</html>
