@@ -1,4 +1,4 @@
-import config from './tone-edit-config.json';
+import config from './tone-edit-config.json' assert { type: 'json' };
 import { initWasm, mml2json } from './index.js';
 import { SequencerNodes, playSequence } from 'tonejs-json-sequencer';
 const AUTO_PLAY_DELAY = 800;
@@ -12,6 +12,7 @@ const notePatterns = [
 ];
 let wasmReady = null;
 let autoPlayTimer = null;
+let audioUnlocked = false;
 function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
@@ -86,6 +87,9 @@ function updateStatus(message, type = 'info') {
     status.dataset.state = type;
 }
 function scheduleAutoPlay() {
+    if (!audioUnlocked) {
+        return;
+    }
     if (autoPlayTimer !== null) {
         window.clearTimeout(autoPlayTimer);
     }
@@ -93,7 +97,20 @@ function scheduleAutoPlay() {
         void playCurrent();
     }, AUTO_PLAY_DELAY);
 }
-async function playCurrent() {
+async function ensureWasmReady() {
+    if (!wasmReady) {
+        wasmReady = initWasm();
+    }
+    try {
+        await wasmReady;
+    }
+    catch (error) {
+        wasmReady = null;
+        throw error;
+    }
+}
+async function playCurrent(options = {}) {
+    const { allowUnlock = false } = options;
     const combinedMml = (getElement('combinedMml').value || '').trim();
     if (!combinedMml) {
         updateStatus('MMLが空です。', 'error');
@@ -101,11 +118,15 @@ async function playCurrent() {
     }
     try {
         updateStatus('演奏準備中...', 'info');
-        if (!wasmReady) {
-            wasmReady = initWasm();
+        if (!audioUnlocked) {
+            if (!allowUnlock) {
+                updateStatus('再生するには「再生」ボタンを押してください。', 'info');
+                return;
+            }
+            await Tone.start();
+            audioUnlocked = true;
         }
-        await wasmReady;
-        await Tone.start();
+        await ensureWasmReady();
         const json = mml2json(combinedMml).map(toSequenceEvent);
         const jsonOutput = document.getElementById('jsonPreview');
         if (jsonOutput) {
@@ -232,7 +253,7 @@ function importState(state) {
         if (parsed.effectValues) {
             state.effectValues = parsed.effectValues;
         }
-        if (parsed.notePatternId) {
+        if (parsed.notePatternId && notePatterns.some((p) => p.id === parsed.notePatternId)) {
             state.notePatternId = parsed.notePatternId;
         }
         if (parsed.noteMml) {
@@ -321,7 +342,7 @@ function setupControls() {
     regenerateMml(state, toneConfig.instruments, toneConfig.effects);
     updateCombinedMml();
     getElement('playNow').addEventListener('click', () => {
-        void playCurrent();
+        void playCurrent({ allowUnlock: true });
     });
     getElement('exportState').addEventListener('click', () => exportState(state));
     getElement('importState').addEventListener('click', () => importState(state));
@@ -375,6 +396,5 @@ function setupControls() {
 window.addEventListener('DOMContentLoaded', () => {
     setupControls();
     updateStatus('パラメータを編集すると自動でMMLが再生成されます。', 'info');
-    scheduleAutoPlay();
 });
 //# sourceMappingURL=tone-edit-demo.js.map

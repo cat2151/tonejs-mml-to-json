@@ -184,26 +184,6 @@
           "sweetMax": 6,
           "defaultValue": 2.5,
           "step": 0.1
-        },
-        {
-          "path": "preDelay",
-          "label": "Pre Delay",
-          "min": 0,
-          "max": 0.5,
-          "sweetMin": 0,
-          "sweetMax": 0.2,
-          "defaultValue": 0.05,
-          "step": 0.01
-        },
-        {
-          "path": "wet",
-          "label": "Wet",
-          "min": 0,
-          "max": 1,
-          "sweetMin": 0.2,
-          "sweetMax": 0.7,
-          "defaultValue": 0.4,
-          "step": 0.01
         }
       ]
     },
@@ -229,16 +209,6 @@
           "sweetMin": 0.25,
           "sweetMax": 0.7,
           "defaultValue": 0.35,
-          "step": 0.01
-        },
-        {
-          "path": "wet",
-          "label": "Wet",
-          "min": 0,
-          "max": 1,
-          "sweetMin": 0.2,
-          "sweetMax": 0.8,
-          "defaultValue": 0.5,
           "step": 0.01
         }
       ]
