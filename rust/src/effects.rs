@@ -36,23 +36,13 @@ pub fn is_effect(name: &str) -> bool {
     KNOWN_EFFECTS.contains(&name)
 }
 
-/// Convert effect args from user-friendly MML into Tone.js constructor args
+/// Normalize effect args from user-friendly MML into Tone.js constructor args
 ///
 /// Newer tonejs-json-sequencer versions accept options objects directly.
 /// Keep objects intact so all parameters remain accessible, while still
 /// passing through arrays for backward compatibility.
-///
-/// # Arguments
-/// * `effect_name` - Name of the effect
-/// * `args_obj` - Arguments in object format
-///
-/// # Returns
-/// Arguments passed through (object or array), or None if conversion fails
-pub fn convert_effect_args_to_array(
-    _effect_name: &str,
-    args_obj: &serde_json::Value,
-) -> Option<serde_json::Value> {
-    Some(args_obj.clone())
+pub fn normalize_effect_args(args_obj: &serde_json::Value) -> serde_json::Value {
+    args_obj.clone()
 }
 
 /// Generate DelayVibrato depth.rampTo commands for a note or chord
@@ -111,22 +101,19 @@ mod tests {
     }
 
     #[test]
-    fn test_convert_effect_args_pingpong() {
+    fn test_normalize_effect_args_pingpong() {
         let args = serde_json::json!({"delayTime": "8n", "feedback": 0.5});
-        let result = convert_effect_args_to_array("PingPongDelay", &args);
-        assert!(result.is_some());
-        let cloned = result.unwrap();
+        let cloned = normalize_effect_args(&args);
         assert!(cloned.is_object());
         assert_eq!(cloned["delayTime"], "8n");
         assert_eq!(cloned["feedback"], 0.5);
     }
 
     #[test]
-    fn test_convert_effect_args_already_array() {
+    fn test_normalize_effect_args_already_array() {
         let args = serde_json::json!(["8n", 0.5]);
-        let result = convert_effect_args_to_array("PingPongDelay", &args);
-        assert!(result.is_some());
-        assert_eq!(result.unwrap(), args);
+        let result = normalize_effect_args(&args);
+        assert_eq!(result, args);
     }
 
     #[test]
