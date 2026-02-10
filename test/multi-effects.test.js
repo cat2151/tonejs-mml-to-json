@@ -99,8 +99,7 @@ describe('Multiple effect types support', () => {
       const reverbNode = createNodes.find(n => n.nodeType === 'Reverb');
       expect(reverbNode).toBeDefined();
       expect(reverbNode.args).toBeDefined();
-      expect(Array.isArray(reverbNode.args)).toBe(true);
-      expect(reverbNode.args[0]).toBe(2.5);
+      expect(reverbNode.args).toEqual({ decay: 2.5 });
     });
 
     it('should pass args to Chorus', () => {
@@ -112,10 +111,11 @@ describe('Multiple effect types support', () => {
       const chorusNode = createNodes.find(n => n.nodeType === 'Chorus');
       expect(chorusNode).toBeDefined();
       expect(chorusNode.args).toBeDefined();
-      expect(Array.isArray(chorusNode.args)).toBe(true);
-      expect(chorusNode.args[0]).toBe(4);
-      expect(chorusNode.args[1]).toBe(2.5);
-      expect(chorusNode.args[2]).toBe(0.7);
+      expect(chorusNode.args).toEqual({
+        frequency: 4,
+        delayTime: 2.5,
+        depth: 0.7
+      });
     });
 
     it('should pass args to FeedbackDelay', () => {
@@ -127,9 +127,10 @@ describe('Multiple effect types support', () => {
       const delayNode = createNodes.find(n => n.nodeType === 'FeedbackDelay');
       expect(delayNode).toBeDefined();
       expect(delayNode.args).toBeDefined();
-      expect(Array.isArray(delayNode.args)).toBe(true);
-      expect(delayNode.args[0]).toBe('8n');
-      expect(delayNode.args[1]).toBe(0.5);
+      expect(delayNode.args).toEqual({
+        delayTime: '8n',
+        feedback: 0.5
+      });
     });
   });
 
@@ -208,9 +209,9 @@ describe('Multiple effect types support', () => {
       const chorusNode = createNodes.find(n => n.nodeType === 'Chorus');
       const delayNode = createNodes.find(n => n.nodeType === 'PingPongDelay');
       
-      expect(reverbNode.args[0]).toBe(2);
-      expect(chorusNode.args[0]).toBe(4);
-      expect(delayNode.args[0]).toBe('8n');
+      expect(reverbNode.args).toEqual({ decay: 2 });
+      expect(chorusNode.args).toEqual({ frequency: 4 });
+      expect(delayNode.args).toEqual({ delayTime: '8n' });
     });
   });
 

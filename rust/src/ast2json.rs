@@ -9,7 +9,7 @@
 /// - track: Track splitting and chord detection
 use crate::ast::*;
 use crate::command::{get_start_tick, Command, EVENT_TYPE_CONNECT, EVENT_TYPE_CREATE_NODE};
-use crate::effects::{add_delay_vibrato_commands, convert_effect_args_to_array, is_effect};
+use crate::effects::{add_delay_vibrato_commands, is_effect, normalize_effect_args};
 use crate::instrument::{get_synth_type_for_track, prepare_polysynth_args};
 use crate::timing::{
     apply_transpose, calc_duration, calc_start_tick, calc_ticks, convert_accidental,
@@ -176,7 +176,7 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<(Vec<Com
                 .args
                 .as_ref()
                 .and_then(|json_str| serde_json::from_str::<serde_json::Value>(json_str).ok())
-                .and_then(|parsed_args| convert_effect_args_to_array(effect_name, &parsed_args));
+                .map(|parsed_args| normalize_effect_args(&parsed_args));
             (effect_name, effect_args)
         };
 
