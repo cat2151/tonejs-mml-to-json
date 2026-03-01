@@ -14,14 +14,24 @@ const VIBRATO_END_RAMP_TICKS: u32 = 10; // Ramp duration for vibrato decrease
 
 // Constant array of known effect types
 const KNOWN_EFFECTS: &[&str] = &[
-    "PingPongDelay",
-    "FeedbackDelay",
-    "Reverb",
+    "AutoFilter",
+    "AutoPanner",
+    "AutoWah",
+    "BitCrusher",
+    "Chebyshev",
     "Chorus",
+    "Distortion",
+    "FeedbackDelay",
+    "Freeverb",
+    "FrequencyShifter",
+    "JCReverb",
     "Phaser",
+    "PingPongDelay",
+    "PitchShift",
+    "Reverb",
+    "StereoWidener",
     "Tremolo",
     "Vibrato",
-    "Distortion",
     "DelayVibrato",
 ];
 
@@ -96,6 +106,16 @@ mod tests {
         assert!(is_effect("PingPongDelay"));
         assert!(is_effect("DelayVibrato"));
         assert!(is_effect("Reverb"));
+        assert!(is_effect("AutoFilter"));
+        assert!(is_effect("AutoPanner"));
+        assert!(is_effect("AutoWah"));
+        assert!(is_effect("BitCrusher"));
+        assert!(is_effect("Chebyshev"));
+        assert!(is_effect("Freeverb"));
+        assert!(is_effect("FrequencyShifter"));
+        assert!(is_effect("JCReverb"));
+        assert!(is_effect("PitchShift"));
+        assert!(is_effect("StereoWidener"));
         assert!(!is_effect("Synth"));
         assert!(!is_effect("FMSynth"));
     }
