@@ -87,6 +87,116 @@ describe('Multiple effect types support', () => {
       expect(createNodes[0].nodeType).toBe('Synth');
       expect(createNodes[1].nodeType).toBe('Distortion');
     });
+
+    it('should create AutoFilter node', () => {
+      const mml = '@AutoFilter c';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      expect(createNodes[0].nodeType).toBe('Synth');
+      expect(createNodes[1].nodeType).toBe('AutoFilter');
+    });
+
+    it('should create AutoPanner node', () => {
+      const mml = '@AutoPanner c';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      expect(createNodes[0].nodeType).toBe('Synth');
+      expect(createNodes[1].nodeType).toBe('AutoPanner');
+    });
+
+    it('should create AutoWah node', () => {
+      const mml = '@AutoWah c';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      expect(createNodes[0].nodeType).toBe('Synth');
+      expect(createNodes[1].nodeType).toBe('AutoWah');
+    });
+
+    it('should create BitCrusher node', () => {
+      const mml = '@BitCrusher c';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      expect(createNodes[0].nodeType).toBe('Synth');
+      expect(createNodes[1].nodeType).toBe('BitCrusher');
+    });
+
+    it('should create Chebyshev node', () => {
+      const mml = '@Chebyshev c';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      expect(createNodes[0].nodeType).toBe('Synth');
+      expect(createNodes[1].nodeType).toBe('Chebyshev');
+    });
+
+    it('should create Freeverb node', () => {
+      const mml = '@Freeverb c';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      expect(createNodes[0].nodeType).toBe('Synth');
+      expect(createNodes[1].nodeType).toBe('Freeverb');
+    });
+
+    it('should create FrequencyShifter node', () => {
+      const mml = '@FrequencyShifter c';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      expect(createNodes[0].nodeType).toBe('Synth');
+      expect(createNodes[1].nodeType).toBe('FrequencyShifter');
+    });
+
+    it('should create JCReverb node', () => {
+      const mml = '@JCReverb c';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      expect(createNodes[0].nodeType).toBe('Synth');
+      expect(createNodes[1].nodeType).toBe('JCReverb');
+    });
+
+    it('should create PitchShift node', () => {
+      const mml = '@PitchShift c';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      expect(createNodes[0].nodeType).toBe('Synth');
+      expect(createNodes[1].nodeType).toBe('PitchShift');
+    });
+
+    it('should create StereoWidener node', () => {
+      const mml = '@StereoWidener c';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(2);
+      expect(createNodes[0].nodeType).toBe('Synth');
+      expect(createNodes[1].nodeType).toBe('StereoWidener');
+    });
   });
 
   describe('Effects with arguments', () => {

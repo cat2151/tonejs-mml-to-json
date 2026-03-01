@@ -285,6 +285,101 @@ export const demos: Demo[] = [
   },
 
   {
+    id: 'effect-autofilter-args',
+    name: '@AutoFilter with Args',
+    description: 'AutoFilter - oscillating filter effect, great for dynamic sounds',
+    mml: `@AutoFilter{
+  "frequency": 1,
+  "baseFrequency": 200,
+  "octaves": 2.6
+} o4 l8 cdefgab<c`
+  },
+
+  {
+    id: 'effect-autopanner-args',
+    name: '@AutoPanner with Args',
+    description: 'AutoPanner - auto-panning effect that sweeps audio left and right',
+    mml: `@AutoPanner{
+  "frequency": 1
+} o4 l8 cdefgab<c`
+  },
+
+  {
+    id: 'effect-autowah-args',
+    name: '@AutoWah with Args',
+    description: 'AutoWah - envelope-following wah effect, responsive to note dynamics',
+    mml: `@AutoWah{
+  "baseFrequency": 100,
+  "octaves": 6,
+  "sensitivity": 0
+} o4 l8 cdefgab<c`
+  },
+
+  {
+    id: 'effect-bitcrusher-args',
+    name: '@BitCrusher with Args',
+    description: 'BitCrusher - reduce bit depth for lo-fi, 8-bit retro sound',
+    mml: `@BitCrusher{
+  "bits": 4
+} o4 l8 cdefgab<c`
+  },
+
+  {
+    id: 'effect-chebyshev-args',
+    name: '@Chebyshev with Args',
+    description: 'Chebyshev - waveshaping distortion with harmonic control',
+    mml: `@Chebyshev{
+  "order": 50
+} o4 l8 cdefgab<c`
+  },
+
+  {
+    id: 'effect-freeverb-args',
+    name: '@Freeverb with Args',
+    description: 'Freeverb - algorithmic reverb with room size and dampening control',
+    mml: `@Freeverb{
+  "roomSize": 0.7,
+  "dampening": 3000
+} o4 l8 cdefgab<c`
+  },
+
+  {
+    id: 'effect-frequencyshifter-args',
+    name: '@FrequencyShifter with Args',
+    description: 'FrequencyShifter - shifts all frequencies by a constant amount in Hz',
+    mml: `@FrequencyShifter{
+  "frequency": 42
+} o4 l8 cdefgab<c`
+  },
+
+  {
+    id: 'effect-jcreverb-args',
+    name: '@JCReverb with Args',
+    description: 'JCReverb - John Chowning reverb algorithm with room size control',
+    mml: `@JCReverb{
+  "roomSize": 0.5
+} o4 l8 cdefgab<c`
+  },
+
+  {
+    id: 'effect-pitchshift-args',
+    name: '@PitchShift with Args',
+    description: 'PitchShift - shift pitch up or down in semitones without changing tempo',
+    mml: `@PitchShift{
+  "pitch": 7
+} o4 l8 cdefgab<c`
+  },
+
+  {
+    id: 'effect-stereowidener-args',
+    name: '@StereoWidener with Args',
+    description: 'StereoWidener - widen or narrow the stereo image',
+    mml: `@StereoWidener{
+  "width": 0.7
+} o4 l8 cdefgab<c`
+  },
+
+  {
     id: 'effect-mixed-chain-args',
     name: 'Mixed Effects Chain with Args',
     description: 'Chain effects with custom parameters for complex sound design',
