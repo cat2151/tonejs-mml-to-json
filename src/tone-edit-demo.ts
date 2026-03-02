@@ -5,48 +5,7 @@ import config from './tone-edit-config.json' assert { type: 'json' };
 import { initWasm, mml2json } from './index.js';
 import { SequencerNodes, playSequence, type SequenceEvent } from 'tonejs-json-sequencer';
 import type { ToneCommand } from './ast2json.js';
-
-type ParameterDefinition = {
-  path: string;
-  label: string;
-  min: number;
-  max: number;
-  sweetMin: number;
-  sweetMax: number;
-  defaultValue: number;
-  step?: number;
-};
-
-type InstrumentDefinition = {
-  id: string;
-  name: string;
-  parameters: ParameterDefinition[];
-};
-
-type EffectDefinition = {
-  id: string;
-  name: string;
-  parameters: ParameterDefinition[];
-};
-
-type ToneEditConfig = {
-  instruments: InstrumentDefinition[];
-  effects: EffectDefinition[];
-};
-
-type DemoState = {
-  instrumentId: string;
-  instrumentValues: Record<string, number>;
-  effectId: string;
-  effectValues: Record<string, number>;
-  notePatternId: string;
-};
-
-type NotePattern = {
-  id: string;
-  label: string;
-  mml: string;
-};
+import type { ParameterDefinition, InstrumentDefinition, EffectDefinition, ToneEditConfig, DemoState, NotePattern } from './tone-edit-types.js';
 
 const AUTO_PLAY_DELAY = 800;
 const toneConfig = config as ToneEditConfig;
