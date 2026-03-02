@@ -38,8 +38,6 @@
 | 🎵 Demo | https://cat2151.github.io/tonejs-mml-to-json/index.html |
 | 📦 NPM Package | [npm install tonejs-mml-to-json](https://www.npmjs.com/package/tonejs-mml-to-json) |
 | 📚 ライブラリ利用デモ | [demo-library](https://cat2151.github.io/tonejs-mml-to-json/demo-library/) |
-| 📖 コールグラフ | [generated-docs/callgraph-enhanced.html](https://cat2151.github.io/tonejs-mml-to-json/generated-docs/callgraph-enhanced.html) |
-| 📊 実装サマリー | [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) |
 | 🦀 Rust実装詳細 | [rust/IMPLEMENTATION.md](rust/IMPLEMENTATION.md) |
 
 # 概要
