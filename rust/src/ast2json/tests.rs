@@ -6,7 +6,7 @@ use crate::mml2ast::mml2ast;
 fn test_basic_conversion() {
     let ast = mml2ast("c").unwrap();
     let result = ast2json(&ast).unwrap();
-    assert_eq!(result.len(), 3); // setup (2) + note (1)
+    assert_eq!(result.len(), 4); // createNode + connect + triggerAttackRelease + loopEnd
     assert_eq!(result[2].event_type, "triggerAttackRelease");
     let args = result[2].args.as_ref().unwrap().as_array().unwrap();
     assert_eq!(args[0].as_str().unwrap(), "c4");
@@ -17,7 +17,7 @@ fn test_note_with_duration() {
     let ast = mml2ast("c4").unwrap();
     let result = ast2json(&ast).unwrap();
     let args = result[2].args.as_ref().unwrap().as_array().unwrap();
-    assert_eq!(args[1].as_str().unwrap(), "182i"); // 192 * 0.95 = 182
+    assert_eq!(args[1].as_str().unwrap(), "192i"); // 192 * 1.0 = 192 (default gate time 100%)
 }
 
 #[test]
@@ -41,17 +41,17 @@ fn test_length_command() {
     let ast = mml2ast("l16 e").unwrap();
     let result = ast2json(&ast).unwrap();
     let args = result[2].args.as_ref().unwrap().as_array().unwrap();
-    assert_eq!(args[1].as_str().unwrap(), "38i"); // 48 - 10
+    assert_eq!(args[1].as_str().unwrap(), "48i"); // 48 ticks with 100% gate time (default)
 }
 
 #[test]
 fn test_complex_sequence() {
     let ast = mml2ast("o4 l16 e").unwrap();
     let result = ast2json(&ast).unwrap();
-    assert_eq!(result.len(), 3); // setup + 1 note
+    assert_eq!(result.len(), 4); // createNode + connect + 1 note + loopEnd
     let args = result[2].args.as_ref().unwrap().as_array().unwrap();
     assert_eq!(args[0].as_str().unwrap(), "e4");
-    assert_eq!(args[1].as_str().unwrap(), "38i");
+    assert_eq!(args[1].as_str().unwrap(), "48i"); // 48 ticks with 100% gate time (default)
     assert_eq!(args[2].as_str().unwrap(), "+0i");
 }
 
@@ -60,8 +60,9 @@ fn test_multi_track_with_semicolon() {
     let ast = mml2ast("c;d").unwrap();
     let result = ast2json(&ast).unwrap();
 
-    // Should have 2 tracks (2 createNode + 2 connect + 2 notes = 6 commands)
-    assert_eq!(result.len(), 6);
+    // Should have 2 tracks plus a global loopEnd:
+    // 2 * (createNode + connect + note) + 1 loopEnd = 7 commands
+    assert_eq!(result.len(), 7);
 
     // Check that we have 2 createNode commands
     let create_nodes: Vec<_> = result
@@ -140,8 +141,8 @@ fn test_simple_chord_conversion() {
     let ast = mml2ast("'ceg'").unwrap();
     let result = ast2json(&ast).unwrap();
 
-    // Should have: 1 createNode (PolySynth) + 1 connect + 1 chord = 3 commands
-    assert_eq!(result.len(), 3);
+    // Should have: 1 createNode (PolySynth) + 1 connect + 1 chord + 1 loopEnd = 4 commands
+    assert_eq!(result.len(), 4);
 
     // Check that we have a PolySynth node
     let create_nodes: Vec<_> = result
@@ -200,9 +201,9 @@ fn test_chord_with_duration() {
         .collect();
     assert_eq!(chords.len(), 1);
 
-    // Check duration is quarter note (192 ticks - 10 gate time = 182i)
+    // Check duration - uses default length (l8 = 96 ticks with 100% gate time)
     let args = chords[0].args.as_ref().unwrap().as_array().unwrap();
-    assert_eq!(args[1].as_str().unwrap(), "182i");
+    assert_eq!(args[1].as_str().unwrap(), "96i");
 }
 
 #[test]
