@@ -1,4 +1,4 @@
-import config from './tone-edit-config.json' assert { type: 'json' };
+import config from './tone-edit-config.json' with { type: 'json' };
 import { initWasm, mml2json } from './index.js';
 import { SequencerNodes, playSequence } from 'tonejs-json-sequencer';
 const AUTO_PLAY_DELAY = 800;
@@ -395,6 +395,13 @@ function setupControls() {
 }
 window.addEventListener('DOMContentLoaded', () => {
     setupControls();
-    updateStatus('パラメータを編集すると自動でMMLが再生成されます。', 'info');
+    updateStatus('初期化中...', 'info');
+    initWasm().then(() => {
+        updateStatus('パラメータを編集すると自動でMMLが再生成されます。', 'info');
+    }).catch((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        updateStatus(`エラー: ${message}`, 'error');
+        console.error('WASM initialization failed:', error);
+    });
 });
 //# sourceMappingURL=tone-edit-demo.js.map
