@@ -397,7 +397,11 @@ window.addEventListener('DOMContentLoaded', () => {
     setupControls();
     updateStatus('初期化中...', 'info');
     initWasm().then(() => {
-        updateStatus('パラメータを編集すると自動でMMLが再生成されます。', 'info');
+        // 初期化完了時点でまだ「初期化中...」のままの場合のみステータスを更新する
+        const statusEl = document.getElementById('status');
+        if (statusEl && statusEl.textContent === '初期化中...') {
+            updateStatus('パラメータを編集すると自動でMMLが再生成されます。', 'info');
+        }
     }).catch((error) => {
         const message = error instanceof Error ? error.message : String(error);
         updateStatus(`エラー: ${message}`, 'error');
