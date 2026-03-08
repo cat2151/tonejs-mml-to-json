@@ -109,11 +109,16 @@ describe('@PingPongDelay effect', () => {
   });
 
   describe('Multi-track with effect on one track', () => {
-    it('should place all createNode events before all connect events when track1 has PingPongDelay and track2 has no effect', () => {
+    it('should ensure each connect references a node that has already been created (issue #172)', () => {
       // Reproduction case from issue #172:
       // @PingPongDelay o4 l8 c ; g
       // Previously, connect(Synth→PingPongDelay) was emitted before createNode(PingPongDelay)
       // causing track1 to be silent because the connection target didn't exist yet.
+      //
+      // With the partition approach, setup commands within each track remain in creation
+      // order (createNode → connect), so each node exists before any connection references it.
+      // Track 2's createNode(100) may appear after track 1's connect(0→1) in the output,
+      // but that is correct since they are independent tracks.
       const mml = '@PingPongDelay o4 l8 c ; g';
       const ast = mml2ast(mml);
       const json = ast2json(ast);
@@ -130,10 +135,19 @@ describe('@PingPongDelay effect', () => {
       expect(createNodes[2].nodeType).toBe('Synth');
       expect(createNodes[2].nodeId).toBe(100);
 
-      // All createNode events must appear before any connect event in the output
-      const lastCreateNodeIndex = json.map(e => e.eventType).lastIndexOf('createNode');
-      const firstConnectIndex = json.map(e => e.eventType).indexOf('connect');
-      expect(lastCreateNodeIndex).toBeLessThan(firstConnectIndex);
+      // Core invariant: for every connect that references a numeric target nodeId,
+      // the createNode for that target must appear BEFORE the connect in the output.
+      // (Connections to 'toDestination' have no corresponding createNode, so they are skipped.)
+      for (const connect of connects) {
+        if (typeof connect.connectTo === 'number') {
+          const connectIdx = json.indexOf(connect);
+          const targetCreateNodeIdx = json.findIndex(
+            e => e.eventType === 'createNode' && e.nodeId === connect.connectTo
+          );
+          expect(targetCreateNodeIdx).toBeGreaterThanOrEqual(0);
+          expect(targetCreateNodeIdx).toBeLessThan(connectIdx);
+        }
+      }
 
       // Connections: Synth(0)→PingPongDelay(1), PingPongDelay(1)→dest, Synth(100)→dest
       expect(connects).toHaveLength(3);

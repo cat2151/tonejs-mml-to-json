@@ -52,21 +52,35 @@ pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
             all_commands.extend(track_commands_without_loop_end);
         }
 
-        // Sort commands by priority, then start time, then node_id (stable sort).
-        // Priority levels ensure correct ordering:
-        //   0: createNode — must come first so nodes exist before being connected
-        //   1: connect    — must come after all createNode to avoid referencing uncreated nodes
-        //   2: everything else (notes, etc.) — ordered by start time
-        all_commands.sort_by_key(|cmd| {
-            let (priority, tick) = if cmd.event_type == EVENT_TYPE_CREATE_NODE {
-                (0u32, 0u32)
-            } else if cmd.event_type == EVENT_TYPE_CONNECT {
-                (1u32, 0u32)
+        // Merge multi-track commands:
+        //
+        // Setup commands (createNode, connect) are kept in creation order — no sort needed.
+        // Within each track, process_single_track already emits them in dependency order:
+        //   createNode(instrument) → createNode(effect) → connect(instrument→effect) → connect(effect→dest)
+        // So simply preserving insertion order satisfies all node-creation-before-connect
+        // requirements across all tracks.
+        //
+        // Playback commands (notes, set, etc.) are sorted by start tick so that events
+        // from different tracks are interleaved correctly in time.
+        // For equal ticks, creation_index (lower = earlier track, i.e. track 0 < track 1)
+        // is used as the tie-breaker so that events from earlier tracks appear first.
+        let mut setup: Vec<Command> = Vec::new();
+        let mut playback: Vec<(usize, Command)> = Vec::new();
+
+        for (creation_index, cmd) in all_commands.into_iter().enumerate() {
+            if cmd.event_type == EVENT_TYPE_CREATE_NODE || cmd.event_type == EVENT_TYPE_CONNECT {
+                setup.push(cmd);
             } else {
-                (2u32, get_start_tick(cmd))
-            };
-            (priority, tick, cmd.node_id)
-        });
+                playback.push((creation_index, cmd));
+            }
+        }
+
+        // Sort playback events by tick; use creation_index as a stable tie-breaker
+        // so that events from track 0 (lower index) precede events from track 1, etc.
+        playback.sort_by_key(|(creation_index, cmd)| (get_start_tick(cmd), *creation_index));
+
+        all_commands = setup;
+        all_commands.extend(playback.into_iter().map(|(_, cmd)| cmd));
 
         // Add a single loopEnd event for the entire multi-track sequence
         // Use the maximum end tick across all tracks
