@@ -108,6 +108,50 @@ describe('@PingPongDelay effect', () => {
     });
   });
 
+  describe('Multi-track with effect on one track', () => {
+    it('should place all createNode events before all connect events when track1 has PingPongDelay and track2 has no effect', () => {
+      // Reproduction case from issue #172:
+      // @PingPongDelay o4 l8 c ; g
+      // Previously, connect(Synth→PingPongDelay) was emitted before createNode(PingPongDelay)
+      // causing track1 to be silent because the connection target didn't exist yet.
+      const mml = '@PingPongDelay o4 l8 c ; g';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      const connects = json.filter(e => e.eventType === 'connect');
+
+      // Track 1: Synth(0) + PingPongDelay(1); Track 2: Synth(100)
+      expect(createNodes).toHaveLength(3);
+      expect(createNodes[0].nodeType).toBe('Synth');
+      expect(createNodes[0].nodeId).toBe(0);
+      expect(createNodes[1].nodeType).toBe('PingPongDelay');
+      expect(createNodes[1].nodeId).toBe(1);
+      expect(createNodes[2].nodeType).toBe('Synth');
+      expect(createNodes[2].nodeId).toBe(100);
+
+      // All createNode events must appear before any connect event in the output
+      const lastCreateNodeIndex = json.map(e => e.eventType).lastIndexOf('createNode');
+      const firstConnectIndex = json.map(e => e.eventType).indexOf('connect');
+      expect(lastCreateNodeIndex).toBeLessThan(firstConnectIndex);
+
+      // Connections: Synth(0)→PingPongDelay(1), PingPongDelay(1)→dest, Synth(100)→dest
+      expect(connects).toHaveLength(3);
+      const connSynthToPPD = connects.find(c => c.nodeId === 0 && c.connectTo === 1);
+      expect(connSynthToPPD).toBeDefined();
+      const connPPDToDest = connects.find(c => c.nodeId === 1 && c.connectTo === 'toDestination');
+      expect(connPPDToDest).toBeDefined();
+      const connTrack2ToDest = connects.find(c => c.nodeId === 100 && c.connectTo === 'toDestination');
+      expect(connTrack2ToDest).toBeDefined();
+
+      // Both tracks produce notes
+      const notes = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(2);
+      expect(notes.some(n => n.args[0] === 'c4')).toBe(true);
+      expect(notes.some(n => n.args[0] === 'g4')).toBe(true);
+    });
+  });
+
   describe('Mid-track instrument switching behavior', () => {
     it('should bypass effects when instrument changes after notes have been played', () => {
       const mml = '@PingPongDelay c @FMSynth d';

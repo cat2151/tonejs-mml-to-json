@@ -52,22 +52,20 @@ pub fn ast2json(ast: &[AstToken]) -> Result<Vec<Command>, String> {
             all_commands.extend(track_commands_without_loop_end);
         }
 
-        // Sort commands by start time using stable sort with key
-        // This preserves insertion order for commands with the same key
+        // Sort commands by priority, then start time, then node_id (stable sort).
+        // Priority levels ensure correct ordering:
+        //   0: createNode — must come first so nodes exist before being connected
+        //   1: connect    — must come after all createNode to avoid referencing uncreated nodes
+        //   2: everything else (notes, etc.) — ordered by start time
         all_commands.sort_by_key(|cmd| {
-            let is_setup =
-                cmd.event_type == EVENT_TYPE_CREATE_NODE || cmd.event_type == EVENT_TYPE_CONNECT;
-            let start_tick = if is_setup {
-                // Setup commands conceptually occur at time 0 for sorting purposes
-                0
+            let (priority, tick) = if cmd.event_type == EVENT_TYPE_CREATE_NODE {
+                (0u32, 0u32)
+            } else if cmd.event_type == EVENT_TYPE_CONNECT {
+                (1u32, 0u32)
             } else {
-                get_start_tick(cmd)
+                (2u32, get_start_tick(cmd))
             };
-            // Key tuple:
-            // - First: non-setup commands sort after setup (false < true)
-            // - Second: start time for ordering events
-            // - Third: node_id as a deterministic tie-breaker
-            (!is_setup, start_tick, cmd.node_id)
+            (priority, tick, cmd.node_id)
         });
 
         // Add a single loopEnd event for the entire multi-track sequence
