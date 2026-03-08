@@ -108,6 +108,64 @@ describe('@PingPongDelay effect', () => {
     });
   });
 
+  describe('Multi-track with effect on one track', () => {
+    it('should ensure each connect references a node that has already been created (issue #172)', () => {
+      // Reproduction case from issue #172:
+      // @PingPongDelay o4 l8 c ; g
+      // Previously, connect(Synth→PingPongDelay) was emitted before createNode(PingPongDelay)
+      // causing track1 to be silent because the connection target didn't exist yet.
+      //
+      // With the partition approach, setup commands within each track remain in creation
+      // order (createNode → connect), so each node exists before any connection references it.
+      // Track 2's createNode(100) may appear after track 1's connect(0→1) in the output,
+      // but that is correct since they are independent tracks.
+      const mml = '@PingPongDelay o4 l8 c ; g';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      const connects = json.filter(e => e.eventType === 'connect');
+
+      // Track 1: Synth(0) + PingPongDelay(1); Track 2: Synth(100)
+      expect(createNodes).toHaveLength(3);
+      expect(createNodes[0].nodeType).toBe('Synth');
+      expect(createNodes[0].nodeId).toBe(0);
+      expect(createNodes[1].nodeType).toBe('PingPongDelay');
+      expect(createNodes[1].nodeId).toBe(1);
+      expect(createNodes[2].nodeType).toBe('Synth');
+      expect(createNodes[2].nodeId).toBe(100);
+
+      // Core invariant: for every connect that references a numeric target nodeId,
+      // the createNode for that target must appear BEFORE the connect in the output.
+      // (Connections to 'toDestination' have no corresponding createNode, so they are skipped.)
+      for (const connect of connects) {
+        if (typeof connect.connectTo === 'number') {
+          const connectIdx = json.indexOf(connect);
+          const targetCreateNodeIdx = json.findIndex(
+            e => e.eventType === 'createNode' && e.nodeId === connect.connectTo
+          );
+          expect(targetCreateNodeIdx).toBeGreaterThanOrEqual(0);
+          expect(targetCreateNodeIdx).toBeLessThan(connectIdx);
+        }
+      }
+
+      // Connections: Synth(0)→PingPongDelay(1), PingPongDelay(1)→dest, Synth(100)→dest
+      expect(connects).toHaveLength(3);
+      const connSynthToPPD = connects.find(c => c.nodeId === 0 && c.connectTo === 1);
+      expect(connSynthToPPD).toBeDefined();
+      const connPPDToDest = connects.find(c => c.nodeId === 1 && c.connectTo === 'toDestination');
+      expect(connPPDToDest).toBeDefined();
+      const connTrack2ToDest = connects.find(c => c.nodeId === 100 && c.connectTo === 'toDestination');
+      expect(connTrack2ToDest).toBeDefined();
+
+      // Both tracks produce notes
+      const notes = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(notes).toHaveLength(2);
+      expect(notes.some(n => n.args[0] === 'c4')).toBe(true);
+      expect(notes.some(n => n.args[0] === 'g4')).toBe(true);
+    });
+  });
+
   describe('Mid-track instrument switching behavior', () => {
     it('should bypass effects when instrument changes after notes have been played', () => {
       const mml = '@PingPongDelay c @FMSynth d';
