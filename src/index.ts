@@ -62,6 +62,9 @@ export async function initWasm(): Promise<void> {
     initParser()
   ]).then(() => {
     wasmInitialized = true;
+  }).catch((error) => {
+    wasmInitPromise = null;
+    throw error;
   });
   
   return wasmInitPromise;

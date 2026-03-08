@@ -1,7 +1,7 @@
 // Tone.js is loaded globally via script tag in the HTML
 declare const Tone: any;
 
-import config from './tone-edit-config.json' assert { type: 'json' };
+import config from './tone-edit-config.json' with { type: 'json' };
 import { initWasm, mml2json } from './index.js';
 import { SequencerNodes, playSequence, type SequenceEvent } from 'tonejs-json-sequencer';
 import type { ToneCommand } from './ast2json.js';
@@ -466,5 +466,16 @@ function setupControls(): void {
 
 window.addEventListener('DOMContentLoaded', () => {
   setupControls();
-  updateStatus('パラメータを編集すると自動でMMLが再生成されます。', 'info');
+  updateStatus('初期化中...', 'info');
+  initWasm().then(() => {
+    // 初期化完了時点でまだ「初期化中...」のままの場合のみステータスを更新する
+    const statusEl = document.getElementById('status');
+    if (statusEl && statusEl.textContent === '初期化中...') {
+      updateStatus('パラメータを編集すると自動でMMLが再生成されます。', 'info');
+    }
+  }).catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    updateStatus(`エラー: ${message}`, 'error');
+    console.error('WASM initialization failed:', error);
+  });
 });

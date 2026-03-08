@@ -50,6 +50,9 @@ jobs:
       - name: Build libs
         run: npm run build:libs
 
+      - name: Fix dist imports
+        run: npm run build:fixup
+
       - name: Prepare deployment artifact
         run: |
           mkdir -p site
