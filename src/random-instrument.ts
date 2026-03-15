@@ -81,7 +81,10 @@ export function randomEffectMml(config?: Pick<ToneEditConfig, 'effects'>): strin
  *
  * @param config - Optional full configuration. Defaults to the full built-in
  *   instrument and effect sets.
- * @returns An object with `instrument` and `effect` MML strings.
+ * @returns An object with `instrument` and `effect` MML strings. `instrument`
+ *   is always non-empty when the instrument list is non-empty. `effect` may
+ *   be an empty string if the config contains only the `none` effect or an
+ *   empty effects list.
  */
 export function randomInstrumentAndEffectMml(config?: ToneEditConfig): RandomMmlResult {
   return {

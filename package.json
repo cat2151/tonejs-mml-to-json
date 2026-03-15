@@ -42,6 +42,9 @@
   ],
   "author": "cat2151",
   "license": "MIT",
+  "engines": {
+    "node": ">=20.10.0"
+  },
   "devDependencies": {
     "@types/node": "^25.0.9",
     "http-server": "^14.1.1",
