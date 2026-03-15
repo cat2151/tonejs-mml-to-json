@@ -1,0 +1,45 @@
+name: Vendor Update
+
+on:
+  schedule:
+    # 日本時間 01:00 (UTC 16:00 前日)
+    - cron: '0 16 * * *'
+  workflow_dispatch:
+
+jobs:
+  vendor-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Update cat2151 libraries (npm)
+        run: npm update tonejs-json-sequencer --package-lock-only
+
+      - name: Update cat2151 libraries (pnpm)
+        run: pnpm update tonejs-json-sequencer --lockfile-only
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json pnpm-lock.yaml
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update cat2151 vendor libraries"
+            git push
+          fi
