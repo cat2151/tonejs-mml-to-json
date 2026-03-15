@@ -1,5 +1,5 @@
 import config from './tone-edit-config.json' with { type: 'json' };
-import { initWasm, mml2json } from './index.js';
+import { initWasm, mml2json, randomInstrumentMml } from './index.js';
 import { SequencerNodes, playSequence } from 'tonejs-json-sequencer';
 const AUTO_PLAY_DELAY = 800;
 const toneConfig = config;
@@ -355,15 +355,9 @@ function setupControls() {
         scheduleAutoPlay();
     };
     getElement('randomInstrumentWithType').addEventListener('click', () => {
-        const randomIndex = Math.floor(Math.random() * toneConfig.instruments.length);
-        const nextDef = toneConfig.instruments[randomIndex];
-        if (!nextDef)
-            return;
-        state.instrumentId = nextDef.id;
-        state.instrumentValues = ensureValues(nextDef.parameters, {});
-        getElement('instrumentSelect').value = nextDef.id;
-        randomize(nextDef.parameters, state.instrumentValues, 'instrumentParams', onInstrumentParamChange);
-        regenerateMml(state, toneConfig.instruments, toneConfig.effects);
+        const mml = randomInstrumentMml({ instruments: toneConfig.instruments });
+        getElement('instrumentMml').value = mml;
+        updateCombinedMml();
         void playCurrent({ allowUnlock: true });
     });
     getElement('randomInstrument').addEventListener('click', () => {

@@ -44,6 +44,8 @@ export declare function mml2ast(mml: string): ASTToken[];
  * @throws Error if WASM is not initialized or if conversion fails
  */
 export declare function ast2json(ast: ASTToken[]): ToneCommand[];
+export { randomInstrumentMml } from './random-instrument.js';
+export type { InstrumentDefinition, ParameterDefinition, ToneEditConfig } from './tone-edit-types.js';
 declare const _default: {
     initWasm: typeof initWasm;
     mml2json: typeof mml2json;

@@ -2,7 +2,7 @@
 declare const Tone: any;
 
 import config from './tone-edit-config.json' with { type: 'json' };
-import { initWasm, mml2json } from './index.js';
+import { initWasm, mml2json, randomInstrumentMml } from './index.js';
 import { SequencerNodes, playSequence, type SequenceEvent } from 'tonejs-json-sequencer';
 import type { ToneCommand } from './ast2json.js';
 import type { ParameterDefinition, InstrumentDefinition, EffectDefinition, ToneEditConfig, DemoState, NotePattern } from './tone-edit-types.js';
@@ -424,14 +424,9 @@ function setupControls(): void {
   };
 
   getElement<HTMLButtonElement>('randomInstrumentWithType').addEventListener('click', () => {
-    const randomIndex = Math.floor(Math.random() * toneConfig.instruments.length);
-    const nextDef = toneConfig.instruments[randomIndex];
-    if (!nextDef) return;
-    state.instrumentId = nextDef.id;
-    state.instrumentValues = ensureValues(nextDef.parameters, {});
-    getElement<HTMLSelectElement>('instrumentSelect').value = nextDef.id;
-    randomize(nextDef.parameters, state.instrumentValues, 'instrumentParams', onInstrumentParamChange);
-    regenerateMml(state, toneConfig.instruments, toneConfig.effects);
+    const mml = randomInstrumentMml({ instruments: toneConfig.instruments });
+    getElement<HTMLTextAreaElement>('instrumentMml').value = mml;
+    updateCombinedMml();
     void playCurrent({ allowUnlock: true });
   });
 

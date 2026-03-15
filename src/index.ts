@@ -128,6 +128,9 @@ export function ast2json(ast: ASTToken[]): ToneCommand[] {
   return ast2jsonImpl(ast);
 }
 
+export { randomInstrumentMml } from './random-instrument.js';
+export type { InstrumentDefinition, ParameterDefinition, ToneEditConfig } from './tone-edit-types.js';
+
 // Default export for convenience
 export default {
   initWasm,
