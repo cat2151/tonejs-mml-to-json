@@ -17,7 +17,7 @@ export function roundToStep(value: number, step: number): number {
 
 const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
-export function applyPath(target: Record<string, unknown>, path: string, value: number): void {
+export function applyPath(target: Record<string, unknown>, path: string, value: number | string): void {
   const segments = path.split('.');
   if (segments.some((s) => DANGEROUS_KEYS.has(s))) {
     return;
@@ -35,14 +35,25 @@ export function applyPath(target: Record<string, unknown>, path: string, value: 
   });
 }
 
-export function buildArgs(defs: ParameterDefinition[], values: Record<string, number>): Record<string, unknown> {
+export function buildArgs(defs: ParameterDefinition[], values: Record<string, number | string>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   defs.forEach((def) => {
-    const fromValues = values[def.path];
-    // Guard against non-finite defaults (e.g. NaN, Infinity) – fall back to 0 as a safe sentinel
-    const fromDefault = Number.isFinite(def.defaultValue) ? def.defaultValue : 0;
-    const value = Number.isFinite(fromValues) ? fromValues : fromDefault;
-    applyPath(result, def.path, value);
+    if (def.choices && def.choices.length > 0) {
+      // Enum parameter: use stored string value or fall back to first choice
+      const fromValues = values[def.path];
+      const value = (typeof fromValues === 'string' && def.choices.includes(fromValues))
+        ? fromValues
+        : def.choices[0];
+      applyPath(result, def.path, value);
+    } else {
+      // Numeric parameter
+      const fromValues = values[def.path];
+      const fromNumeric = typeof fromValues === 'number' ? fromValues : undefined;
+      // Guard against non-finite defaults (e.g. NaN, Infinity) – fall back to 0 as a safe sentinel
+      const fromDefault = Number.isFinite(def.defaultValue) ? def.defaultValue : 0;
+      const value = (fromNumeric !== undefined && Number.isFinite(fromNumeric)) ? fromNumeric : fromDefault;
+      applyPath(result, def.path, value);
+    }
   });
   return result;
 }
@@ -55,7 +66,10 @@ export function formatMml(tag: string, args: Record<string, unknown>): string {
   return `@${tag}${JSON.stringify(args, null, 2)}`;
 }
 
-export function randomValue(def: ParameterDefinition): number {
+export function randomValue(def: ParameterDefinition): number | string {
+  if (def.choices && def.choices.length > 0) {
+    return def.choices[Math.floor(Math.random() * def.choices.length)];
+  }
   const min = def.sweetMin ?? def.min;
   const max = def.sweetMax ?? def.max;
   const raw = min + Math.random() * (max - min);

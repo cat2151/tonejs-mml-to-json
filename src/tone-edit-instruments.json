@@ -4,6 +4,16 @@
     "name": "Synth",
     "parameters": [
       {
+        "path": "oscillator.type",
+        "label": "Oscillator Type",
+        "choices": ["sine", "square", "sawtooth", "triangle"],
+        "min": 0,
+        "max": 0,
+        "sweetMin": 0,
+        "sweetMax": 0,
+        "defaultValue": 0
+      },
+      {
         "path": "envelope.attack",
         "label": "Envelope Attack",
         "min": 0,
@@ -49,6 +59,26 @@
     "id": "AMSynth",
     "name": "AMSynth",
     "parameters": [
+      {
+        "path": "oscillator.type",
+        "label": "Oscillator Type",
+        "choices": ["sine", "square", "sawtooth", "triangle"],
+        "min": 0,
+        "max": 0,
+        "sweetMin": 0,
+        "sweetMax": 0,
+        "defaultValue": 0
+      },
+      {
+        "path": "modulation.type",
+        "label": "Modulation Type",
+        "choices": ["sine", "square", "sawtooth", "triangle"],
+        "min": 0,
+        "max": 0,
+        "sweetMin": 0,
+        "sweetMax": 0,
+        "defaultValue": 0
+      },
       {
         "path": "harmonicity",
         "label": "Harmonicity",
@@ -121,6 +151,26 @@
     "id": "FMSynth",
     "name": "FMSynth",
     "parameters": [
+      {
+        "path": "oscillator.type",
+        "label": "Oscillator Type",
+        "choices": ["sine", "square", "sawtooth", "triangle"],
+        "min": 0,
+        "max": 0,
+        "sweetMin": 0,
+        "sweetMax": 0,
+        "defaultValue": 0
+      },
+      {
+        "path": "modulation.type",
+        "label": "Modulation Type",
+        "choices": ["sine", "square", "sawtooth", "triangle"],
+        "min": 0,
+        "max": 0,
+        "sweetMin": 0,
+        "sweetMax": 0,
+        "defaultValue": 0
+      },
       {
         "path": "harmonicity",
         "label": "Harmonicity",
@@ -270,6 +320,16 @@
     "name": "MonoSynth",
     "parameters": [
       {
+        "path": "oscillator.type",
+        "label": "Oscillator Type",
+        "choices": ["sine", "square", "sawtooth", "triangle"],
+        "min": 0,
+        "max": 0,
+        "sweetMin": 0,
+        "sweetMax": 0,
+        "defaultValue": 0
+      },
+      {
         "path": "filter.Q",
         "label": "Filter Q",
         "min": 0.1,
@@ -305,6 +365,16 @@
     "id": "NoiseSynth",
     "name": "NoiseSynth",
     "parameters": [
+      {
+        "path": "noise.type",
+        "label": "Noise Type",
+        "choices": ["white", "pink", "brown"],
+        "min": 0,
+        "max": 0,
+        "sweetMin": 0,
+        "sweetMax": 0,
+        "defaultValue": 0
+      },
       {
         "path": "envelope.attack",
         "label": "Envelope Attack",

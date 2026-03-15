@@ -26,11 +26,20 @@ let wasmReady: Promise<void> | null = null;
 let audioUnlocked = false;
 let playGeneration = 0;
 
-function ensureValues(defs: ParameterDefinition[], values: Record<string, number>): Record<string, number> {
-  const next: Record<string, number> = {};
+function ensureValues(defs: ParameterDefinition[], values: Record<string, number | string>): Record<string, number | string> {
+  const next: Record<string, number | string> = {};
   defs.forEach((def) => {
     const current = values[def.path];
-    next[def.path] = Number.isFinite(current) ? current : def.defaultValue;
+    if (def.choices && def.choices.length > 0) {
+      // Enum parameter: ensure we have a valid string choice
+      next[def.path] = (typeof current === 'string' && def.choices.includes(current))
+        ? current
+        : def.choices[0];
+    } else {
+      // Numeric parameter
+      const numCurrent = typeof current === 'number' ? current : undefined;
+      next[def.path] = (numCurrent !== undefined && Number.isFinite(numCurrent)) ? numCurrent : def.defaultValue;
+    }
   });
   return next;
 }
@@ -187,8 +196,8 @@ function regenerateMml(
 function renderParameters(
   containerId: string,
   defs: ParameterDefinition[],
-  values: Record<string, number>,
-  onChange: (path: string, value: number) => void
+  values: Record<string, number | string>,
+  onChange: (path: string, value: number | string) => void
 ): void {
   const container = getElement<HTMLDivElement>(containerId);
   container.innerHTML = '';
@@ -196,36 +205,54 @@ function renderParameters(
   defs.forEach((def) => {
     const row = document.createElement('label');
     row.className = 'param-row';
-    row.title = `sweet: ${def.sweetMin} - ${def.sweetMax}`;
 
     const span = document.createElement('span');
     span.textContent = def.label;
 
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.min = String(def.min);
-    input.max = String(def.max);
-    input.step = def.step ? String(def.step) : '0.01';
-    input.value = (values[def.path] ?? def.defaultValue).toString();
+    if (def.choices && def.choices.length > 0) {
+      // Enum parameter: render a <select>
+      const select = document.createElement('select');
+      def.choices.forEach((choice) => {
+        const option = document.createElement('option');
+        option.value = choice;
+        option.textContent = choice;
+        option.selected = choice === values[def.path];
+        select.appendChild(option);
+      });
+      select.addEventListener('change', () => {
+        values[def.path] = select.value;
+        onChange(def.path, select.value);
+      });
+      row.append(span, select);
+    } else {
+      // Numeric parameter: render a number <input>
+      row.title = `sweet: ${def.sweetMin} - ${def.sweetMax}`;
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = String(def.min);
+      input.max = String(def.max);
+      input.step = def.step ? String(def.step) : '0.01';
+      input.value = (values[def.path] ?? def.defaultValue).toString();
 
-    input.addEventListener('input', () => {
-      const parsed = Number.parseFloat(input.value);
-      if (!Number.isFinite(parsed)) {
-        return;
-      }
-      const clamped = clamp(parsed, def.min, def.max);
-      values[def.path] = clamped;
-      input.value = clamped.toString();
-      onChange(def.path, clamped);
-    });
+      input.addEventListener('input', () => {
+        const parsed = Number.parseFloat(input.value);
+        if (!Number.isFinite(parsed)) {
+          return;
+        }
+        const clamped = clamp(parsed, def.min, def.max);
+        values[def.path] = clamped;
+        input.value = clamped.toString();
+        onChange(def.path, clamped);
+      });
+      row.append(span, input);
+    }
 
-    row.append(span, input);
     container.appendChild(row);
   });
 }
 
-function randomizeValues(defs: ParameterDefinition[]): Record<string, number> {
-  const values: Record<string, number> = {};
+function randomizeValues(defs: ParameterDefinition[]): Record<string, number | string> {
+  const values: Record<string, number | string> = {};
   defs.forEach((def) => {
     values[def.path] = randomValue(def);
   });
@@ -435,6 +462,31 @@ function setupControls(): void {
     state.effectValues = randomizeValues(nextDef.parameters);
     setupSelectOptions('effectSelect', toneConfig.effects, state.effectId);
     renderParameters('effectParams', nextDef.parameters, state.effectValues, onEffectParamChange);
+    regenerateMml(state, toneConfig.instruments, toneConfig.effects);
+    updateCombinedMml();
+    void playCurrent({ allowUnlock: true });
+  });
+
+  getElement<HTMLButtonElement>('randomInstrumentAndEffect').addEventListener('click', () => {
+    const instruments = toneConfig.instruments;
+    const nonNoneEffects = toneConfig.effects.filter((d) => d.id !== 'none');
+
+    const instIndex = Math.floor(Math.random() * instruments.length);
+    const nextInstDef = instruments[instIndex];
+    state.instrumentId = nextInstDef.id;
+    state.instrumentValues = randomizeValues(nextInstDef.parameters);
+    setupSelectOptions('instrumentSelect', toneConfig.instruments, state.instrumentId);
+    renderParameters('instrumentParams', nextInstDef.parameters, state.instrumentValues, onInstrumentParamChange);
+
+    if (nonNoneEffects.length > 0) {
+      const effIndex = Math.floor(Math.random() * nonNoneEffects.length);
+      const nextEffDef = nonNoneEffects[effIndex];
+      state.effectId = nextEffDef.id;
+      state.effectValues = randomizeValues(nextEffDef.parameters);
+      setupSelectOptions('effectSelect', toneConfig.effects, state.effectId);
+      renderParameters('effectParams', nextEffDef.parameters, state.effectValues, onEffectParamChange);
+    }
+
     regenerateMml(state, toneConfig.instruments, toneConfig.effects);
     updateCombinedMml();
     void playCurrent({ allowUnlock: true });
