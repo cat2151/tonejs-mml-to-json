@@ -188,12 +188,12 @@
             {
                 "path": "harmonicity",
                 "label": "Harmonicity",
-                "min": 0,
+                "numericChoices": [1.5, 2, 3, 4, 5],
+                "min": 1,
                 "max": 5,
                 "sweetMin": 1,
                 "sweetMax": 3,
-                "defaultValue": 1.5,
-                "step": 0.1
+                "defaultValue": 1.5
             },
             {
                 "path": "vibratoRate",
