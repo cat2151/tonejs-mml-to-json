@@ -8,9 +8,11 @@ fn main() {
         cc::Build::new()
             .include(&dir)
             .file(dir.join("parser.c"))
+            .file(dir.join("scanner.c"))
             .compile("tree-sitter-mml");
 
         println!("cargo:rerun-if-changed=../tree-sitter-mml/src/parser.c");
+        println!("cargo:rerun-if-changed=../tree-sitter-mml/src/scanner.c");
         println!("cargo:rerun-if-changed=../tree-sitter-mml/grammar.js");
     }
 }

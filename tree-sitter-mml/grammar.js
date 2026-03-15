@@ -28,6 +28,13 @@ module.exports = grammar({
     /\s/,  // Whitespace
   ],
 
+  // json_args is handled by the external scanner (src/scanner.c) which uses
+  // brace-depth counting instead of a fixed-depth regex.  This supports
+  // arbitrary nesting and correctly ignores '{'/'}' inside JSON string values.
+  externals: $ => [
+    $.json_args,
+  ],
+
   rules: {
     // Entry point: source file contains a sequence of commands
     source_file: $ => repeat(
@@ -126,7 +133,8 @@ module.exports = grammar({
     // Signed number: optional minus sign followed by digits
     signed_number: $ => /-?[0-9]+/,
 
-    // Instrument command: @ followed by instrument name and optional JSON args
+    // Instrument command: @ followed by instrument name and optional JSON args.
+    // JSON args are tokenized by the external scanner (see src/scanner.c).
     instrument_command: $ => seq(
       '@',
       field('name', optional($.instrument_name)),
@@ -134,16 +142,6 @@ module.exports = grammar({
     ),
 
     instrument_name: $ => /[A-Za-z][A-Za-z0-9]*/,
-
-    // JSON arguments for instrument (e.g., for Sampler)
-    // NOTE: This is a fixed-depth approximation (not a general balanced-brace matcher).
-    // It supports up to 3 brace-nesting levels, which is sufficient for all current
-    // Tone.js instrument parameters. It does NOT handle { or } inside string values.
-    //   - PolySynth: {"voice": "...", "options": {"oscillator": {"type": "..."}}}
-    //   - DuoSynth:  {"voice0": {"oscillator": {"type": "..."}}, "voice1": {...}}
-    // If future instruments require deeper nesting, extend the pattern by adding another
-    // (?:[^{}]|\{...\})* layer.
-    json_args: $ => /\{(?:[^{}]|\{(?:[^{}]|\{[^}]*\})*\})*\}/,
 
     // Chord: 'notes' with optional duration inside quotes and dots outside
     // Example: 'ceg', 'c+eg-', 'c4eg', 'c4eg'.
