@@ -7,6 +7,12 @@ export type ParameterDefinition = {
    * defaultValue/step) are ignored when choices is non-empty.
    */
   choices?: string[];
+  /**
+   * If present, this parameter picks one of these discrete numeric values at
+   * random. The range fields (min/max/sweetMin/sweetMax/step) are ignored
+   * when numericChoices is non-empty.
+   */
+  numericChoices?: number[];
   min: number;
   max: number;
   sweetMin: number;

@@ -35,6 +35,11 @@ function ensureValues(defs: ParameterDefinition[], values: Record<string, number
       next[def.path] = (typeof current === 'string' && def.choices.includes(current))
         ? current
         : def.choices[0];
+    } else if (def.numericChoices && def.numericChoices.length > 0) {
+      // Discrete numeric parameter: ensure we have a valid numeric choice
+      next[def.path] = (typeof current === 'number' && def.numericChoices.includes(current))
+        ? current
+        : def.numericChoices[0];
     } else {
       // Numeric parameter
       const numCurrent = typeof current === 'number' ? current : undefined;
@@ -222,6 +227,22 @@ function renderParameters(
       select.addEventListener('change', () => {
         values[def.path] = select.value;
         onChange(def.path, select.value);
+      });
+      row.append(span, select);
+    } else if (def.numericChoices && def.numericChoices.length > 0) {
+      // Discrete numeric parameter: render a <select>
+      const select = document.createElement('select');
+      def.numericChoices.forEach((choice) => {
+        const option = document.createElement('option');
+        option.value = String(choice);
+        option.textContent = String(choice);
+        option.selected = choice === values[def.path];
+        select.appendChild(option);
+      });
+      select.addEventListener('change', () => {
+        const num = Number.parseFloat(select.value);
+        values[def.path] = num;
+        onChange(def.path, num);
       });
       row.append(span, select);
     } else {

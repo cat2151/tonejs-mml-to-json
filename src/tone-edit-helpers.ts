@@ -45,6 +45,13 @@ export function buildArgs(defs: ParameterDefinition[], values: Record<string, nu
         ? fromValues
         : def.choices[0];
       applyPath(result, def.path, value);
+    } else if (def.numericChoices && def.numericChoices.length > 0) {
+      // Discrete numeric parameter: use stored numeric value or fall back to first choice
+      const fromValues = values[def.path];
+      const value = (typeof fromValues === 'number' && def.numericChoices.includes(fromValues))
+        ? fromValues
+        : def.numericChoices[0];
+      applyPath(result, def.path, value);
     } else {
       // Numeric parameter
       const fromValues = values[def.path];
@@ -69,6 +76,9 @@ export function formatMml(tag: string, args: Record<string, unknown>): string {
 export function randomValue(def: ParameterDefinition): number | string {
   if (def.choices && def.choices.length > 0) {
     return def.choices[Math.floor(Math.random() * def.choices.length)];
+  }
+  if (def.numericChoices && def.numericChoices.length > 0) {
+    return def.numericChoices[Math.floor(Math.random() * def.numericChoices.length)];
   }
   const min = def.sweetMin ?? def.min;
   const max = def.sweetMax ?? def.max;

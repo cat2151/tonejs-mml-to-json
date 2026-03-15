@@ -153,6 +153,107 @@ describe('randomInstrumentMml', () => {
     }
   });
 
+  it('FMSynth oscillator.partialCount should always be an integer', () => {
+    const config = {
+      instruments: [
+        {
+          id: 'FMSynth',
+          name: 'FMSynth',
+          parameters: [
+            { path: 'oscillator.partialCount', label: 'Oscillator Partial Count', min: 0, max: 8, sweetMin: 0, sweetMax: 4, defaultValue: 0, step: 1 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 50; i++) {
+      const result = randomInstrumentMml(config);
+      const jsonPart = result.replace(/^@FMSynth/, '');
+      const parsed = JSON.parse(jsonPart);
+      expect(Number.isInteger(parsed.oscillator.partialCount)).toBe(true);
+    }
+  });
+
+  it('FMSynth modulation.partialCount should always be an integer', () => {
+    const config = {
+      instruments: [
+        {
+          id: 'FMSynth',
+          name: 'FMSynth',
+          parameters: [
+            { path: 'modulation.partialCount', label: 'Modulation Partial Count', min: 0, max: 8, sweetMin: 0, sweetMax: 4, defaultValue: 0, step: 1 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 50; i++) {
+      const result = randomInstrumentMml(config);
+      const jsonPart = result.replace(/^@FMSynth/, '');
+      const parsed = JSON.parse(jsonPart);
+      expect(Number.isInteger(parsed.modulation.partialCount)).toBe(true);
+    }
+  });
+
+  it('MonoSynth oscillator.partialCount should always be an integer', () => {
+    const config = {
+      instruments: [
+        {
+          id: 'MonoSynth',
+          name: 'MonoSynth',
+          parameters: [
+            { path: 'oscillator.partialCount', label: 'Oscillator Partial Count', min: 0, max: 8, sweetMin: 0, sweetMax: 4, defaultValue: 0, step: 1 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 50; i++) {
+      const result = randomInstrumentMml(config);
+      const jsonPart = result.replace(/^@MonoSynth/, '');
+      const parsed = JSON.parse(jsonPart);
+      expect(Number.isInteger(parsed.oscillator.partialCount)).toBe(true);
+    }
+  });
+
+  it('Synth oscillator.partialCount should always be an integer', () => {
+    const config = {
+      instruments: [
+        {
+          id: 'Synth',
+          name: 'Synth',
+          parameters: [
+            { path: 'oscillator.partialCount', label: 'Oscillator Partial Count', min: 0, max: 8, sweetMin: 0, sweetMax: 4, defaultValue: 0, step: 1 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 50; i++) {
+      const result = randomInstrumentMml(config);
+      const jsonPart = result.replace(/^@Synth/, '');
+      const parsed = JSON.parse(jsonPart);
+      expect(Number.isInteger(parsed.oscillator.partialCount)).toBe(true);
+    }
+  });
+
+  it('MonoSynth filter.rolloff should always be one of [-12, -24, -48, -96]', () => {
+    const config = {
+      instruments: [
+        {
+          id: 'MonoSynth',
+          name: 'MonoSynth',
+          parameters: [
+            { path: 'filter.rolloff', label: 'Filter Rolloff', numericChoices: [-12, -24, -48, -96], min: -96, max: -12, sweetMin: -96, sweetMax: -12, defaultValue: -12 }
+          ]
+        }
+      ]
+    };
+    const validRolloffs = new Set([-12, -24, -48, -96]);
+    for (let i = 0; i < 50; i++) {
+      const result = randomInstrumentMml(config);
+      const jsonPart = result.replace(/^@MonoSynth/, '');
+      const parsed = JSON.parse(jsonPart);
+      expect(validRolloffs.has(parsed.filter.rolloff)).toBe(true);
+    }
+  });
+
   it('should keep numeric parameter values within sweet spot ranges', () => {
     const FLOAT_TOLERANCE = 0.001;
     const min = 0.1;
