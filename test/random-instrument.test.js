@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { randomInstrumentMml } from '../src/random-instrument';
+import { applyPath } from '../src/tone-edit-helpers';
 
 describe('randomInstrumentMml', () => {
   it('should return a non-empty string', () => {
@@ -100,5 +101,33 @@ describe('randomInstrumentMml', () => {
       expect(parsed.val).toBeGreaterThanOrEqual(min - FLOAT_TOLERANCE);
       expect(parsed.val).toBeLessThanOrEqual(max + FLOAT_TOLERANCE);
     }
+  });
+});
+
+describe('applyPath (prototype pollution guard)', () => {
+  it('should not pollute Object.prototype via __proto__', () => {
+    const target = {};
+    applyPath(target, '__proto__.polluted', 1);
+    expect({}.polluted).toBeUndefined();
+  });
+
+  it('should not pollute via constructor path', () => {
+    const target = {};
+    applyPath(target, 'constructor.polluted', 1);
+    expect({}.constructor.polluted).toBeUndefined();
+  });
+
+  it('should not write to prototype path segment', () => {
+    const target = {};
+    applyPath(target, 'prototype.polluted', 1);
+    // The dangerous segment causes the write to be silently skipped
+    expect(target.prototype).toBeUndefined();
+    expect(Object.prototype.polluted).toBeUndefined();
+  });
+
+  it('should correctly write a safe path', () => {
+    const target = {};
+    applyPath(target, 'envelope.attack', 0.5);
+    expect(target.envelope.attack).toBe(0.5);
   });
 });

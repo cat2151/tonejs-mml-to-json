@@ -3,54 +3,38 @@
  * Picks a random instrument type and randomizes its parameters within
  * "sweet spot" ranges to produce a valid MML instrument fragment.
  */
-import defaultConfig from './tone-edit-config.json' with { type: 'json' };
-function clamp(value, min, max) {
-    return Math.min(Math.max(value, min), max);
-}
-function roundToStep(value, step) {
-    if (step <= 0)
-        return value;
-    const scaled = Math.round(value / step) * step;
-    return Number(scaled.toFixed(6));
-}
-function randomValue(def) {
-    const min = def.sweetMin ?? def.min;
-    const max = def.sweetMax ?? def.max;
-    const raw = min + Math.random() * (max - min);
-    const stepped = roundToStep(raw, def.step ?? 0.01);
-    return clamp(stepped, def.min, def.max);
-}
-function applyPath(target, path, value) {
-    const segments = path.split('.');
-    let node = target;
-    segments.forEach((segment, index) => {
-        if (index === segments.length - 1) {
-            node[segment] = value;
-            return;
-        }
-        if (!node[segment] || typeof node[segment] !== 'object') {
-            node[segment] = {};
-        }
-        node = node[segment];
-    });
-}
-function buildArgs(defs, values) {
-    const result = {};
-    defs.forEach((def) => {
-        const fromValues = values[def.path];
-        const fromDefault = Number.isFinite(def.defaultValue) ? def.defaultValue : 0;
-        const value = Number.isFinite(fromValues) ? fromValues : fromDefault;
-        applyPath(result, def.path, value);
-    });
-    return result;
-}
-function formatMml(tag, args) {
-    const hasArgs = Object.keys(args).length > 0;
-    if (!hasArgs) {
-        return `@${tag}`;
+import { buildArgs, formatMml, randomValue } from './tone-edit-helpers.js';
+const DEFAULT_INSTRUMENTS = [
+    {
+        id: 'Synth',
+        name: 'Synth',
+        parameters: [
+            { path: 'envelope.attack', label: 'Envelope Attack', min: 0, max: 1, sweetMin: 0.03, sweetMax: 0.2, defaultValue: 0.1, step: 0.01 },
+            { path: 'envelope.decay', label: 'Envelope Decay', min: 0, max: 1.5, sweetMin: 0.1, sweetMax: 0.6, defaultValue: 0.3, step: 0.01 },
+            { path: 'envelope.sustain', label: 'Envelope Sustain', min: 0, max: 1, sweetMin: 0.35, sweetMax: 0.85, defaultValue: 0.6, step: 0.01 },
+            { path: 'envelope.release', label: 'Envelope Release', min: 0, max: 3, sweetMin: 0.4, sweetMax: 1.5, defaultValue: 0.8, step: 0.05 }
+        ]
+    },
+    {
+        id: 'FMSynth',
+        name: 'FMSynth',
+        parameters: [
+            { path: 'harmonicity', label: 'Harmonicity', min: 0.2, max: 8, sweetMin: 1, sweetMax: 4, defaultValue: 2, step: 0.1 },
+            { path: 'modulationIndex', label: 'Modulation Index', min: 0, max: 20, sweetMin: 2, sweetMax: 12, defaultValue: 8, step: 0.1 },
+            { path: 'envelope.attack', label: 'Envelope Attack', min: 0, max: 1, sweetMin: 0.02, sweetMax: 0.25, defaultValue: 0.05, step: 0.01 },
+            { path: 'envelope.release', label: 'Envelope Release', min: 0, max: 3, sweetMin: 0.3, sweetMax: 1.2, defaultValue: 0.6, step: 0.05 }
+        ]
+    },
+    {
+        id: 'MonoSynth',
+        name: 'MonoSynth',
+        parameters: [
+            { path: 'filter.Q', label: 'Filter Q', min: 0.1, max: 24, sweetMin: 2, sweetMax: 12, defaultValue: 6, step: 0.1 },
+            { path: 'filterEnvelope.attack', label: 'Filter Env Attack', min: 0, max: 1, sweetMin: 0.005, sweetMax: 0.2, defaultValue: 0.02, step: 0.005 },
+            { path: 'filterEnvelope.release', label: 'Filter Env Release', min: 0, max: 2, sweetMin: 0.2, sweetMax: 1, defaultValue: 0.5, step: 0.05 }
+        ]
     }
-    return `@${tag}${JSON.stringify(args, null, 2)}`;
-}
+];
 /**
  * Generate an MML fragment for a randomly chosen instrument with randomized
  * parameters within sweet-spot ranges.
@@ -61,7 +45,7 @@ function formatMml(tag, args) {
  * @returns An MML instrument fragment such as `@FMSynth{ "harmonicity": 2.4, ... }`
  */
 export function randomInstrumentMml(config) {
-    const instruments = config?.instruments ?? defaultConfig.instruments;
+    const instruments = config?.instruments ?? DEFAULT_INSTRUMENTS;
     if (instruments.length === 0)
         return '';
     const randomIndex = Math.floor(Math.random() * instruments.length);

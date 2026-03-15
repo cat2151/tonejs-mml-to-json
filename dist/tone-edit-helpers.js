@@ -1,0 +1,57 @@
+/**
+ * Shared helpers for MML parameter processing and formatting.
+ * Used by both the library (random-instrument.ts) and the demo (tone-edit-demo.ts).
+ */
+export function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+export function roundToStep(value, step) {
+    if (step <= 0)
+        return value;
+    const scaled = Math.round(value / step) * step;
+    return Number(scaled.toFixed(6));
+}
+const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+export function applyPath(target, path, value) {
+    const segments = path.split('.');
+    if (segments.some((s) => DANGEROUS_KEYS.has(s))) {
+        return;
+    }
+    let node = target;
+    segments.forEach((segment, index) => {
+        if (index === segments.length - 1) {
+            node[segment] = value;
+            return;
+        }
+        if (!node[segment] || typeof node[segment] !== 'object') {
+            node[segment] = {};
+        }
+        node = node[segment];
+    });
+}
+export function buildArgs(defs, values) {
+    const result = {};
+    defs.forEach((def) => {
+        const fromValues = values[def.path];
+        // Guard against non-finite defaults (e.g. NaN, Infinity) – fall back to 0 as a safe sentinel
+        const fromDefault = Number.isFinite(def.defaultValue) ? def.defaultValue : 0;
+        const value = Number.isFinite(fromValues) ? fromValues : fromDefault;
+        applyPath(result, def.path, value);
+    });
+    return result;
+}
+export function formatMml(tag, args) {
+    const hasArgs = Object.keys(args).length > 0;
+    if (!hasArgs) {
+        return `@${tag}`;
+    }
+    return `@${tag}${JSON.stringify(args, null, 2)}`;
+}
+export function randomValue(def) {
+    const min = def.sweetMin ?? def.min;
+    const max = def.sweetMax ?? def.max;
+    const raw = min + Math.random() * (max - min);
+    const stepped = roundToStep(raw, def.step ?? 0.01);
+    return clamp(stepped, def.min, def.max);
+}
+//# sourceMappingURL=tone-edit-helpers.js.map

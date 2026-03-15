@@ -6,6 +6,7 @@ import { initWasm, mml2json, randomInstrumentMml } from './index.js';
 import { SequencerNodes, playSequence, type SequenceEvent } from 'tonejs-json-sequencer';
 import type { ToneCommand } from './ast2json.js';
 import type { ParameterDefinition, InstrumentDefinition, EffectDefinition, ToneEditConfig, DemoState, NotePattern } from './tone-edit-types.js';
+import { clamp, buildArgs, formatMml, randomValue } from './tone-edit-helpers.js';
 
 const AUTO_PLAY_DELAY = 800;
 const toneConfig = config as ToneEditConfig;
@@ -21,56 +22,6 @@ const notePatterns: NotePattern[] = [
 let wasmReady: Promise<void> | null = null;
 let autoPlayTimer: number | null = null;
 let audioUnlocked = false;
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
-
-function roundToStep(value: number, step: number): number {
-  if (step <= 0) return value;
-  const scaled = Math.round(value / step) * step;
-  return Number(scaled.toFixed(6));
-}
-
-function applyPath(target: Record<string, unknown>, path: string, value: number): void {
-  const segments = path.split('.');
-  let node: Record<string, unknown> = target;
-  segments.forEach((segment, index) => {
-    if (index === segments.length - 1) {
-      node[segment] = value;
-      return;
-    }
-    if (!node[segment] || typeof node[segment] !== 'object') {
-      node[segment] = {};
-    }
-    node = node[segment] as Record<string, unknown>;
-  });
-}
-
-function buildArgs(defs: ParameterDefinition[], values: Record<string, number>): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
-  defs.forEach((def) => {
-    const value = Number.isFinite(values[def.path]) ? values[def.path] : def.defaultValue;
-    applyPath(result, def.path, value);
-  });
-  return result;
-}
-
-function formatMml(tag: string, args: Record<string, unknown>): string {
-  const hasArgs = Object.keys(args).length > 0;
-  if (!hasArgs) {
-    return `@${tag}`;
-  }
-  return `@${tag}${JSON.stringify(args, null, 2)}`;
-}
-
-function randomValue(def: ParameterDefinition): number {
-  const min = def.sweetMin ?? def.min;
-  const max = def.sweetMax ?? def.max;
-  const raw = min + Math.random() * (max - min);
-  const stepped = roundToStep(raw, def.step ?? 0.01);
-  return clamp(stepped, def.min, def.max);
-}
 
 function ensureValues(defs: ParameterDefinition[], values: Record<string, number>): Record<string, number> {
   const next: Record<string, number> = {};
