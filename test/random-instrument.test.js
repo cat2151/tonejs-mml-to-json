@@ -254,6 +254,165 @@ describe('randomInstrumentMml', () => {
     }
   });
 
+  it('PolySynth should always include a voice property', () => {
+    const config = {
+      instruments: [
+        {
+          id: 'PolySynth',
+          name: 'PolySynth (FMSynth)',
+          parameters: [
+            { path: 'voice', label: 'Voice Type', choices: ['FMSynth'], min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0 },
+            { path: 'options.harmonicity', label: 'Harmonicity', min: 1, max: 4, sweetMin: 1, sweetMax: 4, defaultValue: 2, step: 1 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 10; i++) {
+      const result = randomInstrumentMml(config);
+      expect(result).toMatch(/^@PolySynth/);
+      const jsonPart = result.replace(/^@PolySynth/, '');
+      const parsed = JSON.parse(jsonPart);
+      expect(parsed.voice).toBe('FMSynth');
+      expect(parsed).toHaveProperty('options');
+      expect(typeof parsed.options.harmonicity).toBe('number');
+    }
+  });
+
+  it('PolySynth from default config should include a voice property from the allowed set', () => {
+    const allowedVoices = new Set(['Synth', 'FMSynth', 'AMSynth', 'MonoSynth']);
+    const polySynthConfig = {
+      instruments: [
+        {
+          id: 'PolySynth',
+          name: 'PolySynth',
+          parameters: [
+            { path: 'voice', label: 'Voice Type', choices: ['Synth', 'FMSynth', 'AMSynth', 'MonoSynth'], min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0 },
+            { path: 'options.envelope.attack', label: 'Envelope Attack', min: 0, max: 1, sweetMin: 0.02, sweetMax: 0.25, defaultValue: 0.1, step: 0.01 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 20; i++) {
+      const result = randomInstrumentMml(polySynthConfig);
+      expect(result).toMatch(/^@PolySynth/);
+      const jsonPart = result.replace(/^@PolySynth/, '');
+      const parsed = JSON.parse(jsonPart);
+      expect(parsed).toHaveProperty('voice');
+      expect(allowedVoices.has(parsed.voice)).toBe(true);
+      expect(parsed).toHaveProperty('options');
+    }
+  });
+
+  it('PolySynth with FMSynth voice should include oscillator and modulation types', () => {
+    const config = {
+      instruments: [
+        {
+          id: 'PolySynth',
+          name: 'PolySynth (FMSynth)',
+          parameters: [
+            { path: 'voice', label: 'Voice Type', choices: ['FMSynth'], min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0 },
+            { path: 'options.oscillator.type', label: 'Oscillator Type', choices: ['sine', 'square', 'sawtooth', 'triangle'], min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0 },
+            { path: 'options.modulation.type', label: 'Modulation Type', choices: ['sine', 'square', 'sawtooth', 'triangle'], min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 10; i++) {
+      const result = randomInstrumentMml(config);
+      const jsonPart = result.replace(/^@PolySynth/, '');
+      const parsed = JSON.parse(jsonPart);
+      expect(parsed.voice).toBe('FMSynth');
+      expect(parsed.options).toHaveProperty('oscillator');
+      expect(['sine', 'square', 'sawtooth', 'triangle']).toContain(parsed.options.oscillator.type);
+      expect(parsed.options).toHaveProperty('modulation');
+      expect(['sine', 'square', 'sawtooth', 'triangle']).toContain(parsed.options.modulation.type);
+    }
+  });
+
+  it('DuoSynth should include voice0 and voice1 oscillator types', () => {
+    const config = {
+      instruments: [
+        {
+          id: 'DuoSynth',
+          name: 'DuoSynth',
+          parameters: [
+            { path: 'voice0.oscillator.type', label: 'Voice 0 Oscillator Type', choices: ['sine', 'square', 'sawtooth', 'triangle'], min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0 },
+            { path: 'voice1.oscillator.type', label: 'Voice 1 Oscillator Type', choices: ['sine', 'square', 'sawtooth', 'triangle'], min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 10; i++) {
+      const result = randomInstrumentMml(config);
+      expect(result).toMatch(/^@DuoSynth/);
+      const jsonPart = result.replace(/^@DuoSynth/, '');
+      const parsed = JSON.parse(jsonPart);
+      expect(parsed).toHaveProperty('voice0');
+      expect(parsed.voice0).toHaveProperty('oscillator');
+      expect(['sine', 'square', 'sawtooth', 'triangle']).toContain(parsed.voice0.oscillator.type);
+      expect(parsed).toHaveProperty('voice1');
+      expect(parsed.voice1).toHaveProperty('oscillator');
+      expect(['sine', 'square', 'sawtooth', 'triangle']).toContain(parsed.voice1.oscillator.type);
+    }
+  });
+
+  it('DuoSynth from default config should include voice0 and voice1 oscillator types', () => {
+    const duoSynthConfig = {
+      instruments: [
+        {
+          id: 'DuoSynth',
+          name: 'DuoSynth',
+          parameters: [
+            { path: 'voice0.oscillator.type', label: 'Voice 0 Oscillator Type', choices: ['sine', 'square', 'sawtooth', 'triangle'], min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0 },
+            { path: 'voice1.oscillator.type', label: 'Voice 1 Oscillator Type', choices: ['sine', 'square', 'sawtooth', 'triangle'], min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0 },
+            { path: 'harmonicity', label: 'Harmonicity', min: 0, max: 5, sweetMin: 1, sweetMax: 3, defaultValue: 1.5, step: 0.1 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 10; i++) {
+      const result = randomInstrumentMml(duoSynthConfig);
+      expect(result).toMatch(/^@DuoSynth/);
+      const jsonPart = result.replace(/^@DuoSynth/, '');
+      const parsed = JSON.parse(jsonPart);
+      expect(parsed).toHaveProperty('voice0');
+      expect(parsed.voice0).toHaveProperty('oscillator');
+      expect(['sine', 'square', 'sawtooth', 'triangle']).toContain(parsed.voice0.oscillator.type);
+      expect(parsed).toHaveProperty('voice1');
+      expect(parsed.voice1).toHaveProperty('oscillator');
+      expect(['sine', 'square', 'sawtooth', 'triangle']).toContain(parsed.voice1.oscillator.type);
+    }
+  });
+
+  it('AMSynth should include modulationEnvelope parameters', () => {
+    const amSynthConfig = {
+      instruments: [
+        {
+          id: 'AMSynth',
+          name: 'AMSynth',
+          parameters: [
+            { path: 'harmonicity', label: 'Harmonicity', min: 1, max: 8, sweetMin: 1, sweetMax: 4, defaultValue: 3, step: 1 },
+            { path: 'modulationEnvelope.attack', label: 'Mod Envelope Attack', min: 0, max: 1, sweetMin: 0.05, sweetMax: 0.8, defaultValue: 0.5, step: 0.01 },
+            { path: 'modulationEnvelope.decay', label: 'Mod Envelope Decay', min: 0, max: 1, sweetMin: 0, sweetMax: 0.5, defaultValue: 0.01, step: 0.01 },
+            { path: 'modulationEnvelope.sustain', label: 'Mod Envelope Sustain', min: 0, max: 1, sweetMin: 0.3, sweetMax: 1, defaultValue: 1, step: 0.01 },
+            { path: 'modulationEnvelope.release', label: 'Mod Envelope Release', min: 0, max: 3, sweetMin: 0.2, sweetMax: 1.5, defaultValue: 0.5, step: 0.05 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 10; i++) {
+      const result = randomInstrumentMml(amSynthConfig);
+      expect(result).toMatch(/^@AMSynth/);
+      const jsonPart = result.replace(/^@AMSynth/, '');
+      const parsed = JSON.parse(jsonPart);
+      expect(parsed).toHaveProperty('modulationEnvelope');
+      expect(typeof parsed.modulationEnvelope.attack).toBe('number');
+      expect(typeof parsed.modulationEnvelope.decay).toBe('number');
+      expect(typeof parsed.modulationEnvelope.sustain).toBe('number');
+      expect(typeof parsed.modulationEnvelope.release).toBe('number');
+    }
+  });
+
   it('should keep numeric parameter values within sweet spot ranges', () => {
     const FLOAT_TOLERANCE = 0.001;
     const min = 0.1;
