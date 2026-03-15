@@ -423,6 +423,18 @@ function setupControls(): void {
     scheduleAutoPlay();
   };
 
+  getElement<HTMLButtonElement>('randomInstrumentWithType').addEventListener('click', () => {
+    const randomIndex = Math.floor(Math.random() * toneConfig.instruments.length);
+    const nextDef = toneConfig.instruments[randomIndex];
+    if (!nextDef) return;
+    state.instrumentId = nextDef.id;
+    state.instrumentValues = ensureValues(nextDef.parameters, {});
+    getElement<HTMLSelectElement>('instrumentSelect').value = nextDef.id;
+    randomize(nextDef.parameters, state.instrumentValues, 'instrumentParams', onInstrumentParamChange);
+    regenerateMml(state, toneConfig.instruments, toneConfig.effects);
+    void playCurrent({ allowUnlock: true });
+  });
+
   getElement<HTMLButtonElement>('randomInstrument').addEventListener('click', () => {
     const instrumentDef = toneConfig.instruments.find((d) => d.id === state.instrumentId) ?? toneConfig.instruments[0];
     randomize(instrumentDef.parameters, state.instrumentValues, 'instrumentParams', onInstrumentParamChange);
