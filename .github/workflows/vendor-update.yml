@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,7 +32,7 @@ jobs:
       - name: Update cat2151 libraries (pnpm)
         run: pnpm update tonejs-json-sequencer --lockfile-only
 
-      - name: Create PR if changed
+      - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -41,15 +40,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            BRANCH="vendor-update/$(date +%Y%m%d)-$GITHUB_RUN_NUMBER"
-            git checkout -b "$BRANCH"
             git commit -m "chore: update cat2151 vendor libraries"
-            git push origin "$BRANCH"
-            gh pr create \
-              --title "chore: update cat2151 vendor libraries" \
-              --body "Automated vendor library update from cat2151 upstream repositories." \
-              --base main \
-              --head "$BRANCH"
+            git push
           fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
