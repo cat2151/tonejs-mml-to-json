@@ -136,8 +136,13 @@ module.exports = grammar({
     instrument_name: $ => /[A-Za-z][A-Za-z0-9]*/,
 
     // JSON arguments for instrument (e.g., for Sampler)
-    // This regex matches balanced braces to handle nested JSON objects
-    json_args: $ => /\{(?:[^{}]|\{[^}]*\})*\}/,
+    // This regex matches balanced braces to handle nested JSON objects up to 3 levels deep.
+    // 3 levels are sufficient for all current Tone.js instrument parameters:
+    //   - PolySynth: {"voice": "...", "options": {"oscillator": {"type": "..."}}}
+    //   - DuoSynth:  {"voice0": {"oscillator": {"type": "..."}}, "voice1": {...}}
+    // If future instruments require deeper nesting, extend the pattern by adding another
+    // (?:[^{}]|\{...\})* layer.
+    json_args: $ => /\{(?:[^{}]|\{(?:[^{}]|\{[^}]*\})*\})*\}/,
 
     // Chord: 'notes' with optional duration inside quotes and dots outside
     // Example: 'ceg', 'c+eg-', 'c4eg', 'c4eg'.

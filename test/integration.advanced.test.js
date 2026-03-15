@@ -266,6 +266,40 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(Array.isArray(chords[0].args[0])).toBe(true);
       expect(chords[0].args[0]).toEqual(['c4', 'e4', 'g4']);
     });
+
+    it('should parse and preserve voice and options args for @PolySynth with 3-level nested JSON', () => {
+      // Regression test: @PolySynth with voice and nested options (3 levels deep) must pass
+      // args through correctly. Previously the json_args grammar regex only handled 2 levels.
+      const mml = '@PolySynth{"voice":"FMSynth","options":{"oscillator":{"type":"sine"}}} c d e';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe('PolySynth');
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.voice).toBe('FMSynth');
+      expect(createNodes[0].args.options).toBeDefined();
+      expect(createNodes[0].args.options.oscillator.type).toBe('sine');
+    });
+
+    it('should parse and preserve voice0 and voice1 args for @DuoSynth with 3-level nested JSON', () => {
+      // Regression test: @DuoSynth with voice0/voice1 nested objects (3 levels deep) must
+      // pass args through correctly. Previously the json_args grammar regex only handled 2 levels.
+      const mml = '@DuoSynth{"harmonicity":2,"voice0":{"oscillator":{"type":"sine"}},"voice1":{"oscillator":{"type":"square"}}} c d e';
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const createNodes = json.filter(e => e.eventType === 'createNode');
+      expect(createNodes).toHaveLength(1);
+      expect(createNodes[0].nodeType).toBe('DuoSynth');
+      expect(createNodes[0].args).toBeDefined();
+      expect(createNodes[0].args.harmonicity).toBe(2);
+      expect(createNodes[0].args.voice0).toBeDefined();
+      expect(createNodes[0].args.voice0.oscillator.type).toBe('sine');
+      expect(createNodes[0].args.voice1).toBeDefined();
+      expect(createNodes[0].args.voice1.oscillator.type).toBe('square');
+    });
   });
 
   describe('Key transpose (kt) command', () => {
