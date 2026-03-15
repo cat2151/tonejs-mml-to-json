@@ -32,11 +32,31 @@ export function applyPath(target, path, value) {
 export function buildArgs(defs, values) {
     const result = {};
     defs.forEach((def) => {
-        const fromValues = values[def.path];
-        // Guard against non-finite defaults (e.g. NaN, Infinity) – fall back to 0 as a safe sentinel
-        const fromDefault = Number.isFinite(def.defaultValue) ? def.defaultValue : 0;
-        const value = Number.isFinite(fromValues) ? fromValues : fromDefault;
-        applyPath(result, def.path, value);
+        if (def.choices && def.choices.length > 0) {
+            // Enum parameter: use stored string value or fall back to first choice
+            const fromValues = values[def.path];
+            const value = (typeof fromValues === 'string' && def.choices.includes(fromValues))
+                ? fromValues
+                : def.choices[0];
+            applyPath(result, def.path, value);
+        }
+        else if (def.numericChoices && def.numericChoices.length > 0) {
+            // Discrete numeric parameter: use stored numeric value or fall back to first choice
+            const fromValues = values[def.path];
+            const value = (typeof fromValues === 'number' && def.numericChoices.includes(fromValues))
+                ? fromValues
+                : def.numericChoices[0];
+            applyPath(result, def.path, value);
+        }
+        else {
+            // Numeric parameter
+            const fromValues = values[def.path];
+            const fromNumeric = typeof fromValues === 'number' ? fromValues : undefined;
+            // Guard against non-finite defaults (e.g. NaN, Infinity) – fall back to 0 as a safe sentinel
+            const fromDefault = Number.isFinite(def.defaultValue) ? def.defaultValue : 0;
+            const value = (fromNumeric !== undefined && Number.isFinite(fromNumeric)) ? fromNumeric : fromDefault;
+            applyPath(result, def.path, value);
+        }
     });
     return result;
 }
@@ -48,6 +68,12 @@ export function formatMml(tag, args) {
     return `@${tag}${JSON.stringify(args, null, 2)}`;
 }
 export function randomValue(def) {
+    if (def.choices && def.choices.length > 0) {
+        return def.choices[Math.floor(Math.random() * def.choices.length)];
+    }
+    if (def.numericChoices && def.numericChoices.length > 0) {
+        return def.numericChoices[Math.floor(Math.random() * def.numericChoices.length)];
+    }
     const min = def.sweetMin ?? def.min;
     const max = def.sweetMax ?? def.max;
     const raw = min + Math.random() * (max - min);

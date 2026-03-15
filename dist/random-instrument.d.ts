@@ -1,18 +1,49 @@
 /**
- * MML processing function: random instrument MML generation.
- * Picks a random instrument type and randomizes its parameters within
- * "sweet spot" ranges to produce a valid MML instrument fragment.
+ * MML processing function: random instrument and effect MML generation.
+ * Picks a random instrument/effect type and randomizes its parameters within
+ * "sweet spot" ranges to produce valid MML fragments.
  */
-import type { InstrumentDefinition, ParameterDefinition, ToneEditConfig } from './tone-edit-types.js';
-export type { InstrumentDefinition, ParameterDefinition, ToneEditConfig };
+import type { InstrumentDefinition, EffectDefinition, ParameterDefinition, ToneEditConfig } from './tone-edit-types.js';
+export type { InstrumentDefinition, EffectDefinition, ParameterDefinition, ToneEditConfig };
+/**
+ * Result of randomInstrumentAndEffectMml: separate MML fragments for the
+ * instrument and the effect so callers can place them independently.
+ */
+export type RandomMmlResult = {
+    instrument: string;
+    effect: string;
+};
 /**
  * Generate an MML fragment for a randomly chosen instrument with randomized
- * parameters within sweet-spot ranges.
+ * parameters. String enum parameters (e.g. oscillator type) are also
+ * randomized from their defined choices.
  *
- * @param config - Optional instrument configuration. Defaults to the built-in
- *   set (Synth, FMSynth, MonoSynth). Pass a custom config to use different
- *   instrument types or parameter ranges.
+ * @param config - Optional instrument configuration. Defaults to the full
+ *   built-in instrument set. Pass a custom config to restrict the selection.
  * @returns An MML instrument fragment such as `@FMSynth{ "harmonicity": 2.4, ... }`
  */
 export declare function randomInstrumentMml(config?: Pick<ToneEditConfig, 'instruments'>): string;
+/**
+ * Generate an MML fragment for a randomly chosen effect with randomized
+ * parameters. The "none" effect (no effect) is excluded from the selection.
+ *
+ * @param config - Optional effect configuration. Defaults to the full
+ *   built-in effect set. Pass a custom config to restrict the selection.
+ * @returns An MML effect fragment such as `@Reverb{ "decay": 2.5 }`, or an
+ *   empty string when there are no non-none effects available.
+ */
+export declare function randomEffectMml(config?: Pick<ToneEditConfig, 'effects'>): string;
+/**
+ * Generate MML fragments for a randomly chosen instrument AND a randomly
+ * chosen effect, both with fully randomized parameters (including string
+ * enum parameters such as oscillator type).
+ *
+ * @param config - Optional full configuration. Defaults to the full built-in
+ *   instrument and effect sets.
+ * @returns An object with `instrument` and `effect` MML strings. `instrument`
+ *   is always non-empty when the instrument list is non-empty. `effect` may
+ *   be an empty string if the config contains only the `none` effect or an
+ *   empty effects list.
+ */
+export declare function randomInstrumentAndEffectMml(config?: ToneEditConfig): RandomMmlResult;
 //# sourceMappingURL=random-instrument.d.ts.map
