@@ -445,10 +445,6 @@
       "type": "PATTERN",
       "value": "[A-Za-z][A-Za-z0-9]*"
     },
-    "json_args": {
-      "type": "PATTERN",
-      "value": "\\{(?:[^{}]|\\{[^}]*\\})*\\}"
-    },
     "chord": {
       "type": "SEQ",
       "members": [
@@ -543,7 +539,12 @@
   ],
   "conflicts": [],
   "precedences": [],
-  "externals": [],
+  "externals": [
+    {
+      "type": "SYMBOL",
+      "name": "json_args"
+    }
+  ],
   "inline": [],
   "supertypes": []
 }
