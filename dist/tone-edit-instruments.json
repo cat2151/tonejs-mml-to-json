@@ -6,12 +6,121 @@
             {
                 "path": "oscillator.type",
                 "label": "Oscillator Type",
-                "choices": ["sine", "square", "sawtooth", "triangle"],
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle",
+                    "fatsine",
+                    "fatsquare",
+                    "fatsawtooth",
+                    "fattriangle",
+                    "amsine",
+                    "amsquare",
+                    "amsawtooth",
+                    "amtriangle",
+                    "fmsine",
+                    "fmsquare",
+                    "fmsawtooth",
+                    "fmtriangle",
+                    "pwm"
+                ],
                 "min": 0,
                 "max": 0,
                 "sweetMin": 0,
                 "sweetMax": 0,
                 "defaultValue": 0
+            },
+            {
+                "path": "oscillator.count",
+                "label": "Fat Oscillator Count",
+                "min": 2,
+                "max": 8,
+                "sweetMin": 2,
+                "sweetMax": 6,
+                "defaultValue": 3,
+                "step": 1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "fat"
+                ]
+            },
+            {
+                "path": "oscillator.spread",
+                "label": "Fat Oscillator Spread",
+                "min": 0,
+                "max": 100,
+                "sweetMin": 10,
+                "sweetMax": 50,
+                "defaultValue": 30,
+                "step": 1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "fat"
+                ]
+            },
+            {
+                "path": "oscillator.harmonicity",
+                "label": "Oscillator Harmonicity",
+                "min": 0,
+                "max": 16,
+                "sweetMin": 1,
+                "sweetMax": 8,
+                "defaultValue": 1,
+                "step": 0.1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "am",
+                    "fm"
+                ]
+            },
+            {
+                "path": "oscillator.modulationType",
+                "label": "Oscillator Modulation Type",
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle"
+                ],
+                "min": 0,
+                "max": 0,
+                "sweetMin": 0,
+                "sweetMax": 0,
+                "defaultValue": 0,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "am",
+                    "fm"
+                ]
+            },
+            {
+                "path": "oscillator.modulationIndex",
+                "label": "Oscillator Modulation Index",
+                "min": 0,
+                "max": 100,
+                "sweetMin": 0.5,
+                "sweetMax": 20,
+                "defaultValue": 2,
+                "step": 0.1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "fm"
+                ]
+            },
+            {
+                "path": "oscillator.modulationFrequency",
+                "label": "PWM Modulation Frequency",
+                "min": 0.05,
+                "max": 20,
+                "sweetMin": 0.1,
+                "sweetMax": 5,
+                "defaultValue": 0.4,
+                "step": 0.05,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "pwm"
+                ]
             },
             {
                 "path": "oscillator.partialCount",
@@ -72,7 +181,25 @@
             {
                 "path": "oscillator.type",
                 "label": "Oscillator Type",
-                "choices": ["sine", "square", "sawtooth", "triangle"],
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle",
+                    "fatsine",
+                    "fatsquare",
+                    "fatsawtooth",
+                    "fattriangle",
+                    "amsine",
+                    "amsquare",
+                    "amsawtooth",
+                    "amtriangle",
+                    "fmsine",
+                    "fmsquare",
+                    "fmsawtooth",
+                    "fmtriangle",
+                    "pwm"
+                ],
                 "min": 0,
                 "max": 0,
                 "sweetMin": 0,
@@ -80,9 +207,105 @@
                 "defaultValue": 0
             },
             {
+                "path": "oscillator.count",
+                "label": "Fat Oscillator Count",
+                "min": 2,
+                "max": 8,
+                "sweetMin": 2,
+                "sweetMax": 6,
+                "defaultValue": 3,
+                "step": 1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "fat"
+                ]
+            },
+            {
+                "path": "oscillator.spread",
+                "label": "Fat Oscillator Spread",
+                "min": 0,
+                "max": 100,
+                "sweetMin": 10,
+                "sweetMax": 50,
+                "defaultValue": 30,
+                "step": 1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "fat"
+                ]
+            },
+            {
+                "path": "oscillator.harmonicity",
+                "label": "Oscillator Harmonicity",
+                "min": 0,
+                "max": 16,
+                "sweetMin": 1,
+                "sweetMax": 8,
+                "defaultValue": 1,
+                "step": 0.1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "am",
+                    "fm"
+                ]
+            },
+            {
+                "path": "oscillator.modulationType",
+                "label": "Oscillator Modulation Type",
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle"
+                ],
+                "min": 0,
+                "max": 0,
+                "sweetMin": 0,
+                "sweetMax": 0,
+                "defaultValue": 0,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "am",
+                    "fm"
+                ]
+            },
+            {
+                "path": "oscillator.modulationIndex",
+                "label": "Oscillator Modulation Index",
+                "min": 0,
+                "max": 100,
+                "sweetMin": 0.5,
+                "sweetMax": 20,
+                "defaultValue": 2,
+                "step": 0.1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "fm"
+                ]
+            },
+            {
+                "path": "oscillator.modulationFrequency",
+                "label": "PWM Modulation Frequency",
+                "min": 0.05,
+                "max": 20,
+                "sweetMin": 0.1,
+                "sweetMax": 5,
+                "defaultValue": 0.4,
+                "step": 0.05,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "pwm"
+                ]
+            },
+            {
                 "path": "modulation.type",
                 "label": "Modulation Type",
-                "choices": ["sine", "square", "sawtooth", "triangle"],
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle"
+                ],
                 "min": 0,
                 "max": 0,
                 "sweetMin": 0,
@@ -188,7 +411,13 @@
             {
                 "path": "harmonicity",
                 "label": "Harmonicity",
-                "numericChoices": [1.5, 2, 3, 4, 5],
+                "numericChoices": [
+                    1.5,
+                    2,
+                    3,
+                    4,
+                    5
+                ],
                 "min": 1,
                 "max": 5,
                 "sweetMin": 1,
@@ -218,12 +447,121 @@
             {
                 "path": "voice0.oscillator.type",
                 "label": "Voice 0 Oscillator Type",
-                "choices": ["sine", "square", "sawtooth", "triangle"],
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle",
+                    "fatsine",
+                    "fatsquare",
+                    "fatsawtooth",
+                    "fattriangle",
+                    "amsine",
+                    "amsquare",
+                    "amsawtooth",
+                    "amtriangle",
+                    "fmsine",
+                    "fmsquare",
+                    "fmsawtooth",
+                    "fmtriangle",
+                    "pwm"
+                ],
                 "min": 0,
                 "max": 0,
                 "sweetMin": 0,
                 "sweetMax": 0,
                 "defaultValue": 0
+            },
+            {
+                "path": "voice0.oscillator.count",
+                "label": "Fat Oscillator Count",
+                "min": 2,
+                "max": 8,
+                "sweetMin": 2,
+                "sweetMax": 6,
+                "defaultValue": 3,
+                "step": 1,
+                "conditionalOn": "voice0.oscillator.type",
+                "conditionalPrefixes": [
+                    "fat"
+                ]
+            },
+            {
+                "path": "voice0.oscillator.spread",
+                "label": "Fat Oscillator Spread",
+                "min": 0,
+                "max": 100,
+                "sweetMin": 10,
+                "sweetMax": 50,
+                "defaultValue": 30,
+                "step": 1,
+                "conditionalOn": "voice0.oscillator.type",
+                "conditionalPrefixes": [
+                    "fat"
+                ]
+            },
+            {
+                "path": "voice0.oscillator.harmonicity",
+                "label": "Oscillator Harmonicity",
+                "min": 0,
+                "max": 16,
+                "sweetMin": 1,
+                "sweetMax": 8,
+                "defaultValue": 1,
+                "step": 0.1,
+                "conditionalOn": "voice0.oscillator.type",
+                "conditionalPrefixes": [
+                    "am",
+                    "fm"
+                ]
+            },
+            {
+                "path": "voice0.oscillator.modulationType",
+                "label": "Oscillator Modulation Type",
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle"
+                ],
+                "min": 0,
+                "max": 0,
+                "sweetMin": 0,
+                "sweetMax": 0,
+                "defaultValue": 0,
+                "conditionalOn": "voice0.oscillator.type",
+                "conditionalPrefixes": [
+                    "am",
+                    "fm"
+                ]
+            },
+            {
+                "path": "voice0.oscillator.modulationIndex",
+                "label": "Oscillator Modulation Index",
+                "min": 0,
+                "max": 100,
+                "sweetMin": 0.5,
+                "sweetMax": 20,
+                "defaultValue": 2,
+                "step": 0.1,
+                "conditionalOn": "voice0.oscillator.type",
+                "conditionalPrefixes": [
+                    "fm"
+                ]
+            },
+            {
+                "path": "voice0.oscillator.modulationFrequency",
+                "label": "PWM Modulation Frequency",
+                "min": 0.05,
+                "max": 20,
+                "sweetMin": 0.1,
+                "sweetMax": 5,
+                "defaultValue": 0.4,
+                "step": 0.05,
+                "conditionalOn": "voice0.oscillator.type",
+                "conditionalPrefixes": [
+                    "pwm"
+                ]
             },
             {
                 "path": "voice0.envelope.attack",
@@ -248,12 +586,121 @@
             {
                 "path": "voice1.oscillator.type",
                 "label": "Voice 1 Oscillator Type",
-                "choices": ["sine", "square", "sawtooth", "triangle"],
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle",
+                    "fatsine",
+                    "fatsquare",
+                    "fatsawtooth",
+                    "fattriangle",
+                    "amsine",
+                    "amsquare",
+                    "amsawtooth",
+                    "amtriangle",
+                    "fmsine",
+                    "fmsquare",
+                    "fmsawtooth",
+                    "fmtriangle",
+                    "pwm"
+                ],
                 "min": 0,
                 "max": 0,
                 "sweetMin": 0,
                 "sweetMax": 0,
                 "defaultValue": 0
+            },
+            {
+                "path": "voice1.oscillator.count",
+                "label": "Fat Oscillator Count",
+                "min": 2,
+                "max": 8,
+                "sweetMin": 2,
+                "sweetMax": 6,
+                "defaultValue": 3,
+                "step": 1,
+                "conditionalOn": "voice1.oscillator.type",
+                "conditionalPrefixes": [
+                    "fat"
+                ]
+            },
+            {
+                "path": "voice1.oscillator.spread",
+                "label": "Fat Oscillator Spread",
+                "min": 0,
+                "max": 100,
+                "sweetMin": 10,
+                "sweetMax": 50,
+                "defaultValue": 30,
+                "step": 1,
+                "conditionalOn": "voice1.oscillator.type",
+                "conditionalPrefixes": [
+                    "fat"
+                ]
+            },
+            {
+                "path": "voice1.oscillator.harmonicity",
+                "label": "Oscillator Harmonicity",
+                "min": 0,
+                "max": 16,
+                "sweetMin": 1,
+                "sweetMax": 8,
+                "defaultValue": 1,
+                "step": 0.1,
+                "conditionalOn": "voice1.oscillator.type",
+                "conditionalPrefixes": [
+                    "am",
+                    "fm"
+                ]
+            },
+            {
+                "path": "voice1.oscillator.modulationType",
+                "label": "Oscillator Modulation Type",
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle"
+                ],
+                "min": 0,
+                "max": 0,
+                "sweetMin": 0,
+                "sweetMax": 0,
+                "defaultValue": 0,
+                "conditionalOn": "voice1.oscillator.type",
+                "conditionalPrefixes": [
+                    "am",
+                    "fm"
+                ]
+            },
+            {
+                "path": "voice1.oscillator.modulationIndex",
+                "label": "Oscillator Modulation Index",
+                "min": 0,
+                "max": 100,
+                "sweetMin": 0.5,
+                "sweetMax": 20,
+                "defaultValue": 2,
+                "step": 0.1,
+                "conditionalOn": "voice1.oscillator.type",
+                "conditionalPrefixes": [
+                    "fm"
+                ]
+            },
+            {
+                "path": "voice1.oscillator.modulationFrequency",
+                "label": "PWM Modulation Frequency",
+                "min": 0.05,
+                "max": 20,
+                "sweetMin": 0.1,
+                "sweetMax": 5,
+                "defaultValue": 0.4,
+                "step": 0.05,
+                "conditionalOn": "voice1.oscillator.type",
+                "conditionalPrefixes": [
+                    "pwm"
+                ]
             },
             {
                 "path": "voice1.envelope.attack",
@@ -284,12 +731,121 @@
             {
                 "path": "oscillator.type",
                 "label": "Oscillator Type",
-                "choices": ["sine", "square", "sawtooth", "triangle"],
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle",
+                    "fatsine",
+                    "fatsquare",
+                    "fatsawtooth",
+                    "fattriangle",
+                    "amsine",
+                    "amsquare",
+                    "amsawtooth",
+                    "amtriangle",
+                    "fmsine",
+                    "fmsquare",
+                    "fmsawtooth",
+                    "fmtriangle",
+                    "pwm"
+                ],
                 "min": 0,
                 "max": 0,
                 "sweetMin": 0,
                 "sweetMax": 0,
                 "defaultValue": 0
+            },
+            {
+                "path": "oscillator.count",
+                "label": "Fat Oscillator Count",
+                "min": 2,
+                "max": 8,
+                "sweetMin": 2,
+                "sweetMax": 6,
+                "defaultValue": 3,
+                "step": 1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "fat"
+                ]
+            },
+            {
+                "path": "oscillator.spread",
+                "label": "Fat Oscillator Spread",
+                "min": 0,
+                "max": 100,
+                "sweetMin": 10,
+                "sweetMax": 50,
+                "defaultValue": 30,
+                "step": 1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "fat"
+                ]
+            },
+            {
+                "path": "oscillator.harmonicity",
+                "label": "Oscillator Harmonicity",
+                "min": 0,
+                "max": 16,
+                "sweetMin": 1,
+                "sweetMax": 8,
+                "defaultValue": 1,
+                "step": 0.1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "am",
+                    "fm"
+                ]
+            },
+            {
+                "path": "oscillator.modulationType",
+                "label": "Oscillator Modulation Type",
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle"
+                ],
+                "min": 0,
+                "max": 0,
+                "sweetMin": 0,
+                "sweetMax": 0,
+                "defaultValue": 0,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "am",
+                    "fm"
+                ]
+            },
+            {
+                "path": "oscillator.modulationIndex",
+                "label": "Oscillator Modulation Index",
+                "min": 0,
+                "max": 100,
+                "sweetMin": 0.5,
+                "sweetMax": 20,
+                "defaultValue": 2,
+                "step": 0.1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "fm"
+                ]
+            },
+            {
+                "path": "oscillator.modulationFrequency",
+                "label": "PWM Modulation Frequency",
+                "min": 0.05,
+                "max": 20,
+                "sweetMin": 0.1,
+                "sweetMax": 5,
+                "defaultValue": 0.4,
+                "step": 0.05,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "pwm"
+                ]
             },
             {
                 "path": "oscillator.partialCount",
@@ -304,7 +860,12 @@
             {
                 "path": "modulation.type",
                 "label": "Modulation Type",
-                "choices": ["sine", "square", "sawtooth", "triangle"],
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle"
+                ],
                 "min": 0,
                 "max": 0,
                 "sweetMin": 0,
@@ -582,12 +1143,121 @@
             {
                 "path": "oscillator.type",
                 "label": "Oscillator Type",
-                "choices": ["sine", "square", "sawtooth", "triangle"],
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle",
+                    "fatsine",
+                    "fatsquare",
+                    "fatsawtooth",
+                    "fattriangle",
+                    "amsine",
+                    "amsquare",
+                    "amsawtooth",
+                    "amtriangle",
+                    "fmsine",
+                    "fmsquare",
+                    "fmsawtooth",
+                    "fmtriangle",
+                    "pwm"
+                ],
                 "min": 0,
                 "max": 0,
                 "sweetMin": 0,
                 "sweetMax": 0,
                 "defaultValue": 0
+            },
+            {
+                "path": "oscillator.count",
+                "label": "Fat Oscillator Count",
+                "min": 2,
+                "max": 8,
+                "sweetMin": 2,
+                "sweetMax": 6,
+                "defaultValue": 3,
+                "step": 1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "fat"
+                ]
+            },
+            {
+                "path": "oscillator.spread",
+                "label": "Fat Oscillator Spread",
+                "min": 0,
+                "max": 100,
+                "sweetMin": 10,
+                "sweetMax": 50,
+                "defaultValue": 30,
+                "step": 1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "fat"
+                ]
+            },
+            {
+                "path": "oscillator.harmonicity",
+                "label": "Oscillator Harmonicity",
+                "min": 0,
+                "max": 16,
+                "sweetMin": 1,
+                "sweetMax": 8,
+                "defaultValue": 1,
+                "step": 0.1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "am",
+                    "fm"
+                ]
+            },
+            {
+                "path": "oscillator.modulationType",
+                "label": "Oscillator Modulation Type",
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle"
+                ],
+                "min": 0,
+                "max": 0,
+                "sweetMin": 0,
+                "sweetMax": 0,
+                "defaultValue": 0,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "am",
+                    "fm"
+                ]
+            },
+            {
+                "path": "oscillator.modulationIndex",
+                "label": "Oscillator Modulation Index",
+                "min": 0,
+                "max": 100,
+                "sweetMin": 0.5,
+                "sweetMax": 20,
+                "defaultValue": 2,
+                "step": 0.1,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "fm"
+                ]
+            },
+            {
+                "path": "oscillator.modulationFrequency",
+                "label": "PWM Modulation Frequency",
+                "min": 0.05,
+                "max": 20,
+                "sweetMin": 0.1,
+                "sweetMax": 5,
+                "defaultValue": 0.4,
+                "step": 0.05,
+                "conditionalOn": "oscillator.type",
+                "conditionalPrefixes": [
+                    "pwm"
+                ]
             },
             {
                 "path": "oscillator.partialCount",
@@ -612,7 +1282,12 @@
             {
                 "path": "filter.rolloff",
                 "label": "Filter Rolloff",
-                "numericChoices": [-12, -24, -48, -96],
+                "numericChoices": [
+                    -12,
+                    -24,
+                    -48,
+                    -96
+                ],
                 "min": -96,
                 "max": -12,
                 "sweetMin": -96,
@@ -738,7 +1413,11 @@
             {
                 "path": "noise.type",
                 "label": "Noise Type",
-                "choices": ["white", "pink", "brown"],
+                "choices": [
+                    "white",
+                    "pink",
+                    "brown"
+                ],
                 "min": 0,
                 "max": 0,
                 "sweetMin": 0,
@@ -830,7 +1509,12 @@
             {
                 "path": "voice",
                 "label": "Voice Type",
-                "choices": ["Synth", "FMSynth", "AMSynth", "MonoSynth"],
+                "choices": [
+                    "Synth",
+                    "FMSynth",
+                    "AMSynth",
+                    "MonoSynth"
+                ],
                 "min": 0,
                 "max": 0,
                 "sweetMin": 0,
@@ -840,7 +1524,25 @@
             {
                 "path": "options.oscillator.type",
                 "label": "Oscillator Type",
-                "choices": ["sine", "square", "sawtooth", "triangle"],
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle",
+                    "fatsine",
+                    "fatsquare",
+                    "fatsawtooth",
+                    "fattriangle",
+                    "amsine",
+                    "amsquare",
+                    "amsawtooth",
+                    "amtriangle",
+                    "fmsine",
+                    "fmsquare",
+                    "fmsawtooth",
+                    "fmtriangle",
+                    "pwm"
+                ],
                 "min": 0,
                 "max": 0,
                 "sweetMin": 0,
@@ -848,9 +1550,105 @@
                 "defaultValue": 0
             },
             {
+                "path": "options.oscillator.count",
+                "label": "Fat Oscillator Count",
+                "min": 2,
+                "max": 8,
+                "sweetMin": 2,
+                "sweetMax": 6,
+                "defaultValue": 3,
+                "step": 1,
+                "conditionalOn": "options.oscillator.type",
+                "conditionalPrefixes": [
+                    "fat"
+                ]
+            },
+            {
+                "path": "options.oscillator.spread",
+                "label": "Fat Oscillator Spread",
+                "min": 0,
+                "max": 100,
+                "sweetMin": 10,
+                "sweetMax": 50,
+                "defaultValue": 30,
+                "step": 1,
+                "conditionalOn": "options.oscillator.type",
+                "conditionalPrefixes": [
+                    "fat"
+                ]
+            },
+            {
+                "path": "options.oscillator.harmonicity",
+                "label": "Oscillator Harmonicity",
+                "min": 0,
+                "max": 16,
+                "sweetMin": 1,
+                "sweetMax": 8,
+                "defaultValue": 1,
+                "step": 0.1,
+                "conditionalOn": "options.oscillator.type",
+                "conditionalPrefixes": [
+                    "am",
+                    "fm"
+                ]
+            },
+            {
+                "path": "options.oscillator.modulationType",
+                "label": "Oscillator Modulation Type",
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle"
+                ],
+                "min": 0,
+                "max": 0,
+                "sweetMin": 0,
+                "sweetMax": 0,
+                "defaultValue": 0,
+                "conditionalOn": "options.oscillator.type",
+                "conditionalPrefixes": [
+                    "am",
+                    "fm"
+                ]
+            },
+            {
+                "path": "options.oscillator.modulationIndex",
+                "label": "Oscillator Modulation Index",
+                "min": 0,
+                "max": 100,
+                "sweetMin": 0.5,
+                "sweetMax": 20,
+                "defaultValue": 2,
+                "step": 0.1,
+                "conditionalOn": "options.oscillator.type",
+                "conditionalPrefixes": [
+                    "fm"
+                ]
+            },
+            {
+                "path": "options.oscillator.modulationFrequency",
+                "label": "PWM Modulation Frequency",
+                "min": 0.05,
+                "max": 20,
+                "sweetMin": 0.1,
+                "sweetMax": 5,
+                "defaultValue": 0.4,
+                "step": 0.05,
+                "conditionalOn": "options.oscillator.type",
+                "conditionalPrefixes": [
+                    "pwm"
+                ]
+            },
+            {
                 "path": "options.modulation.type",
                 "label": "Modulation Type",
-                "choices": ["sine", "square", "sawtooth", "triangle"],
+                "choices": [
+                    "sine",
+                    "square",
+                    "sawtooth",
+                    "triangle"
+                ],
                 "min": 0,
                 "max": 0,
                 "sweetMin": 0,
@@ -970,7 +1768,12 @@
             {
                 "path": "options.filter.rolloff",
                 "label": "Filter Rolloff",
-                "numericChoices": [-12, -24, -48, -96],
+                "numericChoices": [
+                    -12,
+                    -24,
+                    -48,
+                    -96
+                ],
                 "min": -96,
                 "max": -12,
                 "sweetMin": -96,

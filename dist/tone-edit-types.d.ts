@@ -19,6 +19,15 @@ export type ParameterDefinition = {
     sweetMax: number;
     defaultValue: number;
     step?: number;
+    /**
+     * If present, this parameter is only included in the output when the value
+     * of the parameter at `conditionalOn` starts with one of the strings in
+     * `conditionalPrefixes`. Used to add oscillator-type-specific parameters
+     * (e.g. `count`/`spread` for fat oscillators) only when the matching
+     * oscillator type prefix has been chosen.
+     */
+    conditionalOn?: string;
+    conditionalPrefixes?: string[];
 };
 export type InstrumentDefinition = {
     id: string;
