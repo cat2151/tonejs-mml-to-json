@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -21,17 +22,34 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Update cat2151 libraries
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Update cat2151 libraries (npm)
         run: npm update tonejs-json-sequencer --package-lock-only
 
-      - name: Commit and push if changed
+      - name: Update cat2151 libraries (pnpm)
+        run: pnpm update tonejs-json-sequencer --lockfile-only
+
+      - name: Create PR if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json
+          git add package-lock.json pnpm-lock.yaml
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
+            BRANCH="vendor-update/$(date +%Y%m%d)-$GITHUB_RUN_NUMBER"
+            git checkout -b "$BRANCH"
             git commit -m "chore: update cat2151 vendor libraries"
-            git push
+            git push origin "$BRANCH"
+            gh pr create \
+              --title "chore: update cat2151 vendor libraries" \
+              --body "Automated vendor library update from cat2151 upstream repositories." \
+              --base main \
+              --head "$BRANCH"
           fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
