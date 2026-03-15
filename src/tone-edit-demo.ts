@@ -2,25 +2,23 @@
 declare const Tone: any;
 
 import config from './tone-edit-config.json' with { type: 'json' };
-import { initWasm, mml2json, randomInstrumentMml } from './index.js';
+import { initWasm, mml2json } from './index.js';
 import { SequencerNodes, playSequence, type SequenceEvent } from 'tonejs-json-sequencer';
 import type { ToneCommand } from './ast2json.js';
 import type { ParameterDefinition, InstrumentDefinition, EffectDefinition, ToneEditConfig, DemoState, NotePattern } from './tone-edit-types.js';
 import { clamp, buildArgs, formatMml, randomValue } from './tone-edit-helpers.js';
 
-const AUTO_PLAY_DELAY = 800;
 const toneConfig = config as ToneEditConfig;
 const nodes = new SequencerNodes();
 
 const notePatterns: NotePattern[] = [
-  { id: 'doremi', label: 'ドレミ', mml: 'o4 l8 c d e f g a b > c' },
-  { id: 'chord', label: '和音', mml: "o4 l4 'ceg' 'dfa' 'egb' 'f+ac'" },
-  { id: 'bass', label: 'Bass', mml: 'o2 l8 c r g r < c r g r' },
-  { id: 'arp', label: 'アルペジオ', mml: 'o4 l16 c e g c g e c' }
+  { id: 'doremi', label: 'ドレミ', mml: 'cdefgab<c' },
+  { id: 'chord', label: '和音', mml: "'ceg'" },
+  { id: 'bass', label: 'Bass', mml: '>>l8crgr<crgr' },
+  { id: 'arp', label: 'アルペジオ', mml: 'l16cegcgec' }
 ];
 
 let wasmReady: Promise<void> | null = null;
-let autoPlayTimer: number | null = null;
 let audioUnlocked = false;
 
 function ensureValues(defs: ParameterDefinition[], values: Record<string, number>): Record<string, number> {
@@ -52,18 +50,6 @@ function updateStatus(message: string, type: 'info' | 'error' | 'success' = 'inf
   if (!status) return;
   status.textContent = message;
   status.dataset.state = type;
-}
-
-function scheduleAutoPlay(): void {
-  if (!audioUnlocked) {
-    return;
-  }
-  if (autoPlayTimer !== null) {
-    window.clearTimeout(autoPlayTimer);
-  }
-  autoPlayTimer = window.setTimeout(() => {
-    void playCurrent();
-  }, AUTO_PLAY_DELAY);
 }
 
 async function ensureWasmReady(): Promise<void> {
@@ -98,14 +84,49 @@ async function playCurrent(options: { allowUnlock?: boolean } = {}): Promise<voi
     }
     await ensureWasmReady();
 
-    const json = mml2json(combinedMml).map(toSequenceEvent);
-    const jsonOutput = document.getElementById('jsonPreview');
-    if (jsonOutput) {
-      jsonOutput.textContent = JSON.stringify(json, null, 2);
+    let json: SequenceEvent[];
+    try {
+      json = mml2json(combinedMml).map(toSequenceEvent);
+    } catch (parseError) {
+      const message = parseError instanceof Error ? parseError.message : String(parseError);
+      updateStatus(`MMLエラー: ${message}`, 'error');
+      return;
+    }
+
+    const jsonPreview = document.getElementById('jsonPreview') as HTMLTextAreaElement | null;
+    if (jsonPreview) {
+      jsonPreview.value = JSON.stringify(json, null, 2);
     }
 
     await playSequence(Tone, nodes, json);
     updateStatus('再生中。パラメータを触って試してみてください。', 'success');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    updateStatus(`エラー: ${message}`, 'error');
+    console.error(error);
+  }
+}
+
+async function playFromJson(): Promise<void> {
+  if (!audioUnlocked) {
+    return;
+  }
+  const jsonPreview = getElement<HTMLTextAreaElement>('jsonPreview');
+  const text = jsonPreview.value.trim();
+  if (!text) {
+    return;
+  }
+  let json: SequenceEvent[];
+  try {
+    json = (JSON.parse(text) as ToneCommand[]).map(toSequenceEvent);
+  } catch (parseError) {
+    const message = parseError instanceof Error ? parseError.message : String(parseError);
+    updateStatus(`JSONエラー: ${message}`, 'error');
+    return;
+  }
+  try {
+    await playSequence(Tone, nodes, json);
+    updateStatus('再生中。', 'success');
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     updateStatus(`エラー: ${message}`, 'error');
@@ -182,16 +203,12 @@ function renderParameters(
   });
 }
 
-function randomize(
-  defs: ParameterDefinition[],
-  values: Record<string, number>,
-  containerId: string,
-  onChange: (path: string, value: number) => void
-): void {
+function randomizeValues(defs: ParameterDefinition[]): Record<string, number> {
+  const values: Record<string, number> = {};
   defs.forEach((def) => {
     values[def.path] = randomValue(def);
   });
-  renderParameters(containerId, defs, values, onChange);
+  return values;
 }
 
 function setupSelectOptions(selectId: string, items: { id: string; name: string }[], currentId: string): void {
@@ -223,8 +240,14 @@ function attachMmlAreaListeners(): void {
     const area = getElement<HTMLTextAreaElement>(id);
     area.addEventListener('input', () => {
       updateCombinedMml();
-      scheduleAutoPlay();
+      void playCurrent();
     });
+  });
+  getElement<HTMLTextAreaElement>('combinedMml').addEventListener('input', () => {
+    void playCurrent();
+  });
+  getElement<HTMLTextAreaElement>('jsonPreview').addEventListener('input', () => {
+    void playFromJson();
   });
 }
 
@@ -285,16 +308,16 @@ function importState(state: DemoState): void {
 
     renderParameters('instrumentParams', instrumentDef.parameters, state.instrumentValues, () => {
       regenerateMml(state, toneConfig.instruments, toneConfig.effects);
-      scheduleAutoPlay();
+      void playCurrent();
     });
     renderParameters('effectParams', effectDef.parameters, state.effectValues, () => {
       regenerateMml(state, toneConfig.instruments, toneConfig.effects);
-      scheduleAutoPlay();
+      void playCurrent();
     });
 
     regenerateMml(state, toneConfig.instruments, toneConfig.effects);
     updateCombinedMml();
-    scheduleAutoPlay();
+    void playCurrent();
     updateStatus('JSONをインポートしました。', 'success');
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -311,14 +334,18 @@ function setupNoteArea(state: DemoState): void {
     state.notePatternId = selected.id;
     getElement<HTMLTextAreaElement>('noteMml').value = selected.mml;
     updateCombinedMml();
-    scheduleAutoPlay();
+    void playCurrent();
   });
 
   const selected = notePatterns.find((p) => p.id === state.notePatternId) ?? notePatterns[0];
   getElement<HTMLTextAreaElement>('noteMml').value = selected.mml;
 }
 
-function setupParameters(state: DemoState): void {
+function setupParameters(
+  state: DemoState,
+  onInstrumentParamChange: () => void,
+  onEffectParamChange: () => void
+): void {
   const instrumentDef = toneConfig.instruments.find((d) => d.id === state.instrumentId) ?? toneConfig.instruments[0];
   const effectDef = toneConfig.effects.find((d) => d.id === state.effectId) ?? toneConfig.effects[0];
 
@@ -329,15 +356,6 @@ function setupParameters(state: DemoState): void {
 
   setupSelectOptions('instrumentSelect', toneConfig.instruments, state.instrumentId);
   setupSelectOptions('effectSelect', toneConfig.effects, state.effectId);
-
-  const onInstrumentParamChange = (): void => {
-    regenerateMml(state, toneConfig.instruments, toneConfig.effects);
-    scheduleAutoPlay();
-  };
-  const onEffectParamChange = (): void => {
-    regenerateMml(state, toneConfig.instruments, toneConfig.effects);
-    scheduleAutoPlay();
-  };
 
   renderParameters('instrumentParams', instrumentDef.parameters, state.instrumentValues, onInstrumentParamChange);
   renderParameters('effectParams', effectDef.parameters, state.effectValues, onEffectParamChange);
@@ -352,7 +370,16 @@ function setupControls(): void {
     notePatternId: notePatterns[0]?.id ?? 'doremi'
   };
 
-  setupParameters(state);
+  const onInstrumentParamChange = (): void => {
+    regenerateMml(state, toneConfig.instruments, toneConfig.effects);
+    void playCurrent();
+  };
+  const onEffectParamChange = (): void => {
+    regenerateMml(state, toneConfig.instruments, toneConfig.effects);
+    void playCurrent();
+  };
+
+  setupParameters(state, onInstrumentParamChange, onEffectParamChange);
   setupNoteArea(state);
   attachMmlAreaListeners();
   regenerateMml(state, toneConfig.instruments, toneConfig.effects);
@@ -365,36 +392,31 @@ function setupControls(): void {
   getElement<HTMLButtonElement>('exportState').addEventListener('click', () => exportState(state));
   getElement<HTMLButtonElement>('importState').addEventListener('click', () => importState(state));
 
-  const onInstrumentParamChange = (): void => {
+  getElement<HTMLButtonElement>('randomInstrument').addEventListener('click', () => {
+    const instruments = toneConfig.instruments;
+    const randomIndex = Math.floor(Math.random() * instruments.length);
+    const nextDef = instruments[randomIndex];
+    state.instrumentId = nextDef.id;
+    state.instrumentValues = randomizeValues(nextDef.parameters);
+    setupSelectOptions('instrumentSelect', toneConfig.instruments, state.instrumentId);
+    renderParameters('instrumentParams', nextDef.parameters, state.instrumentValues, onInstrumentParamChange);
     regenerateMml(state, toneConfig.instruments, toneConfig.effects);
-    scheduleAutoPlay();
-  };
-  const onEffectParamChange = (): void => {
-    regenerateMml(state, toneConfig.instruments, toneConfig.effects);
-    scheduleAutoPlay();
-  };
-
-  getElement<HTMLButtonElement>('randomInstrumentWithType').addEventListener('click', () => {
-    const mml = randomInstrumentMml({ instruments: toneConfig.instruments });
-    getElement<HTMLTextAreaElement>('instrumentMml').value = mml;
     updateCombinedMml();
     void playCurrent({ allowUnlock: true });
   });
 
-  getElement<HTMLButtonElement>('randomInstrument').addEventListener('click', () => {
-    const instrumentDef = toneConfig.instruments.find((d) => d.id === state.instrumentId) ?? toneConfig.instruments[0];
-    randomize(instrumentDef.parameters, state.instrumentValues, 'instrumentParams', onInstrumentParamChange);
-    onInstrumentParamChange();
-  });
-
   getElement<HTMLButtonElement>('randomEffect').addEventListener('click', () => {
-    const effectDef = toneConfig.effects.find((d) => d.id === state.effectId) ?? toneConfig.effects[0];
-    if (effectDef.parameters.length === 0) {
-      updateStatus('エフェクトが「なし」の場合はパラメータがありません。', 'info');
-      return;
-    }
-    randomize(effectDef.parameters, state.effectValues, 'effectParams', onEffectParamChange);
-    onEffectParamChange();
+    const nonNoneEffects = toneConfig.effects.filter((d) => d.id !== 'none');
+    if (nonNoneEffects.length === 0) return;
+    const randomIndex = Math.floor(Math.random() * nonNoneEffects.length);
+    const nextDef = nonNoneEffects[randomIndex];
+    state.effectId = nextDef.id;
+    state.effectValues = randomizeValues(nextDef.parameters);
+    setupSelectOptions('effectSelect', toneConfig.effects, state.effectId);
+    renderParameters('effectParams', nextDef.parameters, state.effectValues, onEffectParamChange);
+    regenerateMml(state, toneConfig.instruments, toneConfig.effects);
+    updateCombinedMml();
+    void playCurrent({ allowUnlock: true });
   });
 
   getElement<HTMLSelectElement>('instrumentSelect').addEventListener('change', (event) => {
@@ -406,7 +428,7 @@ function setupControls(): void {
     renderParameters('instrumentParams', nextDef.parameters, state.instrumentValues, onInstrumentParamChange);
     regenerateMml(state, toneConfig.instruments, toneConfig.effects);
     updateCombinedMml();
-    scheduleAutoPlay();
+    void playCurrent();
   });
 
   getElement<HTMLSelectElement>('effectSelect').addEventListener('change', (event) => {
@@ -418,7 +440,7 @@ function setupControls(): void {
     renderParameters('effectParams', nextDef.parameters, state.effectValues, onEffectParamChange);
     regenerateMml(state, toneConfig.instruments, toneConfig.effects);
     updateCombinedMml();
-    scheduleAutoPlay();
+    void playCurrent();
   });
 }
 

@@ -1,5 +1,4 @@
-import { SequencerNodes } from 'tonejs-json-sequencer';
-export declare const nodes: SequencerNodes;
+export declare const nodes: any;
 export declare let errorPoint: string;
 /**
  * Play the sequence from MML or JSON
