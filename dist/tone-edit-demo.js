@@ -1,6 +1,7 @@
 import config from './tone-edit-config.json' with { type: 'json' };
-import { initWasm, mml2json } from './index.js';
+import { initWasm, mml2json, randomInstrumentMml } from './index.js';
 import { SequencerNodes, playSequence } from 'tonejs-json-sequencer';
+import { clamp, buildArgs, formatMml, randomValue } from './tone-edit-helpers.js';
 const AUTO_PLAY_DELAY = 800;
 const toneConfig = config;
 const nodes = new SequencerNodes();
@@ -13,51 +14,6 @@ const notePatterns = [
 let wasmReady = null;
 let autoPlayTimer = null;
 let audioUnlocked = false;
-function clamp(value, min, max) {
-    return Math.min(Math.max(value, min), max);
-}
-function roundToStep(value, step) {
-    if (step <= 0)
-        return value;
-    const scaled = Math.round(value / step) * step;
-    return Number(scaled.toFixed(6));
-}
-function applyPath(target, path, value) {
-    const segments = path.split('.');
-    let node = target;
-    segments.forEach((segment, index) => {
-        if (index === segments.length - 1) {
-            node[segment] = value;
-            return;
-        }
-        if (!node[segment] || typeof node[segment] !== 'object') {
-            node[segment] = {};
-        }
-        node = node[segment];
-    });
-}
-function buildArgs(defs, values) {
-    const result = {};
-    defs.forEach((def) => {
-        const value = Number.isFinite(values[def.path]) ? values[def.path] : def.defaultValue;
-        applyPath(result, def.path, value);
-    });
-    return result;
-}
-function formatMml(tag, args) {
-    const hasArgs = Object.keys(args).length > 0;
-    if (!hasArgs) {
-        return `@${tag}`;
-    }
-    return `@${tag}${JSON.stringify(args, null, 2)}`;
-}
-function randomValue(def) {
-    const min = def.sweetMin ?? def.min;
-    const max = def.sweetMax ?? def.max;
-    const raw = min + Math.random() * (max - min);
-    const stepped = roundToStep(raw, def.step ?? 0.01);
-    return clamp(stepped, def.min, def.max);
-}
 function ensureValues(defs, values) {
     const next = {};
     defs.forEach((def) => {
@@ -354,6 +310,12 @@ function setupControls() {
         regenerateMml(state, toneConfig.instruments, toneConfig.effects);
         scheduleAutoPlay();
     };
+    getElement('randomInstrumentWithType').addEventListener('click', () => {
+        const mml = randomInstrumentMml({ instruments: toneConfig.instruments });
+        getElement('instrumentMml').value = mml;
+        updateCombinedMml();
+        void playCurrent({ allowUnlock: true });
+    });
     getElement('randomInstrument').addEventListener('click', () => {
         const instrumentDef = toneConfig.instruments.find((d) => d.id === state.instrumentId) ?? toneConfig.instruments[0];
         randomize(instrumentDef.parameters, state.instrumentValues, 'instrumentParams', onInstrumentParamChange);
