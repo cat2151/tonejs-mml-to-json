@@ -153,6 +153,26 @@ describe('randomInstrumentMml', () => {
     }
   });
 
+  it('DuoSynth harmonicity should always be one of the allowed discrete values', () => {
+    const config = {
+      instruments: [
+        {
+          id: 'DuoSynth',
+          name: 'DuoSynth',
+          parameters: [
+            { path: 'harmonicity', label: 'Harmonicity', numericChoices: [1.5, 2, 3, 4, 5], min: 1, max: 5, sweetMin: 1, sweetMax: 3, defaultValue: 1.5 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 50; i++) {
+      const result = randomInstrumentMml(config);
+      const jsonPart = result.replace(/^@DuoSynth/, '');
+      const parsed = JSON.parse(jsonPart);
+      expect([1.5, 2, 3, 4, 5]).toContain(parsed.harmonicity);
+    }
+  });
+
   it('FMSynth oscillator.partialCount should always be an integer', () => {
     const config = {
       instruments: [
@@ -365,7 +385,7 @@ describe('randomInstrumentMml', () => {
           parameters: [
             { path: 'voice0.oscillator.type', label: 'Voice 0 Oscillator Type', choices: ['sine', 'square', 'sawtooth', 'triangle'], min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0 },
             { path: 'voice1.oscillator.type', label: 'Voice 1 Oscillator Type', choices: ['sine', 'square', 'sawtooth', 'triangle'], min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0 },
-            { path: 'harmonicity', label: 'Harmonicity', min: 0, max: 5, sweetMin: 1, sweetMax: 3, defaultValue: 1.5, step: 0.1 }
+            { path: 'harmonicity', label: 'Harmonicity', numericChoices: [1.5, 2, 3, 4, 5], min: 1, max: 5, sweetMin: 1, sweetMax: 3, defaultValue: 1.5 }
           ]
         }
       ]
