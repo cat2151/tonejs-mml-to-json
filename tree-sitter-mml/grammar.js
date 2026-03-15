@@ -136,8 +136,9 @@ module.exports = grammar({
     instrument_name: $ => /[A-Za-z][A-Za-z0-9]*/,
 
     // JSON arguments for instrument (e.g., for Sampler)
-    // This regex matches balanced braces to handle nested JSON objects up to 3 levels deep.
-    // 3 levels are sufficient for all current Tone.js instrument parameters:
+    // NOTE: This is a fixed-depth approximation (not a general balanced-brace matcher).
+    // It supports up to 3 brace-nesting levels, which is sufficient for all current
+    // Tone.js instrument parameters. It does NOT handle { or } inside string values.
     //   - PolySynth: {"voice": "...", "options": {"oscillator": {"type": "..."}}}
     //   - DuoSynth:  {"voice0": {"oscillator": {"type": "..."}}, "voice1": {...}}
     // If future instruments require deeper nesting, extend the pattern by adding another
