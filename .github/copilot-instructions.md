@@ -63,6 +63,10 @@ pnpm run test:wasm  # WASM統合テスト
 pnpm run dev        # 開発用watchモード
 ```
 
+## dist/ のレビューについて
+
+**重要**: `dist/` はCIで自動生成されます。main ブランチへの push 時に CI（`build-dist.yml`）が `dist/` と `pkg/` を再生成してコミットします。そのため、PRのレビュー時は `dist/` についてレビューしないでください。`dist/` が古い・新しいといったレビューコメントは不要です。
+
 ## 新しい MML コマンドの追加手順
 
 1. `tree-sitter-mml/grammar.js` にルール追加
