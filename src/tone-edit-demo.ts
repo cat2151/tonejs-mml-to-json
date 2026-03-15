@@ -20,6 +20,7 @@ const notePatterns: NotePattern[] = [
 
 let wasmReady: Promise<void> | null = null;
 let audioUnlocked = false;
+let playGeneration = 0;
 
 function ensureValues(defs: ParameterDefinition[], values: Record<string, number>): Record<string, number> {
   const next: Record<string, number> = {};
@@ -72,6 +73,8 @@ async function playCurrent(options: { allowUnlock?: boolean } = {}): Promise<voi
     return;
   }
 
+  const generation = ++playGeneration;
+
   try {
     updateStatus('演奏準備中...', 'info');
     if (!audioUnlocked) {
@@ -84,6 +87,8 @@ async function playCurrent(options: { allowUnlock?: boolean } = {}): Promise<voi
     }
     await ensureWasmReady();
 
+    if (generation !== playGeneration) return;
+
     let json: SequenceEvent[];
     try {
       json = mml2json(combinedMml).map(toSequenceEvent);
@@ -93,14 +98,18 @@ async function playCurrent(options: { allowUnlock?: boolean } = {}): Promise<voi
       return;
     }
 
+    if (generation !== playGeneration) return;
+
     const jsonPreview = document.getElementById('jsonPreview') as HTMLTextAreaElement | null;
     if (jsonPreview) {
       jsonPreview.value = JSON.stringify(json, null, 2);
     }
 
     await playSequence(Tone, nodes, json);
+    if (generation !== playGeneration) return;
     updateStatus('再生中。パラメータを触って試してみてください。', 'success');
   } catch (error) {
+    if (generation !== playGeneration) return;
     const message = error instanceof Error ? error.message : String(error);
     updateStatus(`エラー: ${message}`, 'error');
     console.error(error);
@@ -116,6 +125,9 @@ async function playFromJson(): Promise<void> {
   if (!text) {
     return;
   }
+
+  const generation = ++playGeneration;
+
   let json: SequenceEvent[];
   try {
     json = (JSON.parse(text) as ToneCommand[]).map(toSequenceEvent);
@@ -124,10 +136,15 @@ async function playFromJson(): Promise<void> {
     updateStatus(`JSONエラー: ${message}`, 'error');
     return;
   }
+
+  if (generation !== playGeneration) return;
+
   try {
     await playSequence(Tone, nodes, json);
+    if (generation !== playGeneration) return;
     updateStatus('再生中。', 'success');
   } catch (error) {
+    if (generation !== playGeneration) return;
     const message = error instanceof Error ? error.message : String(error);
     updateStatus(`エラー: ${message}`, 'error');
     console.error(error);
