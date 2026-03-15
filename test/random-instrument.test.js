@@ -113,6 +113,46 @@ describe('randomInstrumentMml', () => {
     expect(results.size).toBeGreaterThan(1);
   });
 
+  it('FMSynth harmonicity should always be an integer', () => {
+    const config = {
+      instruments: [
+        {
+          id: 'FMSynth',
+          name: 'FMSynth',
+          parameters: [
+            { path: 'harmonicity', label: 'Harmonicity', min: 1, max: 8, sweetMin: 1, sweetMax: 4, defaultValue: 2, step: 1 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 50; i++) {
+      const result = randomInstrumentMml(config);
+      const jsonPart = result.replace(/^@FMSynth/, '');
+      const parsed = JSON.parse(jsonPart);
+      expect(Number.isInteger(parsed.harmonicity)).toBe(true);
+    }
+  });
+
+  it('AMSynth harmonicity should always be an integer', () => {
+    const config = {
+      instruments: [
+        {
+          id: 'AMSynth',
+          name: 'AMSynth',
+          parameters: [
+            { path: 'harmonicity', label: 'Harmonicity', min: 1, max: 8, sweetMin: 1, sweetMax: 4, defaultValue: 3, step: 1 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 50; i++) {
+      const result = randomInstrumentMml(config);
+      const jsonPart = result.replace(/^@AMSynth/, '');
+      const parsed = JSON.parse(jsonPart);
+      expect(Number.isInteger(parsed.harmonicity)).toBe(true);
+    }
+  });
+
   it('should keep numeric parameter values within sweet spot ranges', () => {
     const FLOAT_TOLERANCE = 0.001;
     const min = 0.1;
