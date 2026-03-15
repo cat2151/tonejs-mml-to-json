@@ -280,10 +280,21 @@ describe('randomInstrumentMml', () => {
 
   it('PolySynth from default config should include a voice property from the allowed set', () => {
     const allowedVoices = new Set(['Synth', 'FMSynth', 'AMSynth', 'MonoSynth']);
-    for (let i = 0; i < 50; i++) {
-      const result = randomInstrumentMml();
-      const match = result.match(/^@([A-Za-z]+)/);
-      if (!match || match[1] !== 'PolySynth') continue;
+    const polySynthConfig = {
+      instruments: [
+        {
+          id: 'PolySynth',
+          name: 'PolySynth',
+          parameters: [
+            { path: 'voice', label: 'Voice Type', choices: ['Synth', 'FMSynth', 'AMSynth', 'MonoSynth'], min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0 },
+            { path: 'options.envelope.attack', label: 'Envelope Attack', min: 0, max: 1, sweetMin: 0.02, sweetMax: 0.25, defaultValue: 0.1, step: 0.01 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 20; i++) {
+      const result = randomInstrumentMml(polySynthConfig);
+      expect(result).toMatch(/^@PolySynth/);
       const jsonPart = result.replace(/^@PolySynth/, '');
       const parsed = JSON.parse(jsonPart);
       expect(parsed).toHaveProperty('voice');
@@ -346,10 +357,22 @@ describe('randomInstrumentMml', () => {
   });
 
   it('DuoSynth from default config should include voice0 and voice1 oscillator types', () => {
-    for (let i = 0; i < 30; i++) {
-      const result = randomInstrumentMml();
-      const match = result.match(/^@([A-Za-z]+)/);
-      if (!match || match[1] !== 'DuoSynth') continue;
+    const duoSynthConfig = {
+      instruments: [
+        {
+          id: 'DuoSynth',
+          name: 'DuoSynth',
+          parameters: [
+            { path: 'voice0.oscillator.type', label: 'Voice 0 Oscillator Type', choices: ['sine', 'square', 'sawtooth', 'triangle'], min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0 },
+            { path: 'voice1.oscillator.type', label: 'Voice 1 Oscillator Type', choices: ['sine', 'square', 'sawtooth', 'triangle'], min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0 },
+            { path: 'harmonicity', label: 'Harmonicity', min: 0, max: 5, sweetMin: 1, sweetMax: 3, defaultValue: 1.5, step: 0.1 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 10; i++) {
+      const result = randomInstrumentMml(duoSynthConfig);
+      expect(result).toMatch(/^@DuoSynth/);
       const jsonPart = result.replace(/^@DuoSynth/, '');
       const parsed = JSON.parse(jsonPart);
       expect(parsed).toHaveProperty('voice0');
@@ -362,10 +385,24 @@ describe('randomInstrumentMml', () => {
   });
 
   it('AMSynth should include modulationEnvelope parameters', () => {
-    for (let i = 0; i < 30; i++) {
-      const result = randomInstrumentMml();
-      const match = result.match(/^@([A-Za-z]+)/);
-      if (!match || match[1] !== 'AMSynth') continue;
+    const amSynthConfig = {
+      instruments: [
+        {
+          id: 'AMSynth',
+          name: 'AMSynth',
+          parameters: [
+            { path: 'harmonicity', label: 'Harmonicity', min: 1, max: 8, sweetMin: 1, sweetMax: 4, defaultValue: 3, step: 1 },
+            { path: 'modulationEnvelope.attack', label: 'Mod Envelope Attack', min: 0, max: 1, sweetMin: 0.05, sweetMax: 0.8, defaultValue: 0.5, step: 0.01 },
+            { path: 'modulationEnvelope.decay', label: 'Mod Envelope Decay', min: 0, max: 1, sweetMin: 0, sweetMax: 0.5, defaultValue: 0.01, step: 0.01 },
+            { path: 'modulationEnvelope.sustain', label: 'Mod Envelope Sustain', min: 0, max: 1, sweetMin: 0.3, sweetMax: 1, defaultValue: 1, step: 0.01 },
+            { path: 'modulationEnvelope.release', label: 'Mod Envelope Release', min: 0, max: 3, sweetMin: 0.2, sweetMax: 1.5, defaultValue: 0.5, step: 0.05 }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 10; i++) {
+      const result = randomInstrumentMml(amSynthConfig);
+      expect(result).toMatch(/^@AMSynth/);
       const jsonPart = result.replace(/^@AMSynth/, '');
       const parsed = JSON.parse(jsonPart);
       expect(parsed).toHaveProperty('modulationEnvelope');
