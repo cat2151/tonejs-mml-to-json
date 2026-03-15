@@ -38,6 +38,16 @@ export function applyPath(target: Record<string, unknown>, path: string, value: 
 export function buildArgs(defs: ParameterDefinition[], values: Record<string, number | string>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   defs.forEach((def) => {
+    // Skip parameters whose condition is not met.
+    // If conditionalOn is set but conditionalPrefixes is missing or empty, the
+    // condition can never be satisfied, so always skip the parameter.
+    if (def.conditionalOn) {
+      if (!def.conditionalPrefixes || def.conditionalPrefixes.length === 0) return;
+      const controllingValue = values[def.conditionalOn];
+      if (typeof controllingValue !== 'string') return;
+      const matches = def.conditionalPrefixes.some((prefix) => controllingValue.startsWith(prefix));
+      if (!matches) return;
+    }
     if (def.choices && def.choices.length > 0) {
       // Enum parameter: use stored string value or fall back to first choice
       const fromValues = values[def.path];

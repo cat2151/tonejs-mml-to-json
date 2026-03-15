@@ -357,6 +357,74 @@ describe('randomInstrumentMml advanced', () => {
   });
 });
 
+describe('conditionalOn/conditionalPrefixes edge cases', () => {
+  it('should skip a parameter when conditionalOn is set but conditionalPrefixes is absent', () => {
+    const config = {
+      instruments: [
+        {
+          id: 'Synth',
+          name: 'Synth',
+          parameters: [
+            {
+              path: 'oscillator.type',
+              label: 'Oscillator Type',
+              choices: ['sine'],
+              min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0
+            },
+            {
+              // conditionalPrefixes intentionally omitted
+              path: 'oscillator.count',
+              label: 'Fat Count',
+              min: 2, max: 8, sweetMin: 2, sweetMax: 6, defaultValue: 3, step: 1,
+              conditionalOn: 'oscillator.type'
+            }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 10; i++) {
+      const result = randomInstrumentMml(config);
+      const jsonPart = result.replace(/^@Synth/, '');
+      const parsed = JSON.parse(jsonPart);
+      // count must NOT appear — conditionalPrefixes is absent so condition is never satisfied
+      expect(parsed.oscillator).not.toHaveProperty('count');
+    }
+  });
+
+  it('should skip a parameter when conditionalOn is set and conditionalPrefixes is empty', () => {
+    const config = {
+      instruments: [
+        {
+          id: 'Synth',
+          name: 'Synth',
+          parameters: [
+            {
+              path: 'oscillator.type',
+              label: 'Oscillator Type',
+              choices: ['sine'],
+              min: 0, max: 0, sweetMin: 0, sweetMax: 0, defaultValue: 0
+            },
+            {
+              path: 'oscillator.count',
+              label: 'Fat Count',
+              min: 2, max: 8, sweetMin: 2, sweetMax: 6, defaultValue: 3, step: 1,
+              conditionalOn: 'oscillator.type',
+              conditionalPrefixes: []
+            }
+          ]
+        }
+      ]
+    };
+    for (let i = 0; i < 10; i++) {
+      const result = randomInstrumentMml(config);
+      const jsonPart = result.replace(/^@Synth/, '');
+      const parsed = JSON.parse(jsonPart);
+      // count must NOT appear — conditionalPrefixes is empty so condition is never satisfied
+      expect(parsed.oscillator).not.toHaveProperty('count');
+    }
+  });
+});
+
 describe('applyPath (prototype pollution guard)', () => {
   it('should not pollute Object.prototype via __proto__', () => {
     const target = {};
