@@ -1,8 +1,12 @@
-import config from './tone-edit-config.json' with { type: 'json' };
+import instruments from './tone-edit-instruments.json' with { type: 'json' };
+import effects from './tone-edit-effects.json' with { type: 'json' };
 import { initWasm, mml2json } from './index.js';
 import { SequencerNodes, playSequence } from 'tonejs-json-sequencer';
 import { clamp, buildArgs, formatMml, randomValue } from './tone-edit-helpers.js';
-const toneConfig = config;
+const toneConfig = {
+    instruments: instruments,
+    effects: effects
+};
 const nodes = new SequencerNodes();
 const notePatterns = [
     { id: 'doremi', label: 'ドレミ', mml: 'cdefgab<c' },
@@ -12,6 +16,7 @@ const notePatterns = [
 ];
 let wasmReady = null;
 let audioUnlocked = false;
+let playGeneration = 0;
 function ensureValues(defs, values) {
     const next = {};
     defs.forEach((def) => {
@@ -59,6 +64,7 @@ async function playCurrent(options = {}) {
         updateStatus('MMLが空です。', 'error');
         return;
     }
+    const generation = ++playGeneration;
     try {
         updateStatus('演奏準備中...', 'info');
         if (!audioUnlocked) {
@@ -70,6 +76,8 @@ async function playCurrent(options = {}) {
             audioUnlocked = true;
         }
         await ensureWasmReady();
+        if (generation !== playGeneration)
+            return;
         let json;
         try {
             json = mml2json(combinedMml).map(toSequenceEvent);
@@ -79,14 +87,20 @@ async function playCurrent(options = {}) {
             updateStatus(`MMLエラー: ${message}`, 'error');
             return;
         }
+        if (generation !== playGeneration)
+            return;
         const jsonPreview = document.getElementById('jsonPreview');
         if (jsonPreview) {
             jsonPreview.value = JSON.stringify(json, null, 2);
         }
         await playSequence(Tone, nodes, json);
+        if (generation !== playGeneration)
+            return;
         updateStatus('再生中。パラメータを触って試してみてください。', 'success');
     }
     catch (error) {
+        if (generation !== playGeneration)
+            return;
         const message = error instanceof Error ? error.message : String(error);
         updateStatus(`エラー: ${message}`, 'error');
         console.error(error);
@@ -101,6 +115,7 @@ async function playFromJson() {
     if (!text) {
         return;
     }
+    const generation = ++playGeneration;
     let json;
     try {
         json = JSON.parse(text).map(toSequenceEvent);
@@ -110,11 +125,17 @@ async function playFromJson() {
         updateStatus(`JSONエラー: ${message}`, 'error');
         return;
     }
+    if (generation !== playGeneration)
+        return;
     try {
         await playSequence(Tone, nodes, json);
+        if (generation !== playGeneration)
+            return;
         updateStatus('再生中。', 'success');
     }
     catch (error) {
+        if (generation !== playGeneration)
+            return;
         const message = error instanceof Error ? error.message : String(error);
         updateStatus(`エラー: ${message}`, 'error');
         console.error(error);
@@ -294,7 +315,7 @@ function setupNoteArea(state) {
     const selected = notePatterns.find((p) => p.id === state.notePatternId) ?? notePatterns[0];
     getElement('noteMml').value = selected.mml;
 }
-function setupParameters(state) {
+function setupParameters(state, onInstrumentParamChange, onEffectParamChange) {
     const instrumentDef = toneConfig.instruments.find((d) => d.id === state.instrumentId) ?? toneConfig.instruments[0];
     const effectDef = toneConfig.effects.find((d) => d.id === state.effectId) ?? toneConfig.effects[0];
     state.instrumentId = instrumentDef.id;
@@ -303,14 +324,6 @@ function setupParameters(state) {
     state.effectValues = ensureValues(effectDef.parameters, state.effectValues);
     setupSelectOptions('instrumentSelect', toneConfig.instruments, state.instrumentId);
     setupSelectOptions('effectSelect', toneConfig.effects, state.effectId);
-    const onInstrumentParamChange = () => {
-        regenerateMml(state, toneConfig.instruments, toneConfig.effects);
-        void playCurrent();
-    };
-    const onEffectParamChange = () => {
-        regenerateMml(state, toneConfig.instruments, toneConfig.effects);
-        void playCurrent();
-    };
     renderParameters('instrumentParams', instrumentDef.parameters, state.instrumentValues, onInstrumentParamChange);
     renderParameters('effectParams', effectDef.parameters, state.effectValues, onEffectParamChange);
 }
@@ -322,11 +335,6 @@ function setupControls() {
         effectValues: {},
         notePatternId: notePatterns[0]?.id ?? 'doremi'
     };
-    setupParameters(state);
-    setupNoteArea(state);
-    attachMmlAreaListeners();
-    regenerateMml(state, toneConfig.instruments, toneConfig.effects);
-    updateCombinedMml();
     const onInstrumentParamChange = () => {
         regenerateMml(state, toneConfig.instruments, toneConfig.effects);
         void playCurrent();
@@ -335,6 +343,11 @@ function setupControls() {
         regenerateMml(state, toneConfig.instruments, toneConfig.effects);
         void playCurrent();
     };
+    setupParameters(state, onInstrumentParamChange, onEffectParamChange);
+    setupNoteArea(state);
+    attachMmlAreaListeners();
+    regenerateMml(state, toneConfig.instruments, toneConfig.effects);
+    updateCombinedMml();
     getElement('playNow').addEventListener('click', () => {
         void playCurrent({ allowUnlock: true });
     });
