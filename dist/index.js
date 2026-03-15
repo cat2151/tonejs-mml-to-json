@@ -87,7 +87,7 @@ export function ast2json(ast) {
     }
     return ast2jsonImpl(ast);
 }
-export { randomInstrumentMml } from './random-instrument.js';
+export { randomInstrumentMml, randomEffectMml, randomInstrumentAndEffectMml } from './random-instrument.js';
 // Default export for convenience
 export default {
     initWasm,
