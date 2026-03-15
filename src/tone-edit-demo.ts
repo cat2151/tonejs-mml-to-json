@@ -1,14 +1,18 @@
 // Tone.js is loaded globally via script tag in the HTML
 declare const Tone: any;
 
-import config from './tone-edit-config.json' with { type: 'json' };
+import instruments from './tone-edit-instruments.json' with { type: 'json' };
+import effects from './tone-edit-effects.json' with { type: 'json' };
 import { initWasm, mml2json } from './index.js';
 import { SequencerNodes, playSequence, type SequenceEvent } from 'tonejs-json-sequencer';
 import type { ToneCommand } from './ast2json.js';
 import type { ParameterDefinition, InstrumentDefinition, EffectDefinition, ToneEditConfig, DemoState, NotePattern } from './tone-edit-types.js';
 import { clamp, buildArgs, formatMml, randomValue } from './tone-edit-helpers.js';
 
-const toneConfig = config as ToneEditConfig;
+const toneConfig: ToneEditConfig = {
+  instruments: instruments as InstrumentDefinition[],
+  effects: effects as EffectDefinition[]
+};
 const nodes = new SequencerNodes();
 
 const notePatterns: NotePattern[] = [
