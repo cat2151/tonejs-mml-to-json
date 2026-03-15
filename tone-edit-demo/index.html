@@ -6,26 +6,26 @@
   <title>tone edit & effect edit demo</title>
   <style>
     :root { color-scheme: light dark; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif; margin: 0 auto; max-width: 1080px; padding: 24px; line-height: 1.5; }
-    h1 { margin-bottom: 8px; }
-    h2 { margin-top: 32px; }
-    p { margin: 4px 0 12px; }
-    .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
-    .card { border: 1px solid #ccc; border-radius: 12px; padding: 16px; background: rgba(255,255,255,0.04); }
-    label { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 6px 0; }
-    label span { font-size: 14px; }
-    input[type="number"] { width: 120px; }
-    textarea { width: 100%; min-height: 80px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
-    select, button { padding: 8px 10px; border-radius: 8px; border: 1px solid #ccc; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif; margin: 0 auto; max-width: 1080px; padding: 12px; line-height: 1.4; }
+    h1 { margin: 0 0 4px; }
+    h2 { margin: 4px 0; }
+    h3 { margin: 4px 0; font-size: 14px; }
+    p { margin: 2px 0 8px; }
+    .grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .card { border: 1px solid #ccc; border-radius: 8px; padding: 8px; background: rgba(255,255,255,0.04); }
+    label { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin: 3px 0; }
+    label span { font-size: 13px; }
+    input[type="number"] { width: 80px; }
+    textarea { width: 100%; min-height: 60px; box-sizing: border-box; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; padding: 6px; border-radius: 6px; border: 1px solid #ccc; font-size: 12px; }
+    select, button { padding: 4px 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 13px; }
     button { cursor: pointer; }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .status { margin-top: 12px; padding: 10px; border-radius: 8px; border: 1px solid transparent; }
+    .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 4px; }
+    .status { margin-top: 8px; padding: 6px 10px; border-radius: 6px; border: 1px solid transparent; font-size: 13px; }
     .status[data-state="info"] { border-color: #999; }
     .status[data-state="error"] { border-color: #d9534f; color: #d9534f; }
     .status[data-state="success"] { border-color: #28a745; color: #28a745; }
-    pre { background: rgba(0,0,0,0.08); padding: 12px; border-radius: 10px; overflow: auto; }
-    .note { font-size: 13px; color: #666; margin-top: 4px; }
-    .param-row { border-bottom: 1px dashed #ccc; padding-bottom: 6px; margin-bottom: 6px; }
+    .note { font-size: 12px; color: #666; margin-top: 2px; }
+    .param-row { border-bottom: 1px dashed #ccc; padding-bottom: 3px; margin-bottom: 3px; }
   </style>
   <script type="importmap">
   {
@@ -39,16 +39,14 @@
 </head>
 <body>
   <h1>tone edit & effect edit demo</h1>
-  <p>音色とエフェクトを数値で編集しながらMMLを自動生成する実験デモです。ランダム生成やJSONインポート/エクスポートで設定を共有できます。</p>
+  <p>音色とエフェクトを数値で編集しながらMMLを自動生成する実験デモです。</p>
 
   <section class="grid">
     <div class="card">
       <h2>Instrument</h2>
       <div class="row">
-        <label for="instrumentSelect"><span>種類</span></label>
-        <select id="instrumentSelect"></select>
-        <button id="randomInstrumentWithType">ランダム音色</button>
-        <button id="randomInstrument">ランダム (sweet spot)</button>
+        <select id="instrumentSelect" aria-label="Instrument"></select>
+        <button id="randomInstrument">ランダム音色</button>
       </div>
       <div id="instrumentParams"></div>
       <textarea id="instrumentMml" spellcheck="false"></textarea>
@@ -57,22 +55,18 @@
     <div class="card">
       <h2>Effect</h2>
       <div class="row">
-        <label for="effectSelect"><span>種類</span></label>
-        <select id="effectSelect"></select>
-        <button id="randomEffect">ランダム (sweet spot)</button>
+        <select id="effectSelect" aria-label="Effect"></select>
+        <button id="randomEffect">ランダム効果</button>
       </div>
       <div id="effectParams"></div>
       <textarea id="effectMml" spellcheck="false" placeholder="@Effect{ ... }"></textarea>
       <div class="note">No Effectを選ぶとエフェクトMMLは空になります。</div>
     </div>
-  </section>
 
-  <section class="grid">
     <div class="card">
       <h2>Notes</h2>
       <div class="row">
-        <label for="notePattern"><span>プリセット</span></label>
-        <select id="notePattern"></select>
+        <select id="notePattern" aria-label="Note preset"></select>
       </div>
       <textarea id="noteMml" spellcheck="false"></textarea>
       <div class="note">プルダウンで差し替え、直接編集も可能です。</div>
@@ -82,19 +76,19 @@
       <h2>Play & Export</h2>
       <div class="row">
         <button id="playNow">再生</button>
-        <button id="exportState">JSONエクスポート</button>
-        <button id="importState">JSONインポート</button>
+        <button id="exportState">エクスポート</button>
+        <button id="importState">インポート</button>
       </div>
       <textarea id="stateJson" spellcheck="false" placeholder='設定の保存/貼り付け用JSON'></textarea>
-      <div class="note">パラメータ編集・ランダム生成・MML編集はデバウンスで自動再生されます。</div>
+      <div class="note">パラメータ編集・ランダム生成・MML編集で自動再生されます。</div>
     </div>
   </section>
 
-  <section class="card">
+  <section class="card" style="margin-top:8px;">
     <h2>Generated MML</h2>
     <textarea id="combinedMml" spellcheck="false"></textarea>
     <h3>JSON (tonejs-json-sequencer)</h3>
-    <pre id="jsonPreview"></pre>
+    <textarea id="jsonPreview" spellcheck="false" rows="8"></textarea>
     <div id="status" class="status" data-state="info">初期化中...</div>
   </section>
 
