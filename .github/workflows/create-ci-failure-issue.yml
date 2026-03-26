@@ -52,7 +52,9 @@ jobs:
               `- Run: ${process.env.WORKFLOW_RUN_URL}`,
             ].join('\n');
 
-            const escapedTitle = title.replace(/[\\"]/g, '\\$&');
+            const escapedTitle = title
+              .replaceAll('\\', '\\\\')
+              .replaceAll('"', '\\"');
             const searchQuery = [
               `repo:${context.repo.owner}/${context.repo.repo}`,
               'is:issue',
@@ -64,6 +66,8 @@ jobs:
             const searchResult = await github.rest.search.issuesAndPullRequests({
               q: searchQuery,
               per_page: 10,
+              sort: 'created',
+              order: 'desc',
             });
 
             const existingIssue = searchResult.data.items.find(
