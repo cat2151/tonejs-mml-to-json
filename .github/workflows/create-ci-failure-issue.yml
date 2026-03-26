@@ -18,6 +18,10 @@ permissions:
   contents: read
   issues: write
 
+concurrency:
+  group: create-ci-failure-issue-${{ github.event.workflow_run.name }}
+  cancel-in-progress: false
+
 jobs:
   create-ci-failure-issue:
     if: ${{ contains(fromJSON('["failure","timed_out","action_required","startup_failure"]'), github.event.workflow_run.conclusion) }}
@@ -34,7 +38,7 @@ jobs:
           WORKFLOW_EVENT: ${{ github.event.workflow_run.event }}
         with:
           script: |
-            const title = `[CI] ${process.env.WORKFLOW_NAME} failed`;
+            const title = `[CI] ${process.env.WORKFLOW_NAME} completed with ${process.env.WORKFLOW_CONCLUSION}`;
             const shortSha = process.env.WORKFLOW_SHA?.slice(0, 7);
             const commitUrl = process.env.WORKFLOW_SHA
               ? `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${process.env.WORKFLOW_SHA}`
@@ -48,21 +52,30 @@ jobs:
               `- Run: ${process.env.WORKFLOW_RUN_URL}`,
             ].join('\n');
 
-            const issues = await github.paginate(github.rest.issues.listForRepo, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              per_page: 100,
+            const escapedTitle = title.replace(/[\\"]/g, '\\$&');
+            const searchQuery = [
+              `repo:${context.repo.owner}/${context.repo.repo}`,
+              'is:issue',
+              'is:open',
+              'in:title',
+              `"${escapedTitle}"`,
+            ].join(' ');
+
+            const searchResult = await github.rest.search.issuesAndPullRequests({
+              q: searchQuery,
+              per_page: 10,
             });
 
-            const existingIssue = issues.find((issue) => issue.title === title);
+            const existingIssue = searchResult.data.items.find(
+              (issue) => !issue.pull_request && issue.title === title
+            );
 
             if (existingIssue) {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: existingIssue.number,
-                body: `Another CI failure was detected.\n\n${summary}`,
+                body: `Another CI workflow run completed with ${process.env.WORKFLOW_CONCLUSION}.\n\n${summary}`,
               });
               core.info(`Updated existing issue #${existingIssue.number}`);
               return;
