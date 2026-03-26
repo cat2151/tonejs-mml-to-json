@@ -1,0 +1,78 @@
+name: Create CI Failure Issue
+
+on:
+  workflow_run:
+    workflows:
+      - Build and Commit dist/
+      - Deploy to GitHub Pages
+      - Vendor Update
+      - Call Check Large Files
+      - Call Daily Project Summary
+      - Call Auto Translate README
+      - Call Call Graph
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  create-ci-failure-issue:
+    if: ${{ contains(fromJSON('["failure","timed_out","action_required","startup_failure"]'), github.event.workflow_run.conclusion) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or update issue
+        uses: actions/github-script@v7
+        env:
+          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          WORKFLOW_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          WORKFLOW_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          WORKFLOW_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          WORKFLOW_SHA: ${{ github.event.workflow_run.head_sha }}
+          WORKFLOW_EVENT: ${{ github.event.workflow_run.event }}
+        with:
+          script: |
+            const title = `[CI] ${process.env.WORKFLOW_NAME} failed`;
+            const shortSha = process.env.WORKFLOW_SHA?.slice(0, 7);
+            const commitUrl = process.env.WORKFLOW_SHA
+              ? `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${process.env.WORKFLOW_SHA}`
+              : null;
+            const summary = [
+              `GitHub Actions workflow **${process.env.WORKFLOW_NAME}** finished with **${process.env.WORKFLOW_CONCLUSION}**.`,
+              '',
+              `- Branch: \`${process.env.WORKFLOW_BRANCH || 'unknown'}\``,
+              `- Event: \`${process.env.WORKFLOW_EVENT || 'unknown'}\``,
+              `- Commit: ${commitUrl ? `[\`${shortSha}\`](${commitUrl})` : 'unknown'}`,
+              `- Run: ${process.env.WORKFLOW_RUN_URL}`,
+            ].join('\n');
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+
+            const existingIssue = issues.find((issue) => issue.title === title);
+
+            if (existingIssue) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: `Another CI failure was detected.\n\n${summary}`,
+              });
+              core.info(`Updated existing issue #${existingIssue.number}`);
+              return;
+            }
+
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body: summary,
+            });
+
+            core.info(`Created issue #${issue.data.number}`);
