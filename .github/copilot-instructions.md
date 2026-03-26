@@ -75,3 +75,6 @@ pnpm run dev        # 開発用watchモード
 4. 必要に応じて `rust/src/ast.rs` に新しい `AstToken` を追加
 5. `rust/src/ast2json.rs` で新トークンを処理
 6. `test/mml2ast.test.js` と `test/ast2json.test.js` にテスト追加
+
+## その他
+- PRコメントは日本語で書いてください
