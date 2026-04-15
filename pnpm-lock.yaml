@@ -413,8 +413,8 @@ packages:
   async@3.2.6:
     resolution: {integrity: sha512-htCUDlxyyCLMgaM3xXg0C0LW2xqfuQ6p05pCEIsXuyQ+a1koYKTuBMzRNwmybfLgvJDMd0r1LTn4+E0Ti6C2AA==}
 
-  automation-events@7.1.17:
-    resolution: {integrity: sha512-L9MTEpShvoOrFETgB9PMQ4cHq1Foe3p53QFKrefGsgSzlRBORzRi0cC81tMYAgN71W30yYEt5cDZnWZvJKjLoQ==}
+  automation-events@7.1.19:
+    resolution: {integrity: sha512-cD+TLhJTI0q4AI3ktd353lrGZiVa9AchowSDzQzzGjSoYe22js4vlS32VUtWuaulghi1Yq0KYNWKk9wWuGymPA==}
     engines: {node: '>=18.2.0'}
 
   basic-auth@2.0.1:
@@ -1134,7 +1134,7 @@ snapshots:
 
   async@3.2.6: {}
 
-  automation-events@7.1.17:
+  automation-events@7.1.19:
     dependencies:
       '@babel/runtime': 7.29.2
       tslib: 2.8.1
@@ -1452,7 +1452,7 @@ snapshots:
   standardized-audio-context@25.3.77:
     dependencies:
       '@babel/runtime': 7.29.2
-      automation-events: 7.1.17
+      automation-events: 7.1.19
       tslib: 2.8.1
 
   std-env@3.9.0: {}
