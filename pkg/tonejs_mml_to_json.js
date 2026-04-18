@@ -83,7 +83,6 @@ export function mml2ast_wasm(_mml) {
         wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
     }
 }
-
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,
