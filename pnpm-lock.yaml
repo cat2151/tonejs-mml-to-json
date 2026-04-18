@@ -29,7 +29,7 @@ importers:
         version: 1.58.2
       tonejs-json-sequencer:
         specifier: github:cat2151/tonejs-json-sequencer
-        version: https://codeload.github.com/cat2151/tonejs-json-sequencer/tar.gz/3c6a7551431c628e90d0b14ce5edade1ffc8362b(tone@15.1.22)
+        version: https://codeload.github.com/cat2151/tonejs-json-sequencer/tar.gz/a09c13a911c91939d1d20aa7e0c4501772558177(tone@15.1.22)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -751,8 +751,8 @@ packages:
   tone@15.1.22:
     resolution: {integrity: sha512-TCScAGD4sLsama5DjvTUXlLDXSqPealhL64nsdV1hhr6frPWve0DeSo63AKnSJwgfg55fhvxj0iPPRwPN5o0ag==}
 
-  tonejs-json-sequencer@https://codeload.github.com/cat2151/tonejs-json-sequencer/tar.gz/3c6a7551431c628e90d0b14ce5edade1ffc8362b:
-    resolution: {tarball: https://codeload.github.com/cat2151/tonejs-json-sequencer/tar.gz/3c6a7551431c628e90d0b14ce5edade1ffc8362b}
+  tonejs-json-sequencer@https://codeload.github.com/cat2151/tonejs-json-sequencer/tar.gz/a09c13a911c91939d1d20aa7e0c4501772558177:
+    resolution: {tarball: https://codeload.github.com/cat2151/tonejs-json-sequencer/tar.gz/a09c13a911c91939d1d20aa7e0c4501772558177}
     version: 0.0.1
     peerDependencies:
       tone: ^14.0.0 || ^15.0.0
@@ -1485,7 +1485,7 @@ snapshots:
       standardized-audio-context: 25.3.77
       tslib: 2.8.1
 
-  tonejs-json-sequencer@https://codeload.github.com/cat2151/tonejs-json-sequencer/tar.gz/3c6a7551431c628e90d0b14ce5edade1ffc8362b(tone@15.1.22):
+  tonejs-json-sequencer@https://codeload.github.com/cat2151/tonejs-json-sequencer/tar.gz/a09c13a911c91939d1d20aa7e0c4501772558177(tone@15.1.22):
     dependencies:
       tone: 15.1.22
 
