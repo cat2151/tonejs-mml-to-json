@@ -221,6 +221,46 @@ describe('mml2ast', () => {
       expect(result[0].notes[2]).toEqual({ note: 'g', accidental: '-' });
       expect(result[0].duration).toBe(4); // First number (4)
     });
+
+    it('should parse chord-local octave changes without affecting the outer track octave', () => {
+      const result = mml2ast("o4'c<g' a");
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({ type: 'octave', value: 4, length: 2 });
+      expect(result[1].type).toBe('chord');
+      expect(result[1].notes).toEqual([
+        { note: 'c', accidental: '' },
+        { note: 'g', accidental: '', octaveOffset: 1 }
+      ]);
+      expect(result[2].type).toBe('note');
+      expect(result[2].note).toBe('a');
+    });
+
+    it('should parse multiple chord-local octave increases', () => {
+      const result = mml2ast("o4'c<g<a'");
+      expect(result[1].notes).toEqual([
+        { note: 'c', accidental: '' },
+        { note: 'g', accidental: '', octaveOffset: 1 },
+        { note: 'a', accidental: '', octaveOffset: 2 }
+      ]);
+    });
+
+    it('should parse chord-local octave changes before the first note and between notes', () => {
+      const result = mml2ast("o4'>c<ga'");
+      expect(result[1].notes).toEqual([
+        { note: 'c', accidental: '', octaveOffset: -1 },
+        { note: 'g', accidental: '' },
+        { note: 'a', accidental: '' }
+      ]);
+    });
+
+    it('should parse chord-local octave changes before the first note only', () => {
+      const result = mml2ast("o4'>cga'");
+      expect(result[1].notes).toEqual([
+        { note: 'c', accidental: '', octaveOffset: -1 },
+        { note: 'g', accidental: '', octaveOffset: -1 },
+        { note: 'a', accidental: '', octaveOffset: -1 }
+      ]);
+    });
   });
 
   describe('Tempo command', () => {

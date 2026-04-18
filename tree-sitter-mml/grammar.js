@@ -143,16 +143,17 @@ module.exports = grammar({
 
     instrument_name: $ => /[A-Za-z][A-Za-z0-9]*/,
 
-    // Chord: 'notes' with optional duration inside quotes and dots outside
-    // Example: 'ceg', 'c+eg-', 'c4eg', 'c4eg'.
+    // Chord: notes with optional local octave changes inside quotes and dots outside
+    // Example: 'ceg', 'c+eg-', 'c4eg', 'c<g<a', '>cga'.
     chord: $ => seq(
       "'",
-      field('notes', repeat1($.chord_note)),
+      repeat1(choice($.chord_note, $.octave_up, $.octave_down)),
       "'",
       field('dots', optional($.dots)),
     ),
 
-    // Chord note: note pitch with optional accidental and optional duration
+    // Chord note: note pitch with optional accidental and optional duration.
+    // Octave changes inside a chord are separate tokens that affect subsequent chord notes only.
     chord_note: $ => seq(
       field('pitch', $.note_pitch),
       field('accidental', optional($.accidental)),

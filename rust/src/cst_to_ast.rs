@@ -116,23 +116,24 @@ fn parse_note(node: &CSTNode) -> Result<NoteToken, String> {
 }
 
 fn parse_rest(node: &CSTNode) -> Result<RestToken, String> {
-    // NOTE: Despite grammar specifying field('duration', optional($.duration)),
-    // tree-sitter puts the duration node in children array, not in fields.duration
     let duration = node
-        .children
-        .iter()
-        .find(|n| n.node_type == "duration")
+        .fields
+        .get("duration")
+        .and_then(|v| v.iter().find(|n| n.node_type == "duration"))
+        .or_else(|| node.children.iter().find(|n| n.node_type == "duration"))
         .and_then(|n| n.text.as_ref())
         .and_then(|t| t.parse::<u32>().ok());
 
-    // NOTE: Grammar specifies field('dots', optional($.dots)), but tree-sitter
-    // incorrectly places dots in fields.duration instead of fields.dots
-    // This is a tree-sitter bug with how it handles multiple field() calls in seq()
     let dots = node
         .fields
         .get("dots")
-        .or_else(|| node.fields.get("duration")) // Check incorrect location
         .and_then(|v| v.iter().find(|n| n.node_type == "dots"))
+        .or_else(|| {
+            node.fields
+                .get("duration")
+                .and_then(|v| v.iter().find(|n| n.node_type == "dots"))
+        })
+        .or_else(|| node.children.iter().find(|n| n.node_type == "dots"))
         .and_then(|n| n.text.as_ref())
         .map(|t| t.len() as u32)
         .unwrap_or(0);
@@ -171,22 +172,24 @@ fn parse_octave_down(node: &CSTNode) -> Result<OctaveDownToken, String> {
 }
 
 fn parse_instrument(node: &CSTNode) -> Result<InstrumentToken, String> {
-    // Instrument name is in children array (first child of type instrument_name)
     let value = node
-        .children
-        .iter()
-        .find(|n| n.node_type == "instrument_name")
-        .and_then(|n| n.text.clone());
-
-    // NOTE: Grammar specifies field('args', optional($.json_args)), but tree-sitter
-    // incorrectly places json_args in fields.name instead of fields.args
-    // This appears to be a tree-sitter bug with how it handles multiple field() calls
-    let args = node
         .fields
         .get("name")
-        .or_else(|| node.fields.get("args")) // Check correct location as fallback
-        .and_then(|v| v.first())
+        .and_then(|v| v.iter().find(|n| n.node_type == "instrument_name"))
+        .or_else(|| node.children.iter().find(|n| n.node_type == "instrument_name"))
         .and_then(|n| n.text.clone());
+
+    let args = node
+        .children
+        .iter()
+        .find(|n| n.node_type == "json_args")
+        .and_then(|n| n.text.clone())
+        .or_else(|| {
+            node.fields
+                .get("args")
+                .and_then(|v| v.iter().find(|n| n.node_type == "json_args"))
+                .and_then(|n| n.text.clone())
+        });
 
     let length = node.text.as_ref().map(|t| t.len()).unwrap_or(2);
 
@@ -198,12 +201,11 @@ fn parse_instrument(node: &CSTNode) -> Result<InstrumentToken, String> {
 }
 
 // Helper function to extract numeric value from command nodes
-// NOTE: Despite grammar specifying field('value', optional($.duration)),
-// tree-sitter puts the duration node in children array, not in fields.value
 fn extract_numeric_value(node: &CSTNode) -> Option<u32> {
-    node.children
-        .iter()
-        .find(|n| n.node_type == "duration")
+    node.fields
+        .get("value")
+        .and_then(|v| v.iter().find(|n| n.node_type == "duration"))
+        .or_else(|| node.children.iter().find(|n| n.node_type == "duration"))
         .and_then(|n| n.text.as_ref())
         .and_then(|t| t.parse::<u32>().ok())
 }
@@ -230,12 +232,11 @@ fn parse_gate_time(node: &CSTNode) -> Result<GateTimeToken, String> {
 }
 
 fn parse_key_transpose(node: &CSTNode) -> Result<KeyTransposeToken, String> {
-    // NOTE: Despite grammar specifying field('value', optional($.signed_number)),
-    // tree-sitter puts the signed_number node in children array, not in fields.value
     let value = node
-        .children
-        .iter()
-        .find(|n| n.node_type == "signed_number")
+        .fields
+        .get("value")
+        .and_then(|v| v.iter().find(|n| n.node_type == "signed_number"))
+        .or_else(|| node.children.iter().find(|n| n.node_type == "signed_number"))
         .and_then(|n| n.text.as_ref())
         .and_then(|t| t.parse::<i32>().ok());
 
@@ -248,50 +249,33 @@ fn parse_chord(node: &CSTNode) -> Result<ChordToken, String> {
     let mut notes = Vec::new();
     let mut duration = None;
     let mut dots_count = 0;
+    let mut octave_offset = 0;
 
-    // First chord_note is in children[0], but dots may also appear in children
-    if let Some(first_note) = node.children.first() {
-        if first_note.node_type == "chord_note" {
-            // Extract duration from first note if present
-            if duration.is_none() {
-                duration = first_note
-                    .fields
-                    .get("duration")
-                    .and_then(|v| v.first())
-                    .and_then(|n| n.text.as_ref())
-                    .and_then(|t| t.parse::<u32>().ok());
+    for child in &node.children {
+        match child.node_type.as_str() {
+            "chord_note" => {
+                if duration.is_none() {
+                    duration = child
+                        .fields
+                        .get("duration")
+                        .and_then(|v| v.first())
+                        .and_then(|n| n.text.as_ref())
+                        .and_then(|t| t.parse::<u32>().ok());
+                }
+                notes.push(parse_chord_note(child, octave_offset)?);
             }
-            notes.push(parse_chord_note(first_note)?);
-        } else if first_note.node_type == "dots" {
-            // Dots might be in children
-            if let Some(text) = &first_note.text {
-                dots_count = text.len() as u32;
+            "octave_up" => {
+                octave_offset += 1;
             }
-        }
-    }
-
-    // Process remaining children for dots
-    for child in &node.children[1..] {
-        if child.node_type == "dots" {
-            if let Some(text) = &child.text {
-                dots_count = text.len() as u32;
+            "octave_down" => {
+                octave_offset -= 1;
             }
-        }
-    }
-
-    // NOTE: Grammar specifies field('notes', repeat1($.chord_note)), but tree-sitter
-    // places the first note in children[0] and remaining notes in fields.notes
-    // Additionally, dots can end up in fields.notes array due to grammar issues
-    if let Some(note_nodes) = node.fields.get("notes") {
-        for note_node in note_nodes {
-            if note_node.node_type == "chord_note" {
-                notes.push(parse_chord_note(note_node)?);
-            } else if note_node.node_type == "dots" {
-                // Tree-sitter incorrectly puts dots in fields.notes array
-                if let Some(text) = &note_node.text {
+            "dots" => {
+                if let Some(text) = &child.text {
                     dots_count = text.len() as u32;
                 }
             }
+            _ => {}
         }
     }
 
@@ -303,6 +287,14 @@ fn parse_chord(node: &CSTNode) -> Result<ChordToken, String> {
             .and_then(|v| v.first())
             .and_then(|n| n.text.as_ref())
             .map(|t| t.len() as u32)
+            .or_else(|| {
+                node.text.as_ref().map(|text| {
+                    text.chars()
+                        .rev()
+                        .take_while(|ch| *ch == '.')
+                        .count() as u32
+                })
+            })
             .unwrap_or(0);
     }
 
@@ -320,7 +312,7 @@ fn parse_chord(node: &CSTNode) -> Result<ChordToken, String> {
     })
 }
 
-fn parse_chord_note(node: &CSTNode) -> Result<ChordNote, String> {
+fn parse_chord_note(node: &CSTNode, octave_offset: i32) -> Result<ChordNote, String> {
     let pitch_node = node
         .fields
         .get("pitch")
@@ -347,7 +339,11 @@ fn parse_chord_note(node: &CSTNode) -> Result<ChordNote, String> {
         .and_then(|n| n.text.clone())
         .unwrap_or_default();
 
-    Ok(ChordNote { note, accidental })
+    Ok(ChordNote {
+        note,
+        accidental,
+        octave_offset,
+    })
 }
 
 fn parse_track_separator(node: &CSTNode) -> Result<TrackSeparatorToken, String> {

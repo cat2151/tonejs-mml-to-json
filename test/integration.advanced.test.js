@@ -21,6 +21,59 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(notes).toEqual(['c4', 'e4', 'g4']);
     });
 
+    it('should treat octave changes inside a chord as applying to subsequent chord notes', () => {
+      const mml = "o4'c<g'";
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const chordEvent = json.find(e => e.eventType === 'triggerAttackRelease');
+      expect(chordEvent.args[0]).toEqual(['c4', 'g5']);
+    });
+
+    it('should keep the outer track octave unchanged after chord-local octave changes', () => {
+      const mml = "o4'c<g' a";
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const events = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(events).toHaveLength(2);
+      expect(events[0].args[0]).toEqual(['c4', 'g5']);
+      expect(events[1].args[0]).toBe('a4');
+    });
+
+    it('should handle multiple chord-local octave increases', () => {
+      const mml = "o4'c<g<a' a";
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const events = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(events).toHaveLength(2);
+      expect(events[0].args[0]).toEqual(['c4', 'g5', 'a6']);
+      expect(events[1].args[0]).toBe('a4');
+    });
+
+    it('should handle chord-local octave changes before the first note and between notes', () => {
+      const mml = "o4'>c<ga' a";
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const events = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(events).toHaveLength(2);
+      expect(events[0].args[0]).toEqual(['c3', 'g4', 'a4']);
+      expect(events[1].args[0]).toBe('a4');
+    });
+
+    it('should handle chord-local octave changes before the first note only', () => {
+      const mml = "o4'>cga' a";
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const events = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(events).toHaveLength(2);
+      expect(events[0].args[0]).toEqual(['c3', 'g3', 'a3']);
+      expect(events[1].args[0]).toBe('a4');
+    });
+
     it('should convert chord with duration and dots', () => {
       // Duration inside quotes, dots after closing quote (mml2abc format)
       const mml = "'c4eg'.";

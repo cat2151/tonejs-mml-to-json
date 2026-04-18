@@ -125,14 +125,17 @@ mod tests {
                     ChordNote {
                         note: 'c',
                         accidental: "".to_string(),
+                        octave_offset: 0,
                     },
                     ChordNote {
                         note: 'e',
                         accidental: "".to_string(),
+                        octave_offset: 0,
                     },
                     ChordNote {
                         note: 'g',
                         accidental: "".to_string(),
+                        octave_offset: 0,
                     },
                 ],
                 duration: None,

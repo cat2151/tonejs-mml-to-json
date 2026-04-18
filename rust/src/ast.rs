@@ -1,5 +1,9 @@
 use serde::{Deserialize, Serialize};
 
+fn is_zero_i32(value: &i32) -> bool {
+    *value == 0
+}
+
 /// AST Token types representing parsed MML commands
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
@@ -43,6 +47,8 @@ pub struct ChordToken {
 pub struct ChordNote {
     pub note: char,
     pub accidental: String,
+    #[serde(default, skip_serializing_if = "is_zero_i32")]
+    pub octave_offset: i32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

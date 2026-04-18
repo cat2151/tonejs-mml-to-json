@@ -264,6 +264,7 @@ fn parse_chord(node: &Node, source: &str) -> Result<ChordToken, String> {
     let mut notes = Vec::new();
     let mut duration: Option<u32> = None;
     let mut dots = 0;
+    let mut octave_offset = 0;
 
     let mut cursor = node.walk();
     if cursor.goto_first_child() {
@@ -271,16 +272,32 @@ fn parse_chord(node: &Node, source: &str) -> Result<ChordToken, String> {
             let child = cursor.node();
             let field_name = cursor.field_name();
 
-            match field_name {
-                // Each chord_note is a separate "notes" field in the parse tree
-                // e.g., 'ceg' produces three siblings each with field_name "notes"
-                Some("notes") => {
-                    notes.push(parse_chord_note(&child, source)?);
+            match child.kind() {
+                "chord_note" => {
+                    if duration.is_none() {
+                        let mut note_cursor = child.walk();
+                        if note_cursor.goto_first_child() {
+                            loop {
+                                let note_child = note_cursor.node();
+                                if note_cursor.field_name() == Some("duration") {
+                                    duration = Some(parse_duration(&note_child, source)?);
+                                    break;
+                                }
+                                if !note_cursor.goto_next_sibling() {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    notes.push(parse_chord_note(&child, source, octave_offset)?);
                 }
-                Some("duration") => {
-                    duration = Some(parse_duration(&child, source)?);
+                "octave_up" => {
+                    octave_offset += 1;
                 }
-                Some("dots") => {
+                "octave_down" => {
+                    octave_offset -= 1;
+                }
+                _ if field_name == Some("dots") => {
                     dots += 1;
                 }
                 _ => {}
@@ -303,7 +320,7 @@ fn parse_chord(node: &Node, source: &str) -> Result<ChordToken, String> {
     })
 }
 
-fn parse_chord_note(node: &Node, source: &str) -> Result<ChordNote, String> {
+fn parse_chord_note(node: &Node, source: &str, octave_offset: i32) -> Result<ChordNote, String> {
     let mut note: Option<char> = None;
     let mut accidental = String::new();
 
@@ -333,7 +350,11 @@ fn parse_chord_note(node: &Node, source: &str) -> Result<ChordNote, String> {
 
     let note = note.ok_or_else(|| "Chord note missing pitch".to_string())?;
 
-    Ok(ChordNote { note, accidental })
+    Ok(ChordNote {
+        note,
+        accidental,
+        octave_offset,
+    })
 }
 
 fn parse_duration(node: &Node, source: &str) -> Result<u32, String> {

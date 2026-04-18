@@ -270,18 +270,20 @@ fn process_single_track(ast: &[AstToken], track_node_id: u32) -> Result<(Vec<Com
                 // Build note names for all notes in the chord
                 let mut note_names = Vec::new();
                 for chord_note in &chord.notes {
+                    let chord_octave = (octave as i32 + chord_note.octave_offset).clamp(0, 10) as u32;
+
                     // Apply key transpose with original accidental
                     let (final_note, final_accidental, final_octave) = if key_transpose != 0 {
                         apply_transpose(
                             chord_note.note,
                             &chord_note.accidental,
-                            octave,
+                            chord_octave,
                             key_transpose,
                         )
                     } else {
                         // No transpose: just convert accidental to sharp/flat notation
                         let accidental = convert_accidental(&chord_note.accidental);
-                        (chord_note.note, accidental, octave)
+                        (chord_note.note, accidental, chord_octave)
                     };
 
                     let note_name = format!("{}{}{}", final_note, final_accidental, final_octave);
