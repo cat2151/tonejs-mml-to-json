@@ -84,20 +84,24 @@ console.log(json);
 
 ### `initWasm(): Promise<void>`
 WASMモジュールを初期化します。**すべての変換関数を使用する前に必ず呼び出す必要があります。**
+- **補足**: この初期化では、Rust/WASM 変換モジュールに加えて、ブラウザ/Node.js 側の `web-tree-sitter` パーサも初期化します
 - **エラー**: 初期化に失敗した場合は例外がスローされます
 
 ### `mml2json(mml: string): ToneCommand[]`
 MML文字列をTone.js JSON形式に直接変換します。これがメインの変換関数です。
+- **内部処理**: `web-tree-sitter` で MML をCSTへパースし、その後 Rust/WASM が `CST -> AST -> Tone.js JSON` の変換を担当します
 - **戻り値**: Tone.jsシーケンサーコマンドの配列
 - **エラー**: `initWasm()` が未実行の場合や、無効なMML構文／WASM側での変換エラーが発生した場合には `Error` 例外がスローされます
 
 ### `mml2ast(mml: string): ASTToken[]`
 MML文字列を抽象構文木（AST）に変換します。
+- **内部処理**: MML の構文解析自体は `web-tree-sitter` が行い、Rust/WASM は `CST -> AST` 変換を担当します
 - **戻り値**: ASTトークンの配列
 - **エラー**: `initWasm()` が未実行の場合や、パース処理でエラーが発生した場合には `Error` 例外がスローされます
 
 ### `ast2json(ast: ASTToken[]): ToneCommand[]`
 抽象構文木（AST）をTone.js JSON形式に変換します。
+- **内部処理**: Rust/WASM が AST から Tone.js JSON への変換を担当します
 - **戻り値**: Tone.jsシーケンサーコマンドの配列
 
 # MMLコマンドリファレンス
@@ -562,12 +566,15 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
   - Rustライブラリクレートとして利用可能
   - WASMコンパイルでブラウザでも動作
   - JavaScript実装と100%互換
+  - ブラウザでは Rust がすべてのパースを担当するわけではなく、`web-tree-sitter` が生成したCSTを Rust/WASM が AST / Tone.js JSON に変換します
   - Tree-sitterベースの実装詳細は [rust/IMPLEMENTATION.md](rust/IMPLEMENTATION.md) を参照
 
 ## アーキテクチャ
-- **mml2ast**: MML文字列をASTに変換するパーサー
+- **ブラウザ/Node.js のパース層**: `web-tree-sitter` が `grammar.js` をもとに MML を CST に変換
+- **cst_to_ast（Rust/WASM）**: Tree-sitter のCSTを AST に変換
 - **ast**: AST（抽象構文木）のデータ構造
-- **ast2json**: ASTをTone.js互換JSONに変換
+- **ast2json（Rust/WASM）**: ASTをTone.js互換JSONに変換
+- **ネイティブRust**: feature有効時は Tree-sitter C バインディングを使って Rust 側で `MML -> AST -> JSON` を実行可能
 
 ## 入出力定義
 - ※例示してイメージを可視化する
