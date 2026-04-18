@@ -38,20 +38,156 @@ export async function initParser(wasmPath) {
     parserInitialized = true;
 }
 /**
- * Convert Tree-sitter node to CST JSON format
+ * Convert Tree-sitter node to CST JSON format.
+ *
+ * Note: The checked-in parser WASM may lag behind grammar.js. We normalize the
+ * emitted CST so downstream Rust code consistently receives chord-local octave
+ * changes as ordered chord children.
  */
-function nodeToCSTJson(node) {
+function noteToChordNoteCSTJson(node) {
+    const chordNote = nodeToCSTJson(node);
+    chordNote.type = 'chord_note';
+    return chordNote;
+}
+function notePitchToNoteCSTJson(node) {
+    return {
+        type: 'note',
+        text: node.text,
+        children: [],
+        fields: {
+            pitch: [nodeToCSTJson(node)]
+        }
+    };
+}
+function chordToCSTJson(node) {
+    const result = {
+        type: 'chord',
+        text: node.text,
+        children: [],
+        fields: {}
+    };
+    for (let i = 0; i < node.namedChildCount; i++) {
+        const child = node.namedChild(i);
+        if (!child) {
+            continue;
+        }
+        const fieldName = node.fieldNameForNamedChild(i);
+        if (fieldName === 'notes' || child.type === 'chord_note') {
+            result.children.push(nodeToCSTJson(child));
+            continue;
+        }
+        if (fieldName === 'dots' || child.type === 'dots') {
+            if (!result.fields.dots) {
+                result.fields.dots = [];
+            }
+            result.fields.dots.push(nodeToCSTJson(child));
+            continue;
+        }
+        if (child.type === 'ERROR' && child.namedChildCount === 1) {
+            const recoveredNode = child.namedChild(0);
+            if (recoveredNode?.type === 'octave_up' || recoveredNode?.type === 'octave_down') {
+                result.children.push(nodeToCSTJson(recoveredNode));
+                continue;
+            }
+        }
+        result.children.push(nodeToCSTJson(child));
+    }
+    return result;
+}
+function sourceFileToCSTJson(node) {
     const result = {
         type: node.type,
         text: node.text,
         children: [],
         fields: {}
     };
-    // Process named children
+    for (let i = 0; i < node.namedChildCount; i++) {
+        const child = node.namedChild(i);
+        if (!child) {
+            continue;
+        }
+        const isOpeningQuoteError = child.type === 'ERROR' && child.text === "'";
+        const isPartialChord = child.type === 'chord' && child.text.startsWith("'") && !child.text.endsWith("'");
+        if (isOpeningQuoteError || isPartialChord) {
+            const chordChildren = [];
+            let chordText = child.text;
+            if (isPartialChord) {
+                const partialChord = chordToCSTJson(child);
+                chordChildren.push(...partialChord.children);
+                chordText = partialChord.text;
+            }
+            let closed = false;
+            const trailingChildren = [];
+            while (i + 1 < node.namedChildCount) {
+                i += 1;
+                const innerNode = node.namedChild(i);
+                if (!innerNode) {
+                    continue;
+                }
+                if (innerNode.type === 'ERROR' && innerNode.text.startsWith("'")) {
+                    chordText += "'";
+                    for (let j = 0; j < innerNode.namedChildCount; j++) {
+                        const trailingNode = innerNode.namedChild(j);
+                        if (trailingNode) {
+                            if (trailingNode.type === 'note_pitch') {
+                                trailingChildren.push(notePitchToNoteCSTJson(trailingNode));
+                            }
+                            else {
+                                trailingChildren.push(nodeToCSTJson(trailingNode));
+                            }
+                        }
+                    }
+                    closed = true;
+                    break;
+                }
+                chordText += innerNode.text;
+                if (innerNode.type === 'note') {
+                    chordChildren.push(noteToChordNoteCSTJson(innerNode));
+                    continue;
+                }
+                if (innerNode.type === 'octave_up' || innerNode.type === 'octave_down') {
+                    chordChildren.push(nodeToCSTJson(innerNode));
+                    continue;
+                }
+                if (innerNode.type === 'ERROR' && innerNode.namedChildCount === 1) {
+                    const recoveredNode = innerNode.namedChild(0);
+                    if (recoveredNode?.type === 'octave_up' || recoveredNode?.type === 'octave_down') {
+                        chordChildren.push(nodeToCSTJson(recoveredNode));
+                    }
+                }
+            }
+            if (closed || isPartialChord) {
+                result.children.push({
+                    type: 'chord',
+                    text: chordText,
+                    children: chordChildren,
+                    fields: {}
+                });
+                result.children.push(...trailingChildren);
+                continue;
+            }
+        }
+        result.children.push(nodeToCSTJson(child));
+    }
+    return result;
+}
+function nodeToCSTJson(node) {
+    if (node.type === 'source_file') {
+        return sourceFileToCSTJson(node);
+    }
+    if (node.type === 'chord') {
+        return chordToCSTJson(node);
+    }
+    const result = {
+        type: node.type,
+        text: node.text,
+        children: [],
+        fields: {}
+    };
     for (let i = 0; i < node.namedChildCount; i++) {
         const child = node.namedChild(i);
         if (child) {
-            const fieldName = node.fieldNameForChild(i);
+            const fieldName = node.fieldNameForNamedChild(i);
             const childJson = nodeToCSTJson(child);
             if (fieldName) {
                 if (!result.fields[fieldName]) {

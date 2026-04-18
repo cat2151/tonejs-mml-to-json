@@ -55,6 +55,7 @@ export interface KeyTransposeToken {
 export interface ChordNote {
     note: string;
     accidental: string;
+    octaveOffset?: number;
 }
 export interface ChordToken {
     type: 'chord';
