@@ -4,7 +4,7 @@
  * This module uses web-tree-sitter for parsing in the browser and Node.js.
  * It follows the Tree-sitter approach where grammar.js is the Single Source of Truth (SSOT).
  */
-import * as TreeSitter from 'web-tree-sitter';
+import * as TreeSitter from './web-tree-sitter.js';
 import { cst_to_ast_wasm } from '../pkg/tonejs_mml_to_json.js';
 let parser = null;
 let parserInitialized = false;
