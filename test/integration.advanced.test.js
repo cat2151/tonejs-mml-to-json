@@ -74,6 +74,18 @@ describe('Integration: mml2ast + ast2json', () => {
       expect(events[1].args[0]).toBe('a4');
     });
 
+    it('should sequence adjacent single-note chords with chord-local octave changes', () => {
+      const mml = "'<c1''<c'";
+      const ast = mml2ast(mml);
+      const json = ast2json(ast);
+
+      const events = json.filter(e => e.eventType === 'triggerAttackRelease');
+      expect(events).toHaveLength(2);
+
+      expect(events[0].args).toEqual([['c5'], '768i', '+0i']);
+      expect(events[1].args).toEqual([['c5'], '96i', '+768i']);
+    });
+
     it('should convert chord with duration and dots', () => {
       // Duration inside quotes, dots after closing quote (mml2abc format)
       const mml = "'c4eg'.";

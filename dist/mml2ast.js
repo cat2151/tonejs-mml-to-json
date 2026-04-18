@@ -4,7 +4,7 @@
  * This module uses web-tree-sitter for parsing in the browser and Node.js.
  * It follows the Tree-sitter approach where grammar.js is the Single Source of Truth (SSOT).
  */
-import * as TreeSitter from './web-tree-sitter.js';
+import * as TreeSitter from 'web-tree-sitter';
 import { cst_to_ast_wasm } from '../pkg/tonejs_mml_to_json.js';
 let parser = null;
 let parserInitialized = false;
@@ -109,8 +109,20 @@ function sourceFileToCSTJson(node) {
         const isOpeningQuoteError = child.type === 'ERROR' && child.text === "'";
         const isPartialChord = child.type === 'chord' && child.text.startsWith("'") && !child.text.endsWith("'");
         if (isOpeningQuoteError || isPartialChord) {
-            const chordChildren = [];
+            const recoveredChords = [];
+            let chordChildren = [];
             let chordText = child.text;
+            const pushRecoveredChord = () => {
+                if (chordChildren.length === 0) {
+                    return;
+                }
+                recoveredChords.push({
+                    type: 'chord',
+                    text: chordText,
+                    children: chordChildren,
+                    fields: {}
+                });
+            };
             if (isPartialChord) {
                 const partialChord = chordToCSTJson(child);
                 chordChildren.push(...partialChord.children);
@@ -122,6 +134,13 @@ function sourceFileToCSTJson(node) {
                 i += 1;
                 const innerNode = node.namedChild(i);
                 if (!innerNode) {
+                    continue;
+                }
+                if (innerNode.type === 'chord' && innerNode.text === "''") {
+                    chordText += "'";
+                    pushRecoveredChord();
+                    chordChildren = [];
+                    chordText = "'";
                     continue;
                 }
                 if (innerNode.type === 'ERROR' && innerNode.text.startsWith("'")) {
@@ -157,12 +176,8 @@ function sourceFileToCSTJson(node) {
                 }
             }
             if (closed || isPartialChord) {
-                result.children.push({
-                    type: 'chord',
-                    text: chordText,
-                    children: chordChildren,
-                    fields: {}
-                });
+                pushRecoveredChord();
+                result.children.push(...recoveredChords);
                 result.children.push(...trailingChildren);
                 continue;
             }

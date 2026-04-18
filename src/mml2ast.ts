@@ -212,8 +212,22 @@ function sourceFileToCSTJson(node: TreeSitter.Node): any {
     const isPartialChord = child.type === 'chord' && child.text.startsWith("'") && !child.text.endsWith("'");
 
     if (isOpeningQuoteError || isPartialChord) {
-      const chordChildren: any[] = [];
+      const recoveredChords: any[] = [];
+      let chordChildren: any[] = [];
       let chordText = child.text;
+
+      const pushRecoveredChord = () => {
+        if (chordChildren.length === 0) {
+          return;
+        }
+
+        recoveredChords.push({
+          type: 'chord',
+          text: chordText,
+          children: chordChildren,
+          fields: {}
+        });
+      };
 
       if (isPartialChord) {
         const partialChord = chordToCSTJson(child);
@@ -227,6 +241,14 @@ function sourceFileToCSTJson(node: TreeSitter.Node): any {
         i += 1;
         const innerNode = node.namedChild(i);
         if (!innerNode) {
+          continue;
+        }
+
+        if (innerNode.type === 'chord' && innerNode.text === "''") {
+          chordText += "'";
+          pushRecoveredChord();
+          chordChildren = [];
+          chordText = "'";
           continue;
         }
 
@@ -267,12 +289,8 @@ function sourceFileToCSTJson(node: TreeSitter.Node): any {
       }
 
       if (closed || isPartialChord) {
-        result.children.push({
-          type: 'chord',
-          text: chordText,
-          children: chordChildren,
-          fields: {}
-        });
+        pushRecoveredChord();
+        result.children.push(...recoveredChords);
         result.children.push(...trailingChildren);
         continue;
       }

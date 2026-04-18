@@ -261,6 +261,29 @@ describe('mml2ast', () => {
         { note: 'a', accidental: '', octaveOffset: -1 }
       ]);
     });
+
+    it('should keep adjacent single-note chords separate when they use chord-local octave changes', () => {
+      const result = mml2ast("'<c1''<c'");
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        type: 'chord',
+        notes: [
+          { note: 'c', accidental: '', octaveOffset: 1 }
+        ],
+        duration: 1,
+        dots: 0,
+        length: 5
+      });
+      expect(result[1]).toEqual({
+        type: 'chord',
+        notes: [
+          { note: 'c', accidental: '', octaveOffset: 1 }
+        ],
+        duration: null,
+        dots: 0,
+        length: 4
+      });
+    });
   });
 
   describe('Tempo command', () => {
