@@ -43,26 +43,6 @@ MML文字列 → [Tree-sitter] → CST → [cst_to_ast (Rust/WASM)] → AST → 
 - **ブラウザ**: `web-tree-sitter` (JS) でパース、Rust/WASM で CST→AST→JSON 変換
 - **ネイティブ Rust**: Tree-sitter C バインディング（`tree-sitter` feature フラグ）
 
-## 主要ファイル
-
-| 役割 | 場所 |
-|------|------|
-| MML文法 (SSOT) | `tree-sitter-mml/grammar.js` |
-| CST→AST変換 | `rust/src/cst_to_ast.rs` |
-| AST→JSON変換 | `rust/src/ast2json.rs` |
-| AST型定義 | `rust/src/ast.rs` |
-| TypeScriptエントリ | `src/index.ts` |
-| テストセットアップ | `test/setup.js` |
-
-## ビルド・テスト
-
-```bash
-pnpm run build      # フルビルド（WASM + TS + libs）
-pnpm test           # vitest テスト
-pnpm run test:wasm  # WASM統合テスト
-pnpm run dev        # 開発用watchモード
-```
-
 ## dist/ のレビューについて
 
 **重要**: `dist/` はCIで自動生成されます。main ブランチへの push 時に CI（`build-dist.yml`）が `dist/` と `pkg/` を再生成してコミットします。そのため、PRのレビュー時は `dist/` についてレビューしないでください。`dist/` が古い・新しいといったレビューコメントは不要です。
@@ -77,4 +57,4 @@ pnpm run dev        # 開発用watchモード
 6. `test/mml2ast.test.js` と `test/ast2json.test.js` にテスト追加
 
 ## その他
-- PRコメントは日本語で書いてください
+- プルリクエストは日本語で書いてください
