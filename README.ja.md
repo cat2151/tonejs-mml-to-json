@@ -1,7 +1,5 @@
 # tonejs-mml-to-json
 
-**`MML` to `Tone.js JSON Sequencer Format` Converter**
-
 <p align="left">
   <a href="https://deepwiki.com/cat2151/tonejs-mml-to-json"><img src="https://img.shields.io/badge/DeepWiki-Documentation-blue?logo=book" alt="DeepWiki"></a>
   <a href="README.ja.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
@@ -10,12 +8,22 @@
   <a href="https://cat2151.github.io/tonejs-mml-to-json/demo-library/"><img src="https://img.shields.io/badge/📚-demo--library-orange.svg" alt="demo-library"></a>
 </p>
 
-## 状況
-- このドキュメントには、応急のAI生成文章が含まれており、読みづらいです。今後、人間の手で読みやすく修正していく予定です。
+**`MML` to `Tone.js JSON Sequencer Format` Converter**
 
-## デモ
-- [Live Demo](https://cat2151.github.io/tonejs-mml-to-json/index.html) - ブラウザで直接MMLを試して音楽を再生できます
-- [demo-library](https://cat2151.github.io/tonejs-mml-to-json/demo-library/) - ライブラリとしての利用例を確認できます
+## Demo
+- [Demo](https://cat2151.github.io/tonejs-mml-to-json/index.html)
+- [ライブラリ利用方法](https://cat2151.github.io/tonejs-mml-to-json/demo-library/)
+
+## これはなに？
+- 「cde」を書けばドレミが鳴る。テキストで音楽を記述し、ブラウザで演奏できます
+- Tone.js用のMML（Music Macro Language）です
+
+## 詳しく
+- MMLを、JSONに変換するライブラリです
+- JSONの再生には別途ライブラリ（`tonejs-json-sequencer`）を利用します
+
+## 状況
+- このドキュメントには、応急のAI生成文章が含まれており、読みづらいです。現在、人間の手で読みやすく修正中です。
 
 ## 実装方針
 このプロジェクトは **Tree-sitter** を使用してMMLをパースします。
@@ -31,22 +39,6 @@
   - grammar.jsをSSOTとして扱う設計パターン
   - C生成とWASM生成の両方をサポートする方法
   - 本プロジェクトのTree-sitter実装の基礎となっています
-
-## Quick Links
-| 項目 | リンク |
-|------|--------|
-| 🎵 Demo | https://cat2151.github.io/tonejs-mml-to-json/index.html |
-| 📦 NPM Package | [npm install tonejs-mml-to-json](https://www.npmjs.com/package/tonejs-mml-to-json) |
-| 📚 ライブラリ利用デモ | [demo-library](https://cat2151.github.io/tonejs-mml-to-json/demo-library/) |
-| 🦀 Rust実装詳細 | [rust/IMPLEMENTATION.md](rust/IMPLEMENTATION.md) |
-
-# 概要
-- MML（Music Macro Language）で書いた音楽を、ブラウザで再生できるJSON形式に変換します
-- 簡単なテキストで音楽を作成し、ウェブサイトで演奏することができます
-- npmパッケージおよびCDN経由で利用可能で、プロジェクトへの統合が簡単です
-- 音楽の変換部分に特化したツールで、実際の再生は別プロジェクト（`tonejs-json-sequencer`）が担当します
-
-
 
 # 使い方
 
@@ -539,10 +531,6 @@ tonejs-json-sequencer で表現可能な音楽要素を、本ライブラリのM
 - [tonejs-json-sequencer README](https://github.com/cat2151/tonejs-json-sequencer/blob/main/README.ja.md)
 - [Tone.js コンポーネント JSON対応ロードマップ](https://github.com/cat2151/tonejs-json-sequencer/blob/main/docs/tonejs-components-roadmap.ja.md)
 - [Tone.js 公式ドキュメント](https://tonejs.github.io/)
-
-## 更新履歴
-
-- 2026-01-12: tonejs-json-sequencer の調査結果を初版作成
 
 # notes
 - MML（Music Macro Language）で音楽を書くメリットは？
